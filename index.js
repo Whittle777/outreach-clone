@@ -3,6 +3,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
+const prospectsRoutes = require('./routes/prospects');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +15,7 @@ app.use(express.json());
 // Routes
 app.use('/auth', authRoutes);
 app.use('/users', usersRoutes);
+app.use('/prospects', prospectsRoutes);
 
 app.get('/', (req, res) => {
   res.json({ status: 'OK', message: 'Outreach Clone API' });
