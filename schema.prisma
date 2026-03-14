@@ -29,34 +29,23 @@ model Prospect {
 }
 
 model Sequence {
-  id        Int      @id @default(autoincrement())
-  name      String
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  steps     SequenceStep[]
-  createdAt DateTime @default(now())
+  id          Int          @id @default(autoincrement())
+  name        String
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id])
+  steps       SequenceStep []
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model SequenceStep {
-  id        Int      @id @default(autoincrement())
-  sequenceId Int
-  order     Int
-  delayDays Int      @default(0)
-  subject   String
-  body      String
-  sequence  Sequence @relation(fields: [sequenceId], references: [id])
-}
-
-model EmailActivity {
-  id            Int      @id @default(autoincrement())
-  userId        Int
-  prospectId    Int
-  sequenceStepId Int
-  subject       String
-  body          String
-  status        String   @default("Pending")
-  sentAt        DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id])
-  prospect      Prospect @relation(fields: [prospectId], references: [id])
-  sequenceStep  SequenceStep @relation(fields: [sequenceStepId], references: [id])
+  id          Int          @id @default(autoincrement())
+  sequenceId  Int
+  sequence    Sequence     @relation(fields: [sequenceId], references: [id])
+  order       Int
+  delayDays   Int
+  subject     String
+  body        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
