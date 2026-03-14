@@ -1,35 +1,17 @@
-const mongoose = require('mongoose');
+const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
+const prisma = new PrismaClient();
 
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  password: {
-    type: String,
-    required: true
-  }
-});
+async function hashPassword(password) {
+  return await bcrypt.hash(password, 10);
+}
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    return next();
-  }
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
+async function comparePassword(candidatePassword, hashedPassword) {
+  return await bcrypt.compare(candidatePassword, hashedPassword);
+}
 
-// Compare password
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+module.exports = {
+  hashPassword,
+  comparePassword,
+  prisma
 };
-
-module.exports = mongoose.model('User', userSchema);
