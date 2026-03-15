@@ -21,6 +21,11 @@ async function validateWebhookPayload(payload) {
   if (!payload.newStatus || typeof payload.newStatus !== 'string') {
     return false;
   }
+  // Additional validation logic for newStatus
+  const validStatuses = ['Uncontacted', 'Bounced', 'Replied'];
+  if (!validStatuses.includes(payload.newStatus)) {
+    return false;
+  }
   return true;
 }
 
