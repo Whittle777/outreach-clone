@@ -4,6 +4,7 @@ const Broadway = require('broadway');
 const { validateEmailBatch } = require('./validation');
 const { checkRateLimit, resetRateLimit, handleRateLimitError } = require('./rateLimiting');
 const { getShard } = require('./getShard'); // Assuming getShard is in a separate file
+const { google } = require('googleapis');
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -60,6 +61,28 @@ async function run() {
           })),
         });
       }),
+      Broadway.stage('sendEmail', async (messages) => {
+        const auth = new google.auth.GoogleAuth({
+          scopes: ['https://www.googleapis.com/auth/gmail.send'],
+        });
+        const accessToken = await auth.getClient().getAccessToken();
+        const gmail = google.gmail({ version: 'v1', auth });
+
+        for (const message of messages) {
+          const { prospectId, bento, emailContent } = message;
+          const encodedMessage = Buffer.from(emailContent).toString('base64');
+          const email = {
+            raw: encodedMessage,
+          };
+
+          await gmail.users.messages.send({
+            userId: 'me',
+            resource: email,
+          });
+
+          console.log(`Email sent to prospectId: ${prospectId}`);
+        }
+      }),
     ],
   });
 
@@ -87,6 +110,7 @@ async function simulateHighLoad(numMessages) {
       prospectId: `prospect-${i}`,
       bento: i % 3,
       newStatus: 'Dispatched',
+      emailContent: 'SGVsbG8gV29ybGQh', // Base64 encoded "Hello World!"
     });
   }
 
