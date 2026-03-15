@@ -23,6 +23,13 @@ async function getSequenceById(id, bento) {
   });
 }
 
+async function getSequencesByUserId(userId, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].sequence.findMany({
+    where: { userId },
+  });
+}
+
 async function updateSequence(id, name, bento, schemaTag = "default", interval = null, nextRun = null) {
   const shard = getShard(bento);
   return await prisma[shard].sequence.update({
@@ -47,6 +54,7 @@ function getShard(bento) {
 module.exports = {
   createSequence,
   getSequenceById,
+  getSequencesByUserId,
   updateSequence,
   deleteSequence,
 };
