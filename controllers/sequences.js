@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const enforceSchemaTag = require('../middleware/schemaTag');
 
 exports.getAllSequences = async (req, res) => {
   try {
@@ -25,34 +26,41 @@ exports.getSequenceById = async (req, res) => {
   }
 };
 
-exports.createSequence = async (req, res) => {
-  try {
-    const { userId, name, bento } = req.body;
-    const sequence = await prisma.sequence.create({
-      data: {
-        userId,
-        name,
-        bento,
-      },
-    });
-    res.status(201).json(sequence);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create sequence' });
+exports.createSequence = [
+  enforceSchemaTag,
+  async (req, res) => {
+    try {
+      const { userId, name, bento } = req.body;
+      const sequence = await prisma.sequence.create({
+        data: {
+          userId,
+          name,
+          bento,
+          schemaTag: req.schemaTag,
+        },
+      });
+      res.status(201).json(sequence);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create sequence' });
+    }
   }
-};
+];
 
-exports.updateSequence = async (req, res) => {
-  try {
-    const { name, bento } = req.body;
-    const sequence = await prisma.sequence.update({
-      where: { id: parseInt(req.params.id) },
-      data: { name, bento },
-    });
-    res.json(sequence);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update sequence' });
+exports.updateSequence = [
+  enforceSchemaTag,
+  async (req, res) => {
+    try {
+      const { name, bento } = req.body;
+      const sequence = await prisma.sequence.update({
+        where: { id: parseInt(req.params.id) },
+        data: { name, bento, schemaTag: req.schemaTag },
+      });
+      res.json(sequence);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update sequence' });
+    }
   }
-};
+];
 
 exports.deleteSequence = async (req, res) => {
   try {
