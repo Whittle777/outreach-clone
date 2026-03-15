@@ -17,7 +17,7 @@ Master list of all planned features.
    - [x] Interval-Based Scheduling
    - [x] Event-Driven State Machine
 5. [ ] Message Pipeline & Backpressure (Phase 4):
-   - [ ] Distributed Message Brokers
+   - [x] Distributed Message Brokers
    - [ ] Pipeline Concurrency
    - [ ] Backpressure Handling
 6. [ ] Provider Integrations (Phase 5):
