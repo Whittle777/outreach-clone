@@ -3570,3 +3570,79 @@
 +            2. Act as a Senior Tech Lead: Extrapolate that single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
 +            3. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
 +            
+
+# 2026-03-15 12:36:35.932383
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-15 12:36:35.932618
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-15 13:12:04.617855
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
+
+# 2026-03-15 13:12:04.617945
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
+
+# 2026-03-15 13:13:19.722620
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-15 13:13:19.722772
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-15 13:15:47.047007
++
++                    You just wrote code for the task: "2. [ ] Build standard CRUD routes for Sequences (including Sequence Steps)".
++                    However, the verification test (npm run build) failed with this error:
++                    
++                    ```text
++                    npm error Missing script: "build"
++npm error
++npm error To see a list of scripts, run:
++npm error   npm run
++npm error A complete log of this run can be found in: /Users/Henry.Whittle/.npm/_logs/2026-03-15T20_15_45_071Z-debug-0.log
++
++                    ```
++                    
++                    Fix the code so the build passes. DO NOT edit documentation.
++                    
+
+# 2026-03-15 13:15:47.047143
++
++                    You just wrote code for the task: "2. [ ] Build standard CRUD routes for Sequences (including Sequence Steps)".
++                    However, the verification test (npm run build) failed with this error:
++                    
++                    ```text
++                    npm error Missing script: "build"
++npm error
++npm error To see a list of scripts, run:
++npm error   npm run
++npm error A complete log of this run can be found in: /Users/Henry.Whittle/.npm/_logs/2026-03-15T20_15_45_071Z-debug-0.log
++
++                    ```
++                    
++                    Fix the code so the build passes. DO NOT edit documentation.
++                    

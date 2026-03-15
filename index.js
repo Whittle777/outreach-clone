@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
 const prospectsRoutes = require('./routes/prospects');
 const sequencesRouter = require('./routes/sequences');
+const sequenceStepsRouter = require('./routes/sequenceSteps');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use('/auth', authRoutes);
 app.use('/users', usersRoutes);
 app.use('/prospects', prospectsRoutes);
 app.use('/sequences', sequencesRouter);
+app.use('/sequenceSteps', sequenceStepsRouter);
 
 app.get('/', (req, res) => {
   res.json({ status: 'OK', message: 'Outreach Clone API' });
