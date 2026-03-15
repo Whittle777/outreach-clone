@@ -18,7 +18,7 @@ Master list of all planned features.
    - [x] Event-Driven State Machine
 5. [ ] Message Pipeline & Backpressure (Phase 4):
    - [x] Distributed Message Brokers
-   - [ ] Pipeline Concurrency
+   - [x] Pipeline Concurrency
    - [ ] Backpressure Handling
 6. [ ] Provider Integrations (Phase 5):
    - [ ] Authentication Protocols
