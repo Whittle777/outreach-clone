@@ -1,5 +1,4 @@
-const Redis = require('ioredis');
-const redis = new Redis();
+const redis = require('../config/redis');
 
 async function checkRateLimit(prospectId, bento) {
   const key = `rate_limit:${prospectId}:${bento}`;
