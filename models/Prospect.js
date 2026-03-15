@@ -29,11 +29,11 @@ async function getAllProspects(bento) {
   });
 }
 
-async function updateProspect(id, firstName, lastName, email, companyName, status, bento) {
+async function updateProspect(id, { firstName, lastName, email, companyName, status }, bento) {
   const shard = getShard(bento);
   return await prisma[shard].prospect.update({
     where: { id },
-    data: { firstName, lastName, email, companyName, status, bento },
+    data: { firstName, lastName, email, companyName, status },
   });
 }
 
