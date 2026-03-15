@@ -30,13 +30,15 @@ exports.createSequence = [
   enforceSchemaTag,
   async (req, res) => {
     try {
-      const { userId, name, bento } = req.body;
+      const { userId, name, bento, interval, nextRun } = req.body;
       const sequence = await prisma.sequence.create({
         data: {
           userId,
           name,
           bento,
           schemaTag: req.schemaTag,
+          interval,
+          nextRun,
         },
       });
       res.status(201).json(sequence);
@@ -50,10 +52,10 @@ exports.updateSequence = [
   enforceSchemaTag,
   async (req, res) => {
     try {
-      const { name, bento } = req.body;
+      const { name, bento, interval, nextRun } = req.body;
       const sequence = await prisma.sequence.update({
         where: { id: parseInt(req.params.id) },
-        data: { name, bento, schemaTag: req.schemaTag },
+        data: { name, bento, schemaTag: req.schemaTag, interval, nextRun },
       });
       res.json(sequence);
     } catch (error) {

@@ -14,7 +14,7 @@ Master list of all planned features.
    - [x] Cell-Based Sharding
    - [x] Schema Tagging
 4. [ ] Sequencing Engine & State Management (Phase 3):
-   - [ ] Interval-Based Scheduling
+   - [x] Interval-Based Scheduling
    - [ ] Event-Driven State Machine
 5. [ ] Message Pipeline & Backpressure (Phase 4):
    - [ ] Distributed Message Brokers

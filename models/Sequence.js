@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function createSequence(userId, name, bento, schemaTag = "default") {
+async function createSequence(userId, name, bento, schemaTag = "default", interval = null, nextRun = null) {
   const shard = getShard(bento);
   return await prisma[shard].sequence.create({
     data: {
@@ -9,6 +9,8 @@ async function createSequence(userId, name, bento, schemaTag = "default") {
       name,
       bento,
       schemaTag,
+      interval,
+      nextRun,
     },
   });
 }
@@ -21,11 +23,11 @@ async function getSequenceById(id, bento) {
   });
 }
 
-async function updateSequence(id, name, bento, schemaTag = "default") {
+async function updateSequence(id, name, bento, schemaTag = "default", interval = null, nextRun = null) {
   const shard = getShard(bento);
   return await prisma[shard].sequence.update({
     where: { id },
-    data: { name, bento, schemaTag },
+    data: { name, bento, schemaTag, interval, nextRun },
   });
 }
 
