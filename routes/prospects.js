@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect } = require('../models/Prospect');
+const { handleProspectStatusChange } = require('../services/eventHandlers');
 
 router.get('/', async (req, res) => {
   try {
@@ -38,6 +39,8 @@ router.put('/:id', async (req, res) => {
     if (prospect == null) {
       return res.status(404).json({ message: 'Cannot find prospect' });
     }
+    // Trigger event handler for status change
+    await handleProspectStatusChange(req.params.id, req.body.bento, req.body.status);
     res.json(prospect);
   } catch (error) {
     res.status(400).json({ message: error.message });
