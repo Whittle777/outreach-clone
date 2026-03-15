@@ -2,7 +2,7 @@ const kafka = require('../config/kafka');
 const { handleProspectStatusChange } = require('../services/eventHandlers');
 const Broadway = require('broadway');
 const { validateEmailBatch, validateWebhookPayload, validateSPFRecord, validateDMARCPolicy } = require('./validation');
-const { checkRateLimit, resetRateLimit, handleRateLimitError } = require('./rateLimiting');
+const { checkRateLimit, resetRateLimit, handleRateLimitError, checkReputation } = require('./rateLimiting');
 const { getShard } = require('./getShard'); // Assuming getShard is in a separate file
 const { google } = require('googleapis');
 const axios = require('axios');
@@ -55,6 +55,13 @@ async function run() {
           if (!(await checkRateLimit(prospectId, bento))) {
             throw new Error('Rate limit exceeded');
           }
+        }
+        return messages;
+      }),
+      Broadway.stage('checkReputation', async (messages) => {
+        for (const message of messages) {
+          const { bento } = message;
+          await checkReputation(bento);
         }
         return messages;
       }),
