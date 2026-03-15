@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const enforceSchemaTag = require('../middleware/schemaTag');
+const scheduling = require('../services/scheduling');
 
 exports.getAllSequences = async (req, res) => {
   try {
@@ -72,5 +73,15 @@ exports.deleteSequence = async (req, res) => {
     res.json(sequence);
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete sequence' });
+  }
+};
+
+exports.scheduleSequence = async (req, res) => {
+  try {
+    const { sequenceId, bento } = req.body;
+    const nextRun = await scheduling.scheduleSequence(sequenceId, bento);
+    res.json({ nextRun });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to schedule sequence' });
   }
 };
