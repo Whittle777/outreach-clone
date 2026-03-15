@@ -19,7 +19,7 @@ Master list of all planned features.
 5. [ ] Message Pipeline & Backpressure (Phase 4):
    - [x] Distributed Message Brokers
    - [x] Pipeline Concurrency
-   - [ ] Backpressure Handling
+   - [x] Backpressure Handling
 6. [ ] Provider Integrations (Phase 5):
    - [ ] Authentication Protocols
    - [ ] Real-Time Sync
