@@ -1,7 +1,7 @@
 const kafka = require('../config/kafka');
 const { handleProspectStatusChange } = require('../services/eventHandlers');
 const Broadway = require('broadway');
-const { validateEmailBatch } = require('./validation');
+const { validateEmailBatch, validateWebhookPayload } = require('./validation');
 const { checkRateLimit, resetRateLimit, handleRateLimitError } = require('./rateLimiting');
 const { getShard } = require('./getShard'); // Assuming getShard is in a separate file
 const { google } = require('googleapis');

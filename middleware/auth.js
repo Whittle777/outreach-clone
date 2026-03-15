@@ -72,4 +72,23 @@ async function authenticateMicrosoftToken(req, res, next) {
   }
 }
 
-module.exports = { authenticateToken, authenticateGoogleWorkspaceToken, authenticateMicrosoftToken };
+async function authenticateWebhook(req, res, next) {
+  const webhookSecret = process.env.WEBHOOK_SECRET;
+  const signature = req.headers['x-webhook-signature'];
+
+  if (!signature) {
+    return res.status(401).json({ message: 'Access denied. No signature provided.' });
+  }
+
+  const hmac = crypto.createHmac('sha256', webhookSecret);
+  hmac.update(JSON.stringify(req.body));
+  const expectedSignature = hmac.digest('hex');
+
+  if (signature !== expectedSignature) {
+    return res.status(403).json({ message: 'Invalid signature' });
+  }
+
+  next();
+}
+
+module.exports = { authenticateToken, authenticateGoogleWorkspaceToken, authenticateMicrosoftToken, authenticateWebhook };
