@@ -1,0 +1,12 @@
+.aider*
+.env
+
+# OS generated files
+.DS_Store
+.DS_Store?
+
+# Node modules (if you have them)
+node_modules/
+
+# AI Factory Logs
+docs/ERRORS.md
