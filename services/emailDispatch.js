@@ -7,6 +7,7 @@ const { getShard } = require('./getShard'); // Assuming getShard is in a separat
 const { google } = require('googleapis');
 const axios = require('axios');
 const redis = require('redis');
+const { createAbuseComplaint } = require('../models/AbuseComplaint');
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -187,6 +188,12 @@ async function run() {
           await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
         } else if (error.message === 'Invalid DMARC policy') {
           console.error('Invalid DMARC policy for message:', message);
+          // Introduce backpressure by adding a delay
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
+        } else if (error.message === 'Abuse complaint detected') {
+          const { prospectId, bento } = JSON.parse(message.value.toString());
+          await createAbuseComplaint(prospectId, bento);
+          console.error('Abuse complaint detected for message:', message);
           // Introduce backpressure by adding a delay
           await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
         }
