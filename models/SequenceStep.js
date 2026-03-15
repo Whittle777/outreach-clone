@@ -11,6 +11,7 @@ async function createSequenceStep(sequenceId, order, delayDays, subject, body, b
       subject,
       body,
       bento,
+      schemaTag: 'v1', // Add schema tagging
     },
   });
 }
@@ -26,7 +27,7 @@ async function updateSequenceStep(id, order, delayDays, subject, body, bento) {
   const shard = getShard(bento);
   return await prisma[shard].sequenceStep.update({
     where: { id },
-    data: { order, delayDays, subject, body, bento },
+    data: { order, delayDays, subject, body, bento, schemaTag: 'v1' }, // Add schema tagging
   });
 }
 

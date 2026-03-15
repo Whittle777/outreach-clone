@@ -8,6 +8,7 @@ async function createSequence(userId, name, bento) {
       userId,
       name,
       bento,
+      schemaTag: 'v1', // Add schema tagging
     },
   });
 }
@@ -24,7 +25,7 @@ async function updateSequence(id, name, bento) {
   const shard = getShard(bento);
   return await prisma[shard].sequence.update({
     where: { id },
-    data: { name, bento },
+    data: { name, bento, schemaTag: 'v1' }, // Add schema tagging
   });
 }
 

@@ -12,7 +12,7 @@ Master list of all planned features.
 2. [ ] API Design: RESTful endpoints for CRUD operations on Users, Prospects, and Sequences
 3. [ ] Multi-Tenant Infrastructure (Phase 2):
    - [x] Cell-Based Sharding
-   - [ ] Schema Tagging
+   - [x] Schema Tagging
 4. [ ] Sequencing Engine & State Management (Phase 3):
    - [ ] Interval-Based Scheduling
    - [ ] Event-Driven State Machine
