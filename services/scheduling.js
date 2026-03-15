@@ -2,8 +2,10 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const stateMachine = require('./stateMachine');
 const kafka = require('../config/kafka');
+const redis = require('redis');
 
 const producer = kafka.producer();
+const redisClient = redis.createClient();
 
 async function scheduleSequence(sequenceId, bento) {
   const shard = getShard(bento);
@@ -85,6 +87,20 @@ function getShard(bento) {
   return `shard_${bento % 3}`;
 }
 
+async function acquireLock(lockKey) {
+  const lockAcquired = await redisClient.set(lockKey, 'locked', {
+    NX: true, // Only set if the key does not exist
+    EX: 10,   // Expire the lock after 10 seconds
+  });
+  return lockAcquired === 'OK';
+}
+
+async function releaseLock(lockKey) {
+  await redisClient.del(lockKey);
+}
+
 module.exports = {
   scheduleSequence,
+  acquireLock,
+  releaseLock,
 };

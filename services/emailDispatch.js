@@ -6,14 +6,17 @@ const { checkRateLimit, resetRateLimit, handleRateLimitError } = require('./rate
 const { getShard } = require('./getShard'); // Assuming getShard is in a separate file
 const { google } = require('googleapis');
 const axios = require('axios');
+const redis = require('redis');
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
+const redisClient = redis.createClient();
 
 async function run() {
   await producer.connect();
   await consumer.connect();
   await consumer.subscribe({ topic: 'email-dispatch-requests', fromBeginning: true });
+  await redisClient.connect();
 
   const pipeline = Broadway.pipeline({
     stages: [
@@ -44,6 +47,17 @@ async function run() {
         }
         return messages;
       }),
+      Broadway.stage('acquireLock', async (messages) => {
+        for (const message of messages) {
+          const { prospectId, bento } = message;
+          const lockKey = `lock:${prospectId}:${bento}`;
+          const lockAcquired = await acquireLock(lockKey);
+          if (!lockAcquired) {
+            throw new Error('Failed to acquire lock');
+          }
+        }
+        return messages;
+      }),
       Broadway.stage('handleStatusChange', async (messages) => {
         for (const message of messages) {
           const { prospectId, bento, newStatus } = message;
@@ -51,6 +65,14 @@ async function run() {
           console.log(`Email dispatch request processed for prospectId: ${prospectId}`);
           // Introduce a delay to simulate processing time
           await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
+        }
+        return messages;
+      }),
+      Broadway.stage('releaseLock', async (messages) => {
+        for (const message of messages) {
+          const { prospectId, bento } = message;
+          const lockKey = `lock:${prospectId}:${bento}`;
+          await releaseLock(lockKey);
         }
         return messages;
       }),
@@ -126,6 +148,10 @@ async function run() {
           await handleRateLimitError(prospectId, bento);
           // Introduce backpressure by adding a delay
           await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
+        } else if (error.message === 'Failed to acquire lock') {
+          console.error('Failed to acquire lock for message:', message);
+          // Introduce backpressure by adding a delay
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
         }
         console.error('Error processing email dispatch request:', error);
       }
@@ -155,6 +181,18 @@ async function simulateHighLoad(numMessages) {
       }],
     });
   }
+}
+
+async function acquireLock(lockKey) {
+  const lockAcquired = await redisClient.set(lockKey, 'locked', {
+    NX: true, // Only set if the key does not exist
+    EX: 10,   // Expire the lock after 10 seconds
+  });
+  return lockAcquired === 'OK';
+}
+
+async function releaseLock(lockKey) {
+  await redisClient.del(lockKey);
 }
 
 module.exports = { run, simulateHighLoad };

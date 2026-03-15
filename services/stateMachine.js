@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const redis = require('redis');
 
 async function handleProspectStatusChange(prospectId, bento, newStatus) {
   const shard = getShard(bento);
@@ -30,6 +31,20 @@ function getShard(bento) {
   return `shard_${bento % 3}`;
 }
 
+async function acquireLock(lockKey) {
+  const lockAcquired = await redisClient.set(lockKey, 'locked', {
+    NX: true, // Only set if the key does not exist
+    EX: 10,   // Expire the lock after 10 seconds
+  });
+  return lockAcquired === 'OK';
+}
+
+async function releaseLock(lockKey) {
+  await redisClient.del(lockKey);
+}
+
 module.exports = {
   handleProspectStatusChange,
+  acquireLock,
+  releaseLock,
 };
