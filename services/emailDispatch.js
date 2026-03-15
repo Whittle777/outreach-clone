@@ -1,7 +1,7 @@
 const kafka = require('../config/kafka');
 const { handleProspectStatusChange } = require('../services/eventHandlers');
 const Broadway = require('broadway');
-const { validateEmailBatch, validateWebhookPayload, validateSPFRecord } = require('./validation');
+const { validateEmailBatch, validateWebhookPayload, validateSPFRecord, validateDMARCPolicy } = require('./validation');
 const { checkRateLimit, resetRateLimit, handleRateLimitError } = require('./rateLimiting');
 const { getShard } = require('./getShard'); // Assuming getShard is in a separate file
 const { google } = require('googleapis');
@@ -76,6 +76,17 @@ async function run() {
           console.log(`Email dispatch request processed for prospectId: ${prospectId}`);
           // Introduce a delay to simulate processing time
           await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
+        }
+        return messages;
+      }),
+      Broadway.stage('updateDMARCPolicy', async (messages) => {
+        for (const message of messages) {
+          const { prospectId, bento, dmarcPolicy } = message;
+          if (await validateDMARCPolicy(dmarcPolicy)) {
+            await updateProspectDMARCPolicy(prospectId, bento, dmarcPolicy);
+          } else {
+            throw new Error('Invalid DMARC policy');
+          }
         }
         return messages;
       }),
@@ -167,6 +178,10 @@ async function run() {
           console.error('SPF record validation failed for message:', message);
           // Introduce backpressure by adding a delay
           await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
+        } else if (error.message === 'Invalid DMARC policy') {
+          console.error('Invalid DMARC policy for message:', message);
+          // Introduce backpressure by adding a delay
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
         }
         console.error('Error processing email dispatch request:', error);
       }
@@ -185,6 +200,7 @@ async function simulateHighLoad(numMessages) {
       provider: 'google', // or 'microsoft'
       accessToken: 'your_access_token_here',
       refreshToken: 'your_refresh_token_here',
+      dmarcPolicy: 'reject', // Example DMARC policy
     });
   }
 
@@ -208,6 +224,14 @@ async function acquireLock(lockKey) {
 
 async function releaseLock(lockKey) {
   await redisClient.del(lockKey);
+}
+
+async function updateProspectDMARCPolicy(prospectId, bento, dmarcPolicy) {
+  const shard = getShard(bento);
+  return await prisma[shard].prospect.update({
+    where: { id: prospectId },
+    data: { dmarcPolicy },
+  });
 }
 
 module.exports = { run, simulateHighLoad };

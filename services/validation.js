@@ -47,8 +47,14 @@ async function validateSPFRecord(domain) {
   });
 }
 
+async function validateDMARCPolicy(dmarcPolicy) {
+  const validPolicies = ['none', 'quarantine', 'reject'];
+  return validPolicies.includes(dmarcPolicy);
+}
+
 module.exports = {
   validateEmailBatch,
   validateWebhookPayload,
   validateSPFRecord,
+  validateDMARCPolicy,
 };
