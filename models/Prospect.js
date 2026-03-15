@@ -2,7 +2,8 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function createProspect(firstName, lastName, email, companyName, status, bento) {
-  return await prisma.prospect.create({
+  const shard = getShard(bento);
+  return await prisma[shard].prospect.create({
     data: {
       firstName,
       lastName,
@@ -14,29 +15,39 @@ async function createProspect(firstName, lastName, email, companyName, status, b
   });
 }
 
-async function getProspectById(id) {
-  return await prisma.prospect.findUnique({
+async function getProspectById(id, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].prospect.findUnique({
     where: { id },
   });
 }
 
 async function getAllProspects(bento) {
-  return await prisma.prospect.findMany({
+  const shard = getShard(bento);
+  return await prisma[shard].prospect.findMany({
     where: { bento },
   });
 }
 
 async function updateProspect(id, firstName, lastName, email, companyName, status, bento) {
-  return await prisma.prospect.update({
+  const shard = getShard(bento);
+  return await prisma[shard].prospect.update({
     where: { id },
     data: { firstName, lastName, email, companyName, status, bento },
   });
 }
 
-async function deleteProspect(id) {
-  return await prisma.prospect.delete({
+async function deleteProspect(id, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].prospect.delete({
     where: { id },
   });
+}
+
+function getShard(bento) {
+  // Simple sharding logic based on bento value
+  // For example, you can use a hash function or a modulo operation
+  return `shard_${bento % 3}`;
 }
 
 module.exports = {

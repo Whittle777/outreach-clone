@@ -2,7 +2,8 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function createSequence(userId, name, bento) {
-  return await prisma.sequence.create({
+  const shard = getShard(bento);
+  return await prisma[shard].sequence.create({
     data: {
       userId,
       name,
@@ -11,24 +12,33 @@ async function createSequence(userId, name, bento) {
   });
 }
 
-async function getSequenceById(id) {
-  return await prisma.sequence.findUnique({
+async function getSequenceById(id, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].sequence.findUnique({
     where: { id },
     include: { steps: true },
   });
 }
 
 async function updateSequence(id, name, bento) {
-  return await prisma.sequence.update({
+  const shard = getShard(bento);
+  return await prisma[shard].sequence.update({
     where: { id },
     data: { name, bento },
   });
 }
 
-async function deleteSequence(id) {
-  return await prisma.sequence.delete({
+async function deleteSequence(id, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].sequence.delete({
     where: { id },
   });
+}
+
+function getShard(bento) {
+  // Simple sharding logic based on bento value
+  // For example, you can use a hash function or a modulo operation
+  return `shard_${bento % 3}`;
 }
 
 module.exports = {

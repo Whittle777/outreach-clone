@@ -2,7 +2,8 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function createSequenceStep(sequenceId, order, delayDays, subject, body, bento) {
-  return await prisma.sequenceStep.create({
+  const shard = getShard(bento);
+  return await prisma[shard].sequenceStep.create({
     data: {
       sequenceId,
       order,
@@ -14,23 +15,32 @@ async function createSequenceStep(sequenceId, order, delayDays, subject, body, b
   });
 }
 
-async function getSequenceStepsBySequenceId(sequenceId) {
-  return await prisma.sequenceStep.findMany({
+async function getSequenceStepsBySequenceId(sequenceId, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].sequenceStep.findMany({
     where: { sequenceId },
   });
 }
 
 async function updateSequenceStep(id, order, delayDays, subject, body, bento) {
-  return await prisma.sequenceStep.update({
+  const shard = getShard(bento);
+  return await prisma[shard].sequenceStep.update({
     where: { id },
     data: { order, delayDays, subject, body, bento },
   });
 }
 
-async function deleteSequenceStep(id) {
-  return await prisma.sequenceStep.delete({
+async function deleteSequenceStep(id, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].sequenceStep.delete({
     where: { id },
   });
+}
+
+function getShard(bento) {
+  // Simple sharding logic based on bento value
+  // For example, you can use a hash function or a modulo operation
+  return `shard_${bento % 3}`;
 }
 
 module.exports = {
