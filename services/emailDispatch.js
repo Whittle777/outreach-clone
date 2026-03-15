@@ -3,6 +3,7 @@ const { handleProspectStatusChange } = require('../services/eventHandlers');
 const Broadway = require('broadway');
 const { validateEmailBatch } = require('./validation');
 const { checkRateLimit, resetRateLimit, handleRateLimitError } = require('./rateLimiting');
+const { getShard } = require('./getShard'); // Assuming getShard is in a separate file
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -67,6 +68,8 @@ async function run() {
         if (error.message === 'Rate limit exceeded') {
           const { prospectId, bento } = JSON.parse(message.value.toString());
           await handleRateLimitError(prospectId, bento);
+          // Introduce backpressure by adding a delay
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
         }
         console.error('Error processing email dispatch request:', error);
       }
