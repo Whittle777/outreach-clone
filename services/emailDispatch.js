@@ -1,7 +1,7 @@
 const kafka = require('../config/kafka');
 const { handleProspectStatusChange } = require('../services/eventHandlers');
 const Broadway = require('broadway');
-const { validateEmailBatch, validateWebhookPayload } = require('./validation');
+const { validateEmailBatch, validateWebhookPayload, validateSPFRecord } = require('./validation');
 const { checkRateLimit, resetRateLimit, handleRateLimitError } = require('./rateLimiting');
 const { getShard } = require('./getShard'); // Assuming getShard is in a separate file
 const { google } = require('googleapis');
@@ -37,6 +37,17 @@ async function run() {
           throw new Error('Some messages in the batch are invalid');
         }
         return validMessages;
+      }),
+      Broadway.stage('checkSPFRecord', async (messages) => {
+        for (const message of messages) {
+          const { email } = message;
+          const domain = email.split('@')[1];
+          const spfValid = await validateSPFRecord(domain);
+          if (!spfValid) {
+            throw new Error('SPF record validation failed');
+          }
+        }
+        return messages;
       }),
       Broadway.stage('checkRateLimit', async (messages) => {
         for (const message of messages) {
@@ -150,6 +161,10 @@ async function run() {
           await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
         } else if (error.message === 'Failed to acquire lock') {
           console.error('Failed to acquire lock for message:', message);
+          // Introduce backpressure by adding a delay
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
+        } else if (error.message === 'SPF record validation failed') {
+          console.error('SPF record validation failed for message:', message);
           // Introduce backpressure by adding a delay
           await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
         }

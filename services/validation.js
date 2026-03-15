@@ -1,3 +1,5 @@
+const dns = require('dns');
+
 async function validateEmailBatch(messages) {
   // Implement your batch validation logic here
   // For example, check if each email in the batch has a valid format, recipient, etc.
@@ -29,7 +31,24 @@ async function validateWebhookPayload(payload) {
   return true;
 }
 
+async function validateSPFRecord(domain) {
+  return new Promise((resolve, reject) => {
+    dns.resolveTxt(domain, (err, records) => {
+      if (err) {
+        reject(err);
+      }
+      const spfRecords = records.filter(record => record[0].includes('v=spf1'));
+      if (spfRecords.length > 0) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  });
+}
+
 module.exports = {
   validateEmailBatch,
   validateWebhookPayload,
+  validateSPFRecord,
 };

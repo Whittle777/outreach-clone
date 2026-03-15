@@ -27,7 +27,7 @@ Master list of all planned features.
    - [x] Hierarchical Throttles
    - [x] Implementation
 8. [ ] Deliverability & Compliance (Phase 7):
-   - [ ] Cryptographic Authentication
+   - [x] Cryptographic Authentication
    - [ ] Reputation Monitoring
    - [ ] Unsubscribe & Bounce Handling
 9. [ ] Engagement Telemetry (Phase 8):
