@@ -70,4 +70,24 @@ async function run() {
   });
 }
 
-module.exports = { run };
+async function simulateHighLoad(numMessages) {
+  const messages = [];
+  for (let i = 0; i < numMessages; i++) {
+    messages.push({
+      prospectId: `prospect-${i}`,
+      bento: i % 3,
+      newStatus: 'Dispatched',
+    });
+  }
+
+  for (const message of messages) {
+    await producer.send({
+      topic: 'email-dispatch-requests',
+      messages: [{
+        value: JSON.stringify(message),
+      }],
+    });
+  }
+}
+
+module.exports = { run, simulateHighLoad };
