@@ -15,7 +15,7 @@ Master list of all planned features.
    - [x] Schema Tagging
 4. [ ] Sequencing Engine & State Management (Phase 3):
    - [x] Interval-Based Scheduling
-   - [ ] Event-Driven State Machine
+   - [x] Event-Driven State Machine
 5. [ ] Message Pipeline & Backpressure (Phase 4):
    - [ ] Distributed Message Brokers
    - [ ] Pipeline Concurrency
