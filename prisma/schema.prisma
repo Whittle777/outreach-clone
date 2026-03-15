@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Sequence {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  name       String
+  bento      String
+  schemaTag  String    @default("default")
+  interval   Int?      // New scheduling field
+  nextRun    DateTime? // New scheduling field
+  steps      SequenceStep[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model SequenceStep {
+  id         Int       @id @default(autoincrement())
+  sequenceId Int
+  order      Int
+  delayDays  Int
+  subject    String
+  body       String
+  bento      String
+  schemaTag  String    @default("default")
+  scheduledTime DateTime?
+  sequence   Sequence  @relation(fields: [sequenceId], references: [id])
+}
