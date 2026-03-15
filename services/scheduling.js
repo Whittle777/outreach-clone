@@ -1,6 +1,9 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const stateMachine = require('./stateMachine');
+const kafka = require('../config/kafka');
+
+const producer = kafka.producer();
 
 async function scheduleSequence(sequenceId, bento) {
   const shard = getShard(bento);
@@ -22,6 +25,16 @@ async function scheduleSequence(sequenceId, bento) {
 
   // Schedule sequence steps
   await scheduleSequenceSteps(sequenceId, bento);
+
+  // Produce a message to the 'sequence-scheduled' topic
+  await producer.send({
+    topic: 'sequence-scheduled',
+    messages: [
+      {
+        value: JSON.stringify({ sequenceId, bento, nextRun }),
+      },
+    ],
+  });
 
   return nextRun;
 }
