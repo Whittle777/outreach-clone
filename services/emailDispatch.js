@@ -2,6 +2,7 @@ const kafka = require('../config/kafka');
 const { handleProspectStatusChange } = require('../services/eventHandlers');
 const Broadway = require('broadway');
 const { validateEmailBatch } = require('./validation');
+const { checkRateLimit, resetRateLimit } = require('./rateLimiting');
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -30,6 +31,15 @@ async function run() {
           throw new Error('Some messages in the batch are invalid');
         }
         return validMessages;
+      }),
+      Broadway.stage('checkRateLimit', async (messages) => {
+        for (const message of messages) {
+          const { prospectId, bento } = message;
+          if (!(await checkRateLimit(prospectId, bento))) {
+            throw new Error('Rate limit exceeded');
+          }
+        }
+        return messages;
       }),
       Broadway.stage('handleStatusChange', async (messages) => {
         for (const message of messages) {
