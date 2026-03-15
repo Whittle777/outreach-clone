@@ -2,7 +2,7 @@ const kafka = require('../config/kafka');
 const { handleProspectStatusChange } = require('../services/eventHandlers');
 const Broadway = require('broadway');
 const { validateEmailBatch } = require('./validation');
-const { checkRateLimit, resetRateLimit } = require('./rateLimiting');
+const { checkRateLimit, resetRateLimit, handleRateLimitError } = require('./rateLimiting');
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -64,6 +64,10 @@ async function run() {
       try {
         await pipeline.run([message]);
       } catch (error) {
+        if (error.message === 'Rate limit exceeded') {
+          const { prospectId, bento } = JSON.parse(message.value.toString());
+          await handleRateLimitError(prospectId, bento);
+        }
         console.error('Error processing email dispatch request:', error);
       }
     },

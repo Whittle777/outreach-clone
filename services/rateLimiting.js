@@ -27,4 +27,11 @@ async function resetRateLimit(prospectId, bento) {
   await redis.del(key);
 }
 
-module.exports = { checkRateLimit, resetRateLimit };
+async function handleRateLimitError(prospectId, bento) {
+  // Implement logic to handle rate limit errors, e.g., retry later or log the error
+  console.error(`Rate limit exceeded for prospectId: ${prospectId}, bento: ${bento}`);
+  // Example: reset the rate limit after some time
+  setTimeout(() => resetRateLimit(prospectId, bento), 3600000); // Reset after 1 hour
+}
+
+module.exports = { checkRateLimit, resetRateLimit, handleRateLimitError };
