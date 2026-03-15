@@ -47,7 +47,10 @@ async function run() {
           const { prospectId, bento, newStatus } = message;
           await handleProspectStatusChange(prospectId, bento, newStatus);
           console.log(`Email dispatch request processed for prospectId: ${prospectId}`);
+          // Introduce a delay to simulate processing time
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 1 second
         }
+        return messages;
       }),
       Broadway.stage('produceDispatchedMessage', async (messages) => {
         await producer.send({
