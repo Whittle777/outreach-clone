@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function createSequenceStep(sequenceId, order, delayDays, subject, body, bento, schemaTag = "default", scheduledTime = null) {
+async function createSequenceStep(sequenceId, order, delayDays, subject, body, bento, schemaTag = "default", scheduledTime = null, state = "pending") {
   const shard = getShard(bento);
   return await prisma[shard].sequenceStep.create({
     data: {
@@ -13,6 +13,7 @@ async function createSequenceStep(sequenceId, order, delayDays, subject, body, b
       bento,
       schemaTag,
       scheduledTime,
+      state,
     },
   });
 }
@@ -24,11 +25,25 @@ async function getSequenceStepsBySequenceId(sequenceId, bento) {
   });
 }
 
-async function updateSequenceStep(id, order, delayDays, subject, body, bento, schemaTag = "default", scheduledTime = null) {
+async function updateSequenceStep(id, order, delayDays, subject, body, bento, schemaTag = "default", scheduledTime = null, state = null) {
   const shard = getShard(bento);
+  const data = {
+    order,
+    delayDays,
+    subject,
+    body,
+    bento,
+    schemaTag,
+    scheduledTime,
+  };
+
+  if (state !== null) {
+    data.state = state;
+  }
+
   return await prisma[shard].sequenceStep.update({
     where: { id },
-    data: { order, delayDays, subject, body, bento, schemaTag, scheduledTime },
+    data,
   });
 }
 

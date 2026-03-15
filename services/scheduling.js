@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const stateMachine = require('./stateMachine');
 
 async function scheduleSequence(sequenceId, bento) {
   const shard = getShard(bento);
