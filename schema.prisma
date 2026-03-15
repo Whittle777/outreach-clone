@@ -36,6 +36,7 @@ model Sequence {
   steps       SequenceStep []
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  schemaTag   String       @default("default")
 }
 
 model SequenceStep {
@@ -48,4 +49,5 @@ model SequenceStep {
   body        String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  schemaTag   String       @default("default")
 }
