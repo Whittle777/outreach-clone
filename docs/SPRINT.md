@@ -2,6 +2,5 @@
 
 Immediate technical tasks to execute.
 
-2. [x] Build standard CRUD routes for:
-   - [x] Users (with authentication)
-   - [ ] Prospects
+1. [ ] Build standard CRUD routes for Prospects
+2. [ ] Build standard CRUD routes for Sequences (including Sequence Steps)
