@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect } = require('../models/Prospect');
 const { handleProspectStatusChange } = require('../services/eventHandlers');
+const { handleWebhookPayload } = require('../services/webhook');
 
 router.get('/', async (req, res) => {
   try {
@@ -56,6 +57,16 @@ router.delete('/:id', async (req, res) => {
     res.json({ message: 'Deleted prospect' });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Webhook endpoint for real-time sync
+router.post('/webhook', async (req, res) => {
+  try {
+    await handleWebhookPayload(req.body);
+    res.status(200).json({ message: 'Webhook received' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 
