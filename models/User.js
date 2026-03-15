@@ -20,9 +20,20 @@ async function updateUserOAuthTokens(userId, accessToken, refreshToken) {
   });
 }
 
+async function updateUserMicrosoftTokens(userId, accessToken, refreshToken) {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: {
+      microsoftAccessToken: accessToken,
+      microsoftRefreshToken: refreshToken,
+    },
+  });
+}
+
 module.exports = {
   hashPassword,
   comparePassword,
   updateUserOAuthTokens,
+  updateUserMicrosoftTokens,
   prisma
 };

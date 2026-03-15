@@ -5,6 +5,7 @@ const { validateEmailBatch } = require('./validation');
 const { checkRateLimit, resetRateLimit, handleRateLimitError } = require('./rateLimiting');
 const { getShard } = require('./getShard'); // Assuming getShard is in a separate file
 const { google } = require('googleapis');
+const axios = require('axios');
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -62,25 +63,54 @@ async function run() {
         });
       }),
       Broadway.stage('sendEmail', async (messages) => {
-        const auth = new google.auth.GoogleAuth({
-          scopes: ['https://www.googleapis.com/auth/gmail.send'],
-        });
-        const accessToken = await auth.getClient().getAccessToken();
-        const gmail = google.gmail({ version: 'v1', auth });
-
         for (const message of messages) {
-          const { prospectId, bento, emailContent } = message;
-          const encodedMessage = Buffer.from(emailContent).toString('base64');
-          const email = {
-            raw: encodedMessage,
-          };
+          const { prospectId, bento, emailContent, provider } = message;
+          if (provider === 'google') {
+            const auth = new google.auth.GoogleAuth({
+              scopes: ['https://www.googleapis.com/auth/gmail.send'],
+            });
+            const accessToken = await auth.getClient().getAccessToken();
+            const gmail = google.gmail({ version: 'v1', auth });
 
-          await gmail.users.messages.send({
-            userId: 'me',
-            resource: email,
-          });
+            const encodedMessage = Buffer.from(emailContent).toString('base64');
+            const email = {
+              raw: encodedMessage,
+            };
 
-          console.log(`Email sent to prospectId: ${prospectId}`);
+            await gmail.users.messages.send({
+              userId: 'me',
+              resource: email,
+            });
+
+            console.log(`Email sent to prospectId: ${prospectId} via Google`);
+          } else if (provider === 'microsoft') {
+            const auth = new google.auth.OAuth2({
+              clientId: process.env.MICROSOFT_CLIENT_ID,
+              clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+              redirectUri: process.env.MICROSOFT_REDIRECT_URI,
+            });
+
+            auth.setCredentials({
+              access_token: message.accessToken,
+              refresh_token: message.refreshToken,
+            });
+
+            const encodedMessage = Buffer.from(emailContent).toString('base64');
+            const email = {
+              Message: {
+                Raw: encodedMessage,
+              },
+            };
+
+            await axios.post('https://graph.microsoft.com/v1.0/me/sendMail', email, {
+              headers: {
+                Authorization: `Bearer ${message.accessToken}`,
+                'Content-Type': 'application/json',
+              },
+            });
+
+            console.log(`Email sent to prospectId: ${prospectId} via Microsoft`);
+          }
         }
       }),
     ],
@@ -111,6 +141,9 @@ async function simulateHighLoad(numMessages) {
       bento: i % 3,
       newStatus: 'Dispatched',
       emailContent: 'SGVsbG8gV29ybGQh', // Base64 encoded "Hello World!"
+      provider: 'google', // or 'microsoft'
+      accessToken: 'your_access_token_here',
+      refreshToken: 'your_refresh_token_here',
     });
   }
 

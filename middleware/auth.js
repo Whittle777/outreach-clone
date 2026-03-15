@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { google } = require('googleapis');
+const axios = require('axios');
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -45,4 +46,30 @@ async function authenticateGoogleWorkspaceToken(req, res, next) {
   }
 }
 
-module.exports = { authenticateToken, authenticateGoogleWorkspaceToken };
+async function authenticateMicrosoftToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access denied. No token provided.' });
+  }
+
+  try {
+    const response = await axios.get('https://graph.microsoft.com/oidc/userinfo', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const userId = response.data.sub;
+    const bento = response.data.bento; // Assuming bento is part of the response
+
+    req.userId = userId;
+    req.bento = bento; // Add bento to the request object
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: 'Invalid or expired Microsoft token' });
+  }
+}
+
+module.exports = { authenticateToken, authenticateGoogleWorkspaceToken, authenticateMicrosoftToken };
