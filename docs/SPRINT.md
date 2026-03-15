@@ -3,7 +3,6 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
-3. [ ] Update Prisma schema to include metadata columns for schema tagging
 4. [ ] Modify data models to support schema tagging
 5. [ ] Update database migration scripts to add schema tagging columns
 6. [ ] Implement middleware to enforce schema tagging in database queries
