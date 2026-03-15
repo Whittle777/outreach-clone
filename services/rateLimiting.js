@@ -34,4 +34,43 @@ async function handleRateLimitError(prospectId, bento) {
   setTimeout(() => resetRateLimit(prospectId, bento), 3600000); // Reset after 1 hour
 }
 
-module.exports = { checkRateLimit, resetRateLimit, handleRateLimitError };
+async function checkHierarchicalThrottle(userId, prospectId, bento) {
+  const userKey = `throttle:user:${userId}:${bento}`;
+  const prospectKey = `throttle:prospect:${prospectId}:${bento}`;
+
+  const userLimit = 1000; // Example limit: 1000 messages per hour for user
+  const prospectLimit = 100; // Example limit: 100 messages per hour for prospect
+
+  const [userCount, userTTL, prospectCount, prospectTTL] = await redis.multi([
+    ['INCR', userKey],
+    ['TTL', userKey],
+    ['INCR', prospectKey],
+    ['TTL', prospectKey],
+  ]).exec();
+
+  if (userTTL === -2) {
+    // User key does not exist, set it with an expiration
+    await redis.expire(userKey, 3600);
+  }
+
+  if (prospectTTL === -2) {
+    // Prospect key does not exist, set it with an expiration
+    await redis.expire(prospectKey, 3600);
+  }
+
+  if (userCount > userLimit || prospectCount > prospectLimit) {
+    // Hierarchical throttle exceeded
+    return false;
+  }
+
+  return true;
+}
+
+async function resetHierarchicalThrottle(userId, prospectId, bento) {
+  const userKey = `throttle:user:${userId}:${bento}`;
+  const prospectKey = `throttle:prospect:${prospectId}:${bento}`;
+
+  await redis.del(userKey, prospectKey);
+}
+
+module.exports = { checkRateLimit, resetRateLimit, handleRateLimitError, checkHierarchicalThrottle, resetHierarchicalThrottle };

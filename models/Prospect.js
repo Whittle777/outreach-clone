@@ -44,6 +44,15 @@ async function deleteProspect(id, bento) {
   });
 }
 
+async function getProspectUserId(prospectId, bento) {
+  const shard = getShard(bento);
+  const prospect = await prisma[shard].prospect.findUnique({
+    where: { id: prospectId },
+    include: { user: true },
+  });
+  return prospect ? prospect.userId : null;
+}
+
 function getShard(bento) {
   // Simple sharding logic based on bento value
   // For example, you can use a hash function or a modulo operation
@@ -56,4 +65,5 @@ module.exports = {
   getAllProspects,
   updateProspect,
   deleteProspect,
+  getProspectUserId,
 };

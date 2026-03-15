@@ -24,7 +24,7 @@ Master list of all planned features.
    - [x] Authentication Protocols
    - [x] Real-Time Sync
 7. [ ] Rate Limiting (Phase 6):
-   - [ ] Hierarchical Throttles
+   - [x] Hierarchical Throttles
    - [ ] Implementation
 8. [ ] Deliverability & Compliance (Phase 7):
    - [ ] Cryptographic Authentication
