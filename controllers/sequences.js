@@ -27,11 +27,12 @@ exports.getSequenceById = async (req, res) => {
 
 exports.createSequence = async (req, res) => {
   try {
-    const { userId, name } = req.body;
+    const { userId, name, bento } = req.body;
     const sequence = await prisma.sequence.create({
       data: {
         userId,
         name,
+        bento,
       },
     });
     res.status(201).json(sequence);
@@ -42,10 +43,10 @@ exports.createSequence = async (req, res) => {
 
 exports.updateSequence = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, bento } = req.body;
     const sequence = await prisma.sequence.update({
       where: { id: parseInt(req.params.id) },
-      data: { name },
+      data: { name, bento },
     });
     res.json(sequence);
   } catch (error) {

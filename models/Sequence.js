@@ -1,11 +1,12 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function createSequence(userId, name) {
+async function createSequence(userId, name, bento) {
   return await prisma.sequence.create({
     data: {
       userId,
       name,
+      bento,
     },
   });
 }
@@ -17,10 +18,10 @@ async function getSequenceById(id) {
   });
 }
 
-async function updateSequence(id, name) {
+async function updateSequence(id, name, bento) {
   return await prisma.sequence.update({
     where: { id },
-    data: { name },
+    data: { name, bento },
   });
 }
 

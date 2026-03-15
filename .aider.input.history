@@ -3646,3 +3646,35 @@
 +                    
 +                    Fix the code so the build passes. DO NOT edit documentation.
 +                    
+
+# 2026-03-15 13:21:20.749349
++
++            Act as a Senior Tech Lead. We are building the following feature: "Cell-Based Sharding"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-15 13:21:20.749503
++
++            Act as a Senior Tech Lead. We are building the following feature: "Cell-Based Sharding"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-15 13:21:51.949057
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-15 13:21:51.949375
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            

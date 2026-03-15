@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function createSequenceStep(sequenceId, order, delayDays, subject, body) {
+async function createSequenceStep(sequenceId, order, delayDays, subject, body, bento) {
   return await prisma.sequenceStep.create({
     data: {
       sequenceId,
@@ -9,6 +9,7 @@ async function createSequenceStep(sequenceId, order, delayDays, subject, body) {
       delayDays,
       subject,
       body,
+      bento,
     },
   });
 }
@@ -19,10 +20,10 @@ async function getSequenceStepsBySequenceId(sequenceId) {
   });
 }
 
-async function updateSequenceStep(id, order, delayDays, subject, body) {
+async function updateSequenceStep(id, order, delayDays, subject, body, bento) {
   return await prisma.sequenceStep.update({
     where: { id },
-    data: { order, delayDays, subject, body },
+    data: { order, delayDays, subject, body, bento },
   });
 }
 

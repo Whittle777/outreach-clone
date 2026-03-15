@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function createProspect(firstName, lastName, email, companyName, status) {
+async function createProspect(firstName, lastName, email, companyName, status, bento) {
   return await prisma.prospect.create({
     data: {
       firstName,
@@ -9,6 +9,7 @@ async function createProspect(firstName, lastName, email, companyName, status) {
       email,
       companyName,
       status,
+      bento,
     },
   });
 }
@@ -19,14 +20,16 @@ async function getProspectById(id) {
   });
 }
 
-async function getAllProspects() {
-  return await prisma.prospect.findMany();
+async function getAllProspects(bento) {
+  return await prisma.prospect.findMany({
+    where: { bento },
+  });
 }
 
-async function updateProspect(id, firstName, lastName, email, companyName, status) {
+async function updateProspect(id, firstName, lastName, email, companyName, status, bento) {
   return await prisma.prospect.update({
     where: { id },
-    data: { firstName, lastName, email, companyName, status },
+    data: { firstName, lastName, email, companyName, status, bento },
   });
 }
 
