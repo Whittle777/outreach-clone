@@ -54,6 +54,9 @@ async function executeTask(task) {
     case 'analyzeOpenRates':
       await analyzeOpenRates(payload);
       break;
+    case 'processBounceNotification':
+      await processBounceNotification(payload);
+      break;
     default:
       console.error('Unknown task type:', type);
   }
