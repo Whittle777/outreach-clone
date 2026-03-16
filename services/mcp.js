@@ -9,14 +9,16 @@ class MCP {
   }
 
   encrypt(data) {
-    const cipher = crypto.createCipher('aes-256-cbc', this.secretKey, crypto.randomBytes(16));
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(this.secretKey, 'hex'), iv);
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    return encrypted;
+    return iv.toString('hex') + encrypted;
   }
 
   decrypt(encryptedData) {
-    const decipher = crypto.createDecipher('aes-256-cbc', this.secretKey, Buffer.from(encryptedData.slice(0, 32), 'hex'));
+    const iv = Buffer.from(encryptedData.slice(0, 32), 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(this.secretKey, 'hex'), iv);
     let decrypted = decipher.update(encryptedData.slice(32), 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
