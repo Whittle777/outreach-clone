@@ -9,7 +9,7 @@ const axios = require('axios');
 const redis = require('redis');
 const { createAbuseComplaint } = require('../models/AbuseComplaint');
 const { processBounceNotification } = require('../services/bounceNotificationProcessor');
-const { logTrackingPixelEvent } = require('../services/trackingPixelLogger'); // New import
+const { logTrackingPixelEvent, wrapLink } = require('../services/trackingPixelLogger'); // New import
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -104,6 +104,14 @@ async function run() {
         for (const message of messages) {
           const { prospectId, bento, trackingPixelData } = message;
           await logTrackingPixelEvent(prospectId, bento, trackingPixelData);
+        }
+        return messages;
+      }),
+      Broadway.stage('wrapLinks', async (messages) => {
+        for (const message of messages) {
+          const { emailContent, trackingPixelData } = message;
+          const wrappedEmailContent = wrapLinksInEmail(emailContent, trackingPixelData);
+          message.emailContent = wrappedEmailContent;
         }
         return messages;
       }),
@@ -263,6 +271,12 @@ async function updateProspectDMARCPolicy(prospectId, bento, dmarcPolicy) {
     where: { id: prospectId },
     data: { dmarcPolicy },
   });
+}
+
+function wrapLinksInEmail(emailContent, trackingPixelData) {
+  // Simple regex to find and wrap links
+  const linkRegex = /(https?:\/\/[^\s]+)/g;
+  return emailContent.replace(linkRegex, (url) => wrapLink(url, trackingPixelData));
 }
 
 module.exports = { run, simulateHighLoad };

@@ -32,8 +32,8 @@ Master list of all planned features.
    - [x] Unsubscribe & Bounce Handling
 9. [ ] Engagement Telemetry (Phase 8):
    - [x] Tracking Pixels
-   - [ ] Link Wrapping
-   - [ ] Open Rate Considerations
+   - [x] Link Wrapping
+   - [x] Open Rate Considerations
 10. [ ] AI & Orchestration Upgrades (Phase 9):
     - [ ] Data Layer Unification
     - [ ] Next-Gen Orchestration Engine (NGOE)
