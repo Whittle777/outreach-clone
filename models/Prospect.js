@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function createProspect(firstName, lastName, email, companyName, status, bento, dmarcPolicy = 'none') {
+async function createProspect(firstName, lastName, email, companyName, status, bento, dmarcPolicy = 'none', trackingPixelData = null) {
   const shard = getShard(bento);
   return await prisma[shard].prospect.create({
     data: {
@@ -12,6 +12,7 @@ async function createProspect(firstName, lastName, email, companyName, status, b
       status,
       bento,
       dmarcPolicy,
+      trackingPixelData,
     },
   });
 }
@@ -30,11 +31,11 @@ async function getAllProspects(bento) {
   });
 }
 
-async function updateProspect(id, { firstName, lastName, email, companyName, status, dmarcPolicy }, bento) {
+async function updateProspect(id, { firstName, lastName, email, companyName, status, dmarcPolicy, trackingPixelData }, bento) {
   const shard = getShard(bento);
   return await prisma[shard].prospect.update({
     where: { id },
-    data: { firstName, lastName, email, companyName, status, dmarcPolicy },
+    data: { firstName, lastName, email, companyName, status, dmarcPolicy, trackingPixelData },
   });
 }
 
