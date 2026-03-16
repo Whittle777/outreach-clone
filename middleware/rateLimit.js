@@ -3,7 +3,7 @@ const { getAbuseComplaintCount } = require('../models/AbuseComplaint');
 const { monitorAbuseComplaints } = require('../services/abuseComplaintMonitor');
 
 async function rateLimit(req, res, next) {
-  const { prospectId, bento } = req.query;
+  const { prospectId, bento, trackingPixelData } = req.query;
 
   if (!prospectId || !bento) {
     return res.status(400).json({ message: 'prospectId and bento are required query parameters' });

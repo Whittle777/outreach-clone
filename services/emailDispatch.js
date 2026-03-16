@@ -9,6 +9,7 @@ const axios = require('axios');
 const redis = require('redis');
 const { createAbuseComplaint } = require('../models/AbuseComplaint');
 const { processBounceNotification } = require('../services/bounceNotificationProcessor');
+const { logTrackingPixelEvent } = require('../services/trackingPixelLogger'); // New import
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -96,6 +97,13 @@ async function run() {
           } else {
             throw new Error('Invalid DMARC policy');
           }
+        }
+        return messages;
+      }),
+      Broadway.stage('logTrackingPixelEvent', async (messages) => {
+        for (const message of messages) {
+          const { prospectId, bento, trackingPixelData } = message;
+          await logTrackingPixelEvent(prospectId, bento, trackingPixelData);
         }
         return messages;
       }),
@@ -223,6 +231,7 @@ async function simulateHighLoad(numMessages) {
       accessToken: 'your_access_token_here',
       refreshToken: 'your_refresh_token_here',
       dmarcPolicy: 'reject', // Example DMARC policy
+      trackingPixelData: 'tracking_pixel_data_here', // Example tracking pixel data
     });
   }
 
