@@ -37,4 +37,4 @@ Master list of all planned features.
 10. [ ] AI & Orchestration Upgrades (Phase 9):
     - [x] Data Layer Unification
     - [x] Next-Gen Orchestration Engine (NGOE)
-    - [ ] Model Context Protocol (MCP)
+    - [x] Model Context Protocol (MCP)
