@@ -11,6 +11,7 @@ const { createAbuseComplaint } = require('../models/AbuseComplaint');
 const { processBounceNotification } = require('../services/bounceNotificationProcessor');
 const { logTrackingPixelEvent, wrapLink } = require('../services/trackingPixelLogger'); // New import
 const { analyzeOpenRates } = require('../services/openRateAnalyzer'); // New import
+const ngoe = require('./ngoe'); // New import
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -132,67 +133,15 @@ async function run() {
           })),
         });
       }),
-      Broadway.stage('sendEmail', async (messages) => {
+      Broadway.stage('enqueueNGOE', async (messages) => {
         for (const message of messages) {
-          const { prospectId, bento, emailContent, provider } = message;
-          if (provider === 'google') {
-            const auth = new google.auth.GoogleAuth({
-              scopes: ['https://www.googleapis.com/auth/gmail.send'],
-            });
-            const accessToken = await auth.getClient().getAccessToken();
-            const gmail = google.gmail({ version: 'v1', auth });
-
-            const encodedMessage = Buffer.from(emailContent).toString('base64');
-            const email = {
-              raw: encodedMessage,
-            };
-
-            await gmail.users.messages.send({
-              userId: 'me',
-              resource: email,
-            });
-
-            console.log(`Email sent to prospectId: ${prospectId} via Google`);
-          } else if (provider === 'microsoft') {
-            const auth = new google.auth.OAuth2({
-              clientId: process.env.MICROSOFT_CLIENT_ID,
-              clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-              redirectUri: process.env.MICROSOFT_REDIRECT_URI,
-            });
-
-            auth.setCredentials({
-              access_token: message.accessToken,
-              refresh_token: message.refreshToken,
-            });
-
-            const encodedMessage = Buffer.from(emailContent).toString('base64');
-            const email = {
-              Message: {
-                Raw: encodedMessage,
-              },
-            };
-
-            await axios.post('https://graph.microsoft.com/v1.0/me/sendMail', email, {
-              headers: {
-                Authorization: `Bearer ${message.accessToken}`,
-                'Content-Type': 'application/json',
-              },
-            });
-
-            console.log(`Email sent to prospectId: ${prospectId} via Microsoft`);
-          }
+          await producer.send({
+            topic: 'ngoe-tasks',
+            messages: [{
+              value: JSON.stringify({ type: 'sendEmail', payload: message }),
+            }],
+          });
         }
-      }),
-      Broadway.stage('processBounceNotification', async (messages) => {
-        for (const message of messages) {
-          const { prospectId, bento, bounceType } = message;
-          await processBounceNotification({ prospectId, bento, bounceType });
-        }
-        return messages;
-      }),
-      Broadway.stage('analyzeOpenRates', async (messages) => {
-        await analyzeOpenRates(messages);
-        return messages;
       }),
     ],
   });
