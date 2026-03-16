@@ -8,6 +8,7 @@ const { google } = require('googleapis');
 const axios = require('axios');
 const redis = require('redis');
 const { createAbuseComplaint } = require('../models/AbuseComplaint');
+const { processBounceNotification } = require('../services/bounceNotificationProcessor');
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -164,6 +165,13 @@ async function run() {
             console.log(`Email sent to prospectId: ${prospectId} via Microsoft`);
           }
         }
+      }),
+      Broadway.stage('processBounceNotification', async (messages) => {
+        for (const message of messages) {
+          const { prospectId, bento, bounceType } = message;
+          await processBounceNotification({ prospectId, bento, bounceType });
+        }
+        return messages;
       }),
     ],
   });
