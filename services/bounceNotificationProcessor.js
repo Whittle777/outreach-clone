@@ -1,6 +1,10 @@
 const { updateProspectStatus } = require('../models/Prospect');
 const { acquireLock, releaseLock } = require('../services/stateMachine');
 const { createAbuseComplaint } = require('../models/AbuseComplaint');
+const { getShard } = require('../services/getShard'); // Assuming getShard is in a separate file
+const redis = require('redis');
+
+const redisClient = redis.createClient();
 
 async function processBounceNotification(notification) {
   const { prospectId, bento, bounceType } = notification;
@@ -15,7 +19,22 @@ async function processBounceNotification(notification) {
 
   try {
     if (bounceType === 'soft') {
-      await updateProspectStatus(prospectId, bento, 'SoftBounced');
+      const shard = getShard(bento);
+      const retryKey = `retry:${prospectId}:${bento}`;
+      const retryCount = await redisClient.get(retryKey);
+
+      if (retryCount && parseInt(retryCount) >= 3) {
+        await updateProspectStatus(prospectId, bento, 'HardBounced');
+        await createAbuseComplaint(prospectId, bento);
+      } else {
+        const delay = retryCount ? Math.pow(2, parseInt(retryCount)) * 1000 : 1000; // Exponential backoff
+        await redisClient.setex(retryKey, delay / 1000, (retryCount ? parseInt(retryCount) + 1 : 1));
+        console.log(`Soft bounce detected for prospectId: ${prospectId}. Retrying after ${delay}ms.`);
+        // Introduce a delay before retrying
+        await new Promise(resolve => setTimeout(resolve, delay));
+        // Re-enqueue the message for retry
+        await reenqueueMessageForRetry(notification);
+      }
     } else if (bounceType === 'hard') {
       await updateProspectStatus(prospectId, bento, 'HardBounced');
       await createAbuseComplaint(prospectId, bento);
@@ -27,6 +46,18 @@ async function processBounceNotification(notification) {
   } finally {
     await releaseLock(lockKey);
   }
+}
+
+async function reenqueueMessageForRetry(notification) {
+  const producer = require('../config/kafka').producer();
+  await producer.connect();
+  await producer.send({
+    topic: 'email-dispatch-requests',
+    messages: [{
+      value: JSON.stringify(notification),
+    }],
+  });
+  await producer.disconnect();
 }
 
 module.exports = { processBounceNotification };
