@@ -10,6 +10,7 @@ const redis = require('redis');
 const { createAbuseComplaint } = require('../models/AbuseComplaint');
 const { processBounceNotification } = require('../services/bounceNotificationProcessor');
 const { logTrackingPixelEvent, wrapLink } = require('../services/trackingPixelLogger'); // New import
+const { analyzeOpenRates } = require('../services/openRateAnalyzer'); // New import
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -187,6 +188,10 @@ async function run() {
           const { prospectId, bento, bounceType } = message;
           await processBounceNotification({ prospectId, bento, bounceType });
         }
+        return messages;
+      }),
+      Broadway.stage('analyzeOpenRates', async (messages) => {
+        await analyzeOpenRates(messages);
         return messages;
       }),
     ],
