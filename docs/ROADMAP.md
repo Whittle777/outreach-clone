@@ -29,7 +29,7 @@ Master list of all planned features.
 8. [ ] Deliverability & Compliance (Phase 7):
    - [x] Cryptographic Authentication
    - [x] Reputation Monitoring
-   - [ ] Unsubscribe & Bounce Handling
+   - [x] Unsubscribe & Bounce Handling
 9. [ ] Engagement Telemetry (Phase 8):
    - [ ] Tracking Pixels
    - [ ] Link Wrapping

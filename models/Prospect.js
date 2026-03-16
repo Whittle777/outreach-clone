@@ -54,6 +54,14 @@ async function getProspectUserId(prospectId, bento) {
   return prospect ? prospect.userId : null;
 }
 
+async function updateProspectStatus(prospectId, bento, newStatus) {
+  const shard = getShard(bento);
+  return await prisma[shard].prospect.update({
+    where: { id: prospectId },
+    data: { status: newStatus },
+  });
+}
+
 function getShard(bento) {
   // Simple sharding logic based on bento value
   // For example, you can use a hash function or a modulo operation
@@ -67,4 +75,5 @@ module.exports = {
   updateProspect,
   deleteProspect,
   getProspectUserId,
+  updateProspectStatus,
 };
