@@ -1,3 +1,5 @@
+// services/ngoe.js
+
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { acquireLock, releaseLock } = require('./stateMachine');
@@ -12,6 +14,7 @@ const axios = require('axios');
 const redis = require('redis');
 const { createAbuseComplaint } = require('../models/AbuseComplaint');
 const { processBounceNotification } = require('../services/bounceNotificationProcessor');
+const mcp = require('./mcp');
 
 const producer = require('../config/kafka').producer();
 const consumer = require('../config/kafka').consumer();
@@ -56,6 +59,9 @@ async function executeTask(task) {
       break;
     case 'processBounceNotification':
       await processBounceNotification(payload);
+      break;
+    case 'mcpSecureCommunication':
+      await mcpSecureCommunication(payload);
       break;
     default:
       console.error('Unknown task type:', type);
@@ -145,6 +151,22 @@ function wrapLinksInEmail(emailContent, trackingPixelData) {
   // Simple regex to find and wrap links
   const linkRegex = /(https?:\/\/[^\s]+)/g;
   return emailContent.replace(linkRegex, (url) => wrapLink(url, trackingPixelData));
+}
+
+async function mcpSecureCommunication(payload) {
+  const { data, signature } = payload;
+
+  if (!mcp.verify(data, signature)) {
+    throw new Error('Invalid MCP signature');
+  }
+
+  const decryptedData = mcp.decrypt(data);
+  console.log('Received and decrypted MCP data:', decryptedData);
+
+  // Process the decrypted data as needed
+  // For example, you can parse the decrypted data and perform actions
+  const task = JSON.parse(decryptedData);
+  await executeTask(task);
 }
 
 module.exports = { run };
