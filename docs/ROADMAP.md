@@ -31,7 +31,7 @@ Master list of all planned features.
    - [x] Reputation Monitoring
    - [x] Unsubscribe & Bounce Handling
 9. [ ] Engagement Telemetry (Phase 8):
-   - [ ] Tracking Pixels
+   - [x] Tracking Pixels
    - [ ] Link Wrapping
    - [ ] Open Rate Considerations
 10. [ ] AI & Orchestration Upgrades (Phase 9):
