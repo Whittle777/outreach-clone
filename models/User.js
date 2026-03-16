@@ -10,8 +10,28 @@ async function comparePassword(candidatePassword, hashedPassword) {
   return await bcrypt.compare(candidatePassword, hashedPassword);
 }
 
-async function updateUserOAuthTokens(userId, accessToken, refreshToken) {
-  return await prisma.user.update({
+async function createUser(email, password, bento) {
+  const shard = getShard(bento);
+  const hashedPassword = await hashPassword(password);
+  return await prisma[shard].user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      bento,
+    },
+  });
+}
+
+async function getUserByEmail(email, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].user.findUnique({
+    where: { email },
+  });
+}
+
+async function updateUserOAuthTokens(userId, accessToken, refreshToken, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].user.update({
     where: { id: userId },
     data: {
       accessToken,
@@ -20,8 +40,9 @@ async function updateUserOAuthTokens(userId, accessToken, refreshToken) {
   });
 }
 
-async function updateUserMicrosoftTokens(userId, accessToken, refreshToken) {
-  return await prisma.user.update({
+async function updateUserMicrosoftTokens(userId, accessToken, refreshToken, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].user.update({
     where: { id: userId },
     data: {
       microsoftAccessToken: accessToken,
@@ -30,10 +51,17 @@ async function updateUserMicrosoftTokens(userId, accessToken, refreshToken) {
   });
 }
 
+function getShard(bento) {
+  // Simple sharding logic based on bento value
+  // For example, you can use a hash function or a modulo operation
+  return `shard_${bento % 3}`;
+}
+
 module.exports = {
   hashPassword,
   comparePassword,
+  createUser,
+  getUserByEmail,
   updateUserOAuthTokens,
   updateUserMicrosoftTokens,
-  prisma
 };

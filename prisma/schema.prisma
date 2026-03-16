@@ -30,6 +30,7 @@ model SequenceStep {
   bento      String
   schemaTag  String    @default("default")
   scheduledTime DateTime?
+  state      String    @default("pending")
   sequence   Sequence  @relation(fields: [sequenceId], references: [id])
 }
 
@@ -45,4 +46,40 @@ model Prospect {
   trackingPixelData Json? // New field for tracking pixel data
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  password     String
+  accessToken  String?
+  refreshToken String?
+  microsoftAccessToken String?
+  microsoftRefreshToken String?
+  sequences    Sequence[]
+  prospects    Prospect[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model EmailActivity {
+  id           Int       @id @default(autoincrement())
+  prospectId   Int
+  sequenceStepId Int
+  status       String
+  bento        String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  prospect     Prospect  @relation(fields: [prospectId], references: [id])
+  sequenceStep SequenceStep @relation(fields: [sequenceStepId], references: [id])
+}
+
+model TrackingPixelEvent {
+  id           Int       @id @default(autoincrement())
+  prospectId   Int
+  bento        String
+  trackingPixelData Json
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  prospect     Prospect  @relation(fields: [prospectId], references: [id])
 }
