@@ -38,3 +38,12 @@ Master list of all planned features.
     - [x] Data Layer Unification
     - [x] Next-Gen Orchestration Engine (NGOE)
     - [x] Model Context Protocol (MCP)
+
+## New Features (Identified from ARCHITECTURE.md)
+
+- [x] User Authentication: Secure login via JWT authentication
+- [ ] Password Hashing: bcrypt for password hashing
+- [ ] Microservices Languages: Go (high-throughput external APIs), Elixir (state management, data processing pipelines)
+- [ ] Service Communication: gRPC (synchronous RPC), Apache Kafka (asynchronous event replication), GraphQL (frontend client queries)
+- [ ] Rate Limiting: Redis with Token Bucket/Sliding Window Log algorithms and Lua scripts
+- [ ] Message Processing: Elixir's Broadway library for Kafka stream consumption

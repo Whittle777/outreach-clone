@@ -55,6 +55,18 @@ Tracking table for sent emails.
 - Links a Prospect to a Sequence Step
 - Status tracking (Pending, Sent, Failed, Bounced)
 
+### Abuse Complaints
+Tracks abuse reports from email providers.
+- Links to Prospect
+- Bento identifier for multi-tenant isolation
+- Timestamp of complaint
+
+### Tracking Pixel Events
+Records email open events via tracking pixels.
+- Links to Prospect
+- Bento identifier for multi-tenant isolation
+- Tracking pixel data (cryptographic hash, timestamp, user agent)
+
 ## Architecture Decisions
 
 1. **Database Migration:** Migrating from MongoDB to PostgreSQL with Prisma ORM
@@ -68,10 +80,12 @@ Tracking table for sent emails.
 - Partition compute instances, databases, and message brokers into isolated "Bentos" (cells)
 - Prevent noisy neighbor problems from impacting the global customer base
 - Geographic routing for data residency compliance (GDPR)
+- Schema-based sharding with modulo operation for shard selection
 
 ### Schema Tagging
 - Core database tables include explicit metadata columns (e.g., BENTO string column)
 - Enables analytics pipelines to aggregate reporting across disparate data centers
+- SchemaTag field in core models for additional categorization
 
 ## Sequencing Engine & State Management (Phase 3)
 
@@ -131,6 +145,7 @@ Tracking table for sent emails.
 
 ### Reputation Monitoring
 - Track abuse complaint rates below 0.3% threshold (Google/Yahoo requirements)
+- Monitor algorithmic reputation across mail providers
 
 ### Unsubscribe & Bounce Handling
 - RFC 8058 compliant List-Unsubscribe headers (POST method)
@@ -143,6 +158,7 @@ Tracking table for sent emails.
 ### Tracking Pixels
 - Host 1x1 transparent images on fast CDN
 - Embed unique cryptographic hashes mapped to specific mailings
+- Track email opens with prospect and sequence step correlation
 
 ### Link Wrapping
 - Replace raw hyperlinks with tracking URLs
@@ -164,6 +180,78 @@ Tracking table for sent emails.
 ### Model Context Protocol (MCP)
 - MCP Gateway for secure, standardized communication between central AI agents and distributed enterprise data silos
 
+## Sales Activity & Engagement Metrics
+
+### Activity Metrics
+- Total emails sent, calls made, meetings scheduled, follow-ups completed
+- Leaderboards based on quota attainment and activity volume
+
+### Engagement Rates
+- Open rates, click-through rates, reply rates across email sequences
+- AI-driven classification of email replies (positive, objection, referral, unsubscribe)
+
+## Pipeline Management & Forecasting
+
+### Pipeline Movement
+- Track deals shifting week-by-week (progressed, added, pushed, lost)
+
+### AI Projections
+- Machine learning models predicting quarterly performance based on historical win rates and seasonality
+
+### Quota Attainment
+- Visual progress tracking toward individual, team, or company-wide revenue goals
+
+### Pipeline Coverage
+- Ratio of potential revenue in pipeline compared to actual revenue target
+
+## Deal Health & Performance
+
+### Deal Health Scores
+- Automated scoring flagging at-risk deals based on prospect engagement and momentum
+
+### Top Opportunities
+- Prioritized list of high-value deals nearing close dates
+
+### Win/Loss Modeling
+- Conversion rates analyzed by sales stage or forecast category
+
+## UI/UX: Agentic Command Center
+
+### Core Architecture & Navigation
+- Hybrid interface merging natural language chat with visual workflow canvases
+- Progressive Disclosure across three interaction layers:
+  - **Layer 1 (Discovery & Intent):** Conversational chat console for workflow initiation
+  - **Layer 2 (Activation & Rule Building):** Dynamically generated UI components for logic rules
+  - **Layer 3 (Execution & Deep Dive):** Infinite drag-and-drop visual workflow canvas
+
+### Conversational Filtering System
+- Dynamic UI generation based on user text prompts
+- Intent-driven shortcuts and predictive search
+- Visual filter chips for active constraints
+
+### Mass Email Sequencing & Deliverability
+- Personalization Waterfall: Visual hierarchy for enrichment data sources
+- Dynamic Generative Copy: AI-drafted emails with tone controls (Direct, Professional, Sincere)
+- Deliverability Gate Dashboard: Data quality verification, send limits, domain health monitoring
+
+### Prospect Calling & Voice Agents
+- 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks
+- Autonomous Voice Agent Fleet Command for real-time monitoring
+
+### Human-in-the-Loop (HITL) Workflow
+- Confidence Score Routing: High (>85%), Moderate (70-84%), Low (<70%)
+- Split-Pane Review Interface: Review Queue, Contextual Record, Agentic Action Panel
+
+### System Resilience & Transparency
+- Temporal State Management for durable workflow objects
+- Real-Time Reasoning Logs showing agent chain-of-thought
+- Dynamic Knowledge Graphs mapping prospect relationships
+- Natural Language Guardrails for policy directives
+
+### Omnichannel Integration
+- Embedded Command Centers in Slack and Microsoft Teams
+- Interactive Notifications for approval workflows within chat threads
+
 ## Immediate Goals (MVP)
 
 1. Complete Prisma/Postgres schema implementation
@@ -173,3 +261,4 @@ Tracking table for sent emails.
    - Sequences (including Sequence Steps)
 3. Ensure all protected routes use JWT validation
 4. Establish foundation for future microservices migration (Strangler Fig pattern)
+5. Implement Abuse Complaints and Tracking Pixel Events models for telemetry tracking

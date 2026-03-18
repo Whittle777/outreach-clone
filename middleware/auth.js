@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { google } = require('googleapis');
-const axios = require('axios');
+const bcrypt = require('bcrypt');
+const userService = require('../services/userService');
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];

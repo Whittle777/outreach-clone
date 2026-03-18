@@ -69966,3 +69966,141 @@
 +            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
 +            DO NOT write application code.
 +            
+
+# 2026-03-18 09:58:55.259902
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:58:55.260113
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:59:01.389071
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:59:01.389383
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:59:05.696936
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:59:05.697063
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:59:27.951245
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:59:27.951733
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:59:32.309118
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:59:32.309319
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 09:59:41.562532
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-18 09:59:41.563318
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-18 10:25:27.300614
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
+
+# 2026-03-18 10:25:27.300914
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
+
+# 2026-03-18 10:26:46.599564
++
++            Act as a Senior Tech Lead. We are building the following feature: "User Authentication: Secure login via JWT authentication"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 10:26:46.599687
++
++            Act as a Senior Tech Lead. We are building the following feature: "User Authentication: Secure login via JWT authentication"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 10:27:10.379781
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-18 10:27:10.379931
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
