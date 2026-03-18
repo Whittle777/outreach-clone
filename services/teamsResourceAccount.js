@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const azureCommunicationService = require('./azureCommunicationService');
 
 async function createTeamsResourceAccount(userId, bento) {
   const shard = getShard(bento);
@@ -33,6 +34,20 @@ async function deleteTeamsResourceAccount(userId, bento) {
   });
 }
 
+async function initiateOutboundCall(userId, bento, phoneNumber) {
+  const shard = getShard(bento);
+  const teamsResourceAccount = await prisma[shard].teamsResourceAccount.findUnique({
+    where: { userId },
+  });
+
+  if (!teamsResourceAccount) {
+    throw new Error('Teams Resource Account not found');
+  }
+
+  const callConnection = await azureCommunicationService.initiateOutboundCall(teamsResourceAccount.objectId, phoneNumber);
+  return callConnection;
+}
+
 function getShard(bento) {
   // Simple sharding logic based on bento value
   // For example, you can use a hash function or a modulo operation
@@ -44,4 +59,5 @@ module.exports = {
   getTeamsResourceAccount,
   updateTeamsResourceAccount,
   deleteTeamsResourceAccount,
+  initiateOutboundCall,
 };
