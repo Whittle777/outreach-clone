@@ -20,16 +20,15 @@ async function loginUser(email, password) {
   });
 
   if (!user) {
-    throw new Error('User not found');
+    return null;
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
-    throw new Error('Invalid password');
+    return null;
   }
 
-  const token = jwt.sign({ userId: user.id, bento: user.bento }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  return token;
+  return user;
 }
 
 module.exports = { registerUser, loginUser };
