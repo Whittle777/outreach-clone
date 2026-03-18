@@ -13,6 +13,7 @@ async function createProspect(firstName, lastName, email, companyName, status, b
       bento,
       dmarcPolicy,
       trackingPixelData,
+      callHistory: [], // Initialize call history as an empty array
     },
   });
 }
@@ -31,11 +32,11 @@ async function getAllProspects(bento) {
   });
 }
 
-async function updateProspect(id, { firstName, lastName, email, companyName, status, dmarcPolicy, trackingPixelData }, bento) {
+async function updateProspect(id, { firstName, lastName, email, companyName, status, dmarcPolicy, trackingPixelData, callHistory }, bento) {
   const shard = getShard(bento);
   return await prisma[shard].prospect.update({
     where: { id },
-    data: { firstName, lastName, email, companyName, status, dmarcPolicy, trackingPixelData },
+    data: { firstName, lastName, email, companyName, status, dmarcPolicy, trackingPixelData, callHistory },
   });
 }
 

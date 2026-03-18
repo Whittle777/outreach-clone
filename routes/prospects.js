@@ -83,4 +83,29 @@ router.post('/sync', async (req, res) => {
   }
 });
 
+// Route to update call status
+router.put('/:id/call-status', async (req, res) => {
+  try {
+    const { callStatus, callTimestamp } = req.body;
+    const prospect = await getProspectById(req.params.id);
+    if (prospect == null) {
+      return res.status(404).json({ message: 'Cannot find prospect' });
+    }
+
+    const updatedCallHistory = [
+      ...prospect.callHistory,
+      { status: callStatus, timestamp: callTimestamp },
+    ];
+
+    const updatedProspect = await updateProspect(req.params.id, {
+      ...prospect,
+      callHistory: updatedCallHistory,
+    });
+
+    res.json(updatedProspect);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 module.exports = router;
