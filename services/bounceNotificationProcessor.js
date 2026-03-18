@@ -3,6 +3,7 @@ const { acquireLock, releaseLock } = require('../services/stateMachine');
 const { createAbuseComplaint } = require('../models/AbuseComplaint');
 const { getShard } = require('../services/getShard'); // Assuming getShard is in a separate file
 const redis = require('redis');
+const { consumer } = require('../config/kafka');
 
 const redisClient = redis.createClient();
 
@@ -60,4 +61,23 @@ async function reenqueueMessageForRetry(notification) {
   await producer.disconnect();
 }
 
-module.exports = { processBounceNotification };
+async function startBounceNotificationConsumer() {
+  await consumer.connect();
+  await consumer.subscribe({ topic: 'bounce-notifications', fromBeginning: true });
+
+  await consumer.run({
+    eachMessage: async ({ topic, partition, message }) => {
+      try {
+        const notification = JSON.parse(message.value.toString());
+        await processBounceNotification(notification);
+      } catch (error) {
+        console.error('Error processing message:', error);
+      }
+    },
+  });
+}
+
+module.exports = {
+  processBounceNotification,
+  startBounceNotificationConsumer,
+};

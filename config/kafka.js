@@ -5,4 +5,11 @@ const kafka = new Kafka({
   brokers: [process.env.KAFKA_BROKER],
 });
 
-module.exports = kafka;
+const producer = kafka.producer();
+const consumer = kafka.consumer({ groupId: 'email-dispatcher-group' });
+
+module.exports = {
+  kafka,
+  producer,
+  consumer,
+};
