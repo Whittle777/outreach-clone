@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const userService = require('../services/userService');
 const oauthService = require('../services/oauthService'); // New import
+const axios = require('axios');
+const crypto = require('crypto');
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
