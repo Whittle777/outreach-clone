@@ -4,6 +4,7 @@ const { monitorAbuseComplaints } = require('../services/abuseComplaintMonitor');
 const { callGoMicroservice } = require('../services/goMicroservice'); // Placeholder for Go microservice integration
 const redisClient = require('../services/redisClient');
 const { authenticateMicrosoft } = require('../services/microsoftAuth');
+const { makeOutboundCall } = require('../services/acsCallAutomation');
 
 async function rateLimit(req, res, next) {
   const { prospectId, bento, trackingPixelData } = req.query;
@@ -24,7 +25,18 @@ async function rateLimit(req, res, next) {
   const isAllowed = await callGoMicroservice(prospectId, bento);
 
   if (isAllowed) {
-    next();
+    // Check if the request is for a voice agent call
+    if (req.path === '/voice-agent/call') {
+      try {
+        const callResponse = await makeOutboundCall(prospectId, bento);
+        req.callResponse = callResponse;
+        next();
+      } catch (error) {
+        return res.status(500).json({ message: 'Failed to make outbound call' });
+      }
+    } else {
+      next();
+    }
   } else {
     handleRateLimitError(prospectId, bento);
     return res.status(429).json({ message: 'Rate limit exceeded' });
