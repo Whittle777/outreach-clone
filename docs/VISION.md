@@ -247,4 +247,55 @@ Natural Language Guardrails: A governance environment where admins can type stri
 7. Omnichannel Integration
 Embedded Command Centers: Deep integrations with enterprise tools like Slack and Microsoft Teams.
 
-Interactive Notifications: Allows managers to review low-confidence alerts and click "Approve," "Reject," or "Modify" directly within a chat thread without logging into a separate web portal.
+Interactive Notifications: Allows managers to review low-confidence alerts and click "Approve," "Reject," or "Modify" directly within a chat thread without logging into a separate web portal. 
+
+
+CONNECTS TO MICROSOFT TEAMS CALLING PHONE NUMBERS - ALLOWS DIALING - including auto dialing - and leaving auto voicemail recordings feature - option for agentic voicemail recording generation before call is made
+
+1. The Core Technology Stack
+Telephony & Teams Interoperability: Azure Communication Services (ACS) Call Automation API. This is Microsoft’s CPaaS (Communication Platform as a Service) solution. It shares the same backend as Teams and natively supports "Teams Phone Extensibility," allowing your app to make outbound PSTN calls using Teams resource accounts and caller IDs.
+
+AI/Agentic Engine: An LLM (like GPT-4 or Gemini) paired with a high-fidelity Text-to-Speech (TTS) API (like ElevenLabs or Azure AI Speech).
+
+Backend & Queueing: An event-driven backend (Node.js, Python, or Go) combined with a robust message broker (Azure Service Bus, AWS SQS, or RabbitMQ) to handle the auto-dialing queue without hitting API rate limits.
+
+Storage: Cloud Blob Storage (Azure Blob or AWS S3) to host the generated .wav or .mp3 voicemail files.
+
+2. Step-by-Step Implementation Flow
+Here is how you stitch these components together into a functional platform:
+
+Step A: Agentic Voicemail Generation (The "Pre-Flight" Check)
+Before the dialer ever picks up the phone, the system prepares the payload.
+
+Context Gathering: Your CRM passes the prospect's data (name, company, recent LinkedIn post, etc.) to the AI backend.
+
+Scripting: The LLM generates a highly contextual, 20-30 second script tailored specifically to that prospect.
+
+Audio Generation: The script is sent to your TTS provider (e.g., ElevenLabs) to generate a hyper-realistic audio file.
+
+Storage: The audio file is saved to your Blob Storage, generating a publicly accessible (but obfuscated) URL to be used later.
+
+Step B: The Auto-Dialer & Teams Integration
+Instead of manual dialing, your worker nodes pull leads from the queue and initiate calls programmatically.
+
+Initiate Call: Your backend triggers the ACS Call Automation CreateCall endpoint.
+
+Teams Caller ID: You use the onBehalfOf parameter in the API, passing the Microsoft Entra Object ID of your Teams Resource Account. This ensures the outbound call displays your company's official Teams phone number/Caller ID to the prospect.
+
+Scale: Because dialing is decoupled into a message queue, you can easily spin up more worker nodes to increase the Calls-Per-Second (CPS) rate, pausing automatically if you hit carrier rate limits.
+
+Step C: Answering Machine Detection (AMD) & Voicemail Drop
+When the call connects, ACS Call Automation sends a CallConnected webhook event to your backend. Now, your system needs to listen.
+
+Call Progress Analysis: You utilize AMD to determine if a human or a machine answered the phone.
+
+If a Voicemail Answers: The system waits for the tone. Once the beep is detected, your backend fires the Play action via the ACS API, passing the Blob Storage URL of your pre-generated "agentic" audio file. Once the audio finishes, the API hangs up the call.
+
+If a Human Answers: Your system immediately fires the AddParticipant command. This bridges the call directly to your sales agent's Microsoft Teams client in real-time. A screen-pop in your CRM can simultaneously show the agent who they are talking to.
+
+3. How to Make it Robust & Scalable
+Asynchronous Webhooks: Telephony is notoriously stateful, which makes scaling hard. ACS Call Automation relies on webhooks (Azure Event Grid). Your app should be entirely stateless—merely receiving an event (e.g., RecognizeCompleted, PlayFailed), looking up the call's state in a fast database like Redis, and executing the next command.
+
+STIR/SHAKEN Compliance: Because you are using Teams phone numbers natively via ACS, Microsoft handles much of the underlying carrier compliance. However, you must implement strict dialing rate limits in your queue to prevent your Teams numbers from being flagged as "Spam Risk" by downstream carriers.
+
+Fallback Audio: If the TTS engine fails to generate the agentic voicemail in time, your database should always have a "fallback" generic pre-recorded audio URL ready to inject so you don't leave dead air on a prospect's voicemail.

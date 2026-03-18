@@ -4,7 +4,7 @@ System design and tech stack rules.
 
 ## Overview
 
-This project is a headless REST API for a sales engagement platform (similar to Outreach.io or Apollo). The backend handles user authentication, prospect management, email sequences, and activity tracking.
+This project is a headless REST API for a sales engagement platform (similar to Outreach.io or Apollo). The backend handles user authentication, prospect management, email sequences, activity tracking, and voice agent orchestration.
 
 ## Tech Stack
 
@@ -21,6 +21,14 @@ This project is a headless REST API for a sales engagement platform (similar to 
 - **Rate Limiting:** Redis with Token Bucket/Sliding Window Log algorithms and Lua scripts
 - **Message Processing:** Elixir's Broadway library for Kafka stream consumption
 
+### Telephony & Voice Agent Stack
+- **Telephony API:** Azure Communication Services (ACS) Call Automation API
+- **Teams Integration:** Teams Phone Extensibility for outbound PSTN calls using Teams Resource Accounts
+- **AI/LLM Engine:** GPT-4, Gemini, or equivalent LLM providers
+- **Text-to-Speech (TTS):** ElevenLabs or Azure AI Speech for hyper-realistic audio generation
+- **Audio Storage:** Cloud Blob Storage (Azure Blob or AWS S3) for .wav/.mp3 voicemail files
+- **Message Queues:** Azure Service Bus, AWS SQS, or RabbitMQ as alternatives to Kafka
+
 ## Core Data Models
 
 ### Users
@@ -28,6 +36,8 @@ Sales representatives using the application.
 - Email (unique, required)
 - Password (hashed with bcrypt)
 - Secure login via JWT authentication
+- OAuth tokens for provider integrations (Google/Microsoft)
+- Microsoft Teams Resource Account Object ID for caller ID
 
 ### Prospects
 Leads being contacted through email campaigns.
@@ -36,11 +46,14 @@ Leads being contacted through email campaigns.
 - Email Address
 - Company Name
 - Status (e.g., Uncontacted, Bounced, Replied)
+- Phone Number (for voice agent integration)
+- Call History and Voicemail Drop Records
 
 ### Sequences
 Automated email campaigns owned by Users.
 - Name (e.g., "Q3 Inbound Leads")
 - Belongs to a User (one-to-many relationship)
+- Sequence Status (Active, Paused, Completed)
 
 ### Sequence Steps
 Individual email templates within a Sequence.
@@ -49,30 +62,44 @@ Individual email templates within a Sequence.
 - Subject Template
 - Body Template
 - Belongs to a Sequence (one-to-many relationship)
+- Personalization Waterfall Configuration (enrichment data source hierarchy)
 
 ### Email Activities
 Tracking table for sent emails.
 - Links a Prospect to a Sequence Step
 - Status tracking (Pending, Sent, Failed, Bounced)
+- Open/Click/Reply tracking via pixels and link wrapping
 
 ### Abuse Complaints
 Tracks abuse reports from email providers.
 - Links to Prospect
 - Bento identifier for multi-tenant isolation
 - Timestamp of complaint
+- Provider source (Google, Yahoo, etc.)
 
 ### Tracking Pixel Events
 Records email open events via tracking pixels.
 - Links to Prospect
 - Bento identifier for multi-tenant isolation
 - Tracking pixel data (cryptographic hash, timestamp, user agent)
+- Sequence Step correlation
+
+### Voice Agent Calls
+Tracks autonomous voice agent interactions.
+- Links to Prospect
+- Call Status (Queued, Dialing, Connected, Voicemail Dropped, Human Answered)
+- Pre-generated Script Content
+- TTS Audio File URL
+- Call Transcript and Sentiment Analysis
+- Teams Resource Account Object ID used
 
 ## Architecture Decisions
 
 1. **Database Migration:** Migrating from MongoDB to PostgreSQL with Prisma ORM
 2. **Authentication:** All protected routes require valid JWT tokens
-3. **API Design:** RESTful endpoints for CRUD operations on Users, Prospects, and Sequences
+3. **API Design:** RESTful endpoints for CRUD operations on Users, Prospects, Sequences, and Voice Agent Calls
 4. **Future Work:** Email-sending cron jobs and SMTP connections are out of scope for MVP
+5. **Voice Agent Integration:** Azure ACS Call Automation API for Teams-native outbound calling with voicemail drop
 
 ## Multi-Tenant Infrastructure (Phase 2)
 
@@ -103,6 +130,7 @@ Records email open events via tracking pixels.
 ### Distributed Message Brokers
 - Publish outbound email dispatch requests to Apache Kafka topics
 - Avoid synchronous network calls to external APIs
+- Alternative brokers: Azure Service Bus, AWS SQS, RabbitMQ for voice agent call queues
 
 ### Pipeline Concurrency
 - Utilize Elixir's Broadway library for consuming Kafka streams
@@ -118,10 +146,16 @@ Records email open events via tracking pixels.
 - OAuth 2.0 flows (deprecate legacy IMAP/SMTP basic authentication)
 - Google Workspace via Gmail API
 - Microsoft Office 365 via Microsoft Graph API
+- Azure Communication Services for telephony integration
 
 ### Real-Time Sync
 - Webhook-based push notifications instead of periodic polling
 - Header-based sync for regulated tenants: sync email headers initially, download full body only if metadata matches active prospect
+
+### Teams Phone Integration
+- Use onBehalfOf parameter with Microsoft Entra Object ID for Teams Resource Account caller ID
+- Native STIR/SHAKEN compliance handled by Microsoft backend
+- Implement strict dialing rate limits to prevent "Spam Risk" flags from carriers
 
 ## Rate Limiting (Phase 6)
 
@@ -130,6 +164,7 @@ Records email open events via tracking pixels.
 - Organization totals
 - Prospect frequency limits
 - Target domain limits
+- Voice agent call rate limits per Teams phone number
 
 ### Implementation
 - Redis datastore with Token Bucket or Sliding Window Log algorithms
@@ -179,6 +214,23 @@ Records email open events via tracking pixels.
 
 ### Model Context Protocol (MCP)
 - MCP Gateway for secure, standardized communication between central AI agents and distributed enterprise data silos
+
+### Voice Agent Workflow
+- **Pre-Flight Check:** Context gathering from CRM, LLM script generation, TTS audio file creation
+- **Auto-Dialer:** Queue-based call initiation via ACS CreateCall endpoint
+- **Answering Machine Detection (AMD):** Voicemail tone detection and voicemail drop execution
+- **Human Answer Handling:** AddParticipant command to bridge call to sales agent's Teams client
+- **Fallback Audio:** Generic pre-recorded audio URL ready if TTS generation fails
+
+## Application Decomposition Strategy (Phase 1)
+
+### Strangler Fig Pattern
+- Incrementally extract domains from legacy monoliths into dedicated microservices
+- Start with settings and configurations as initial autonomous services
+
+### Data Consistency During Migration
+- Implement double-write strategy to keep legacy databases and new microservice datastores synchronized
+- Ensure zero-downtime migration path
 
 ## Sales Activity & Engagement Metrics
 
@@ -230,27 +282,35 @@ Records email open events via tracking pixels.
 - Visual filter chips for active constraints
 
 ### Mass Email Sequencing & Deliverability
-- Personalization Waterfall: Visual hierarchy for enrichment data sources
+- Personalization Waterfall: Visual hierarchy for enrichment data sources (Fundraising News > LinkedIn Posts > Technographic Data)
 - Dynamic Generative Copy: AI-drafted emails with tone controls (Direct, Professional, Sincere)
 - Deliverability Gate Dashboard: Data quality verification, send limits, domain health monitoring
 
 ### Prospect Calling & Voice Agents
 - 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks
 - Autonomous Voice Agent Fleet Command for real-time monitoring
+- Real-time text transcripts and parallel sentiment analysis
+- Visual flags for calls hitting resistance or regulatory edge cases
 
 ### Human-in-the-Loop (HITL) Workflow
-- Confidence Score Routing: High (>85%), Moderate (70-84%), Low (<70%)
-- Split-Pane Review Interface: Review Queue, Contextual Record, Agentic Action Panel
+- **Confidence Score Routing:**
+  - High Confidence (>85%): Solid green progress bar/checkmark, AI executes autonomously
+  - Moderate Confidence (70-84%): Amber/yellow warning tooltip, action paused and routed to review queue
+  - Low Confidence (<70%): Red alert icon, workflow halts with high-priority supervisor notifications
+- **Split-Pane Review Interface:**
+  - Left Rail: Paginated list of pending tasks sorted by urgency or pipeline value
+  - Center Pane: Contextual record (enriched profiles, past emails, raw call transcripts, audio controls)
+  - Right Pane: Agentic action panel with AI summary, drafted response, and accept/reject/inline-edit controls
 
 ### System Resilience & Transparency
-- Temporal State Management for durable workflow objects
-- Real-Time Reasoning Logs showing agent chain-of-thought
-- Dynamic Knowledge Graphs mapping prospect relationships
-- Natural Language Guardrails for policy directives
+- **Temporal State Management:** Durable workflow objects for paused workflows that resume exactly where left off
+- **Real-Time Reasoning Logs:** Step-by-step visual timeline explaining agent chain-of-thought (e.g., Searched CRM → Found no activity → Queried web → Drafted email)
+- **Dynamic Knowledge Graphs:** On-the-fly node visualizations mapping prospect, corporate hierarchy, and inferred pain points
+- **Natural Language Guardrails:** Governance environment where admins type policy directives translated into executable middleware constraints
 
 ### Omnichannel Integration
 - Embedded Command Centers in Slack and Microsoft Teams
-- Interactive Notifications for approval workflows within chat threads
+- Interactive Notifications for approval workflows within chat threads (Approve, Reject, Modify)
 
 ## Immediate Goals (MVP)
 
@@ -262,3 +322,4 @@ Records email open events via tracking pixels.
 3. Ensure all protected routes use JWT validation
 4. Establish foundation for future microservices migration (Strangler Fig pattern)
 5. Implement Abuse Complaints and Tracking Pixel Events models for telemetry tracking
+6. Prepare data models for Voice Agent Calls integration (Phase 5+)

@@ -47,3 +47,5 @@ Master list of all planned features.
 - [x] Service Communication: gRPC (synchronous RPC), Apache Kafka (asynchronous event replication), GraphQL (frontend client queries)
 - [x] Rate Limiting: Redis with Token Bucket/Sliding Window Log algorithms and Lua scripts
 - [x] Message Processing: Elixir's Broadway library for Kafka stream consumption
+- [x] OAuth tokens for provider integrations (Google/Microsoft)
+- [ ] Email-sending cron jobs and SMTP connections (out of scope for MVP)
