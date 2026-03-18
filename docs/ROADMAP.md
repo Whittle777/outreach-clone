@@ -44,6 +44,6 @@ Master list of all planned features.
 - [x] User Authentication: Secure login via JWT authentication
 - [x] Password Hashing: bcrypt for password hashing
 - [x] Microservices Languages: Go (high-throughput external APIs), Elixir (state management, data processing pipelines)
-- [ ] Service Communication: gRPC (synchronous RPC), Apache Kafka (asynchronous event replication), GraphQL (frontend client queries)
+- [x] Service Communication: gRPC (synchronous RPC), Apache Kafka (asynchronous event replication), GraphQL (frontend client queries)
 - [ ] Rate Limiting: Redis with Token Bucket/Sliding Window Log algorithms and Lua scripts
 - [ ] Message Processing: Elixir's Broadway library for Kafka stream consumption
