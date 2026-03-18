@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { registerUser, loginUser } = require('../services/userService');
+const { getOAuthTokens, refreshOAuthTokens } = require('../services/oauthTokenService');
+const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -36,6 +38,30 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign({ userId: user.id, bento: user.bento }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION });
     res.json({ token });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Retrieve OAuth tokens
+router.post('/oauth/token', async (req, res) => {
+  const { email, bento } = req.body;
+
+  try {
+    const tokens = await getOAuthTokens(email, bento);
+    res.json(tokens);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Refresh OAuth tokens
+router.post('/oauth/refresh', async (req, res) => {
+  const { refreshToken, bento } = req.body;
+
+  try {
+    const tokens = await refreshOAuthTokens(refreshToken, bento);
+    res.json(tokens);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
