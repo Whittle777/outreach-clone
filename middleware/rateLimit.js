@@ -3,6 +3,7 @@ const { getAbuseComplaintCount } = require('../models/AbuseComplaint');
 const { monitorAbuseComplaints } = require('../services/abuseComplaintMonitor');
 const { callGoMicroservice } = require('../services/goMicroservice'); // Placeholder for Go microservice integration
 const redisClient = require('../services/redisClient');
+const { authenticateMicrosoft } = require('../services/microsoftAuth');
 
 async function rateLimit(req, res, next) {
   const { prospectId, bento, trackingPixelData } = req.query;

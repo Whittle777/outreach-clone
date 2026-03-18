@@ -15,6 +15,7 @@ const redis = require('redis');
 const { createAbuseComplaint } = require('../models/AbuseComplaint');
 const { processBounceNotification } = require('../services/bounceNotificationProcessor');
 const mcp = require('./mcp');
+const { authenticateMicrosoft } = require('../services/microsoftAuth');
 
 const producer = require('../config/kafka').producer();
 const consumer = require('../config/kafka').consumer();
@@ -62,6 +63,9 @@ async function executeTask(task) {
       break;
     case 'mcpSecureCommunication':
       await mcpSecureCommunication(payload);
+      break;
+    case 'authenticateMicrosoft':
+      await authenticateMicrosoft(payload);
       break;
     default:
       console.error('Unknown task type:', type);
