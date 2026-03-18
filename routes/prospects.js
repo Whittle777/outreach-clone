@@ -3,6 +3,7 @@ const router = express.Router();
 const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect } = require('../models/Prospect');
 const { handleProspectStatusChange } = require('../services/eventHandlers');
 const { handleWebhookPayload } = require('../services/webhook');
+const oauthService = require('../services/oauthService'); // New import
 
 router.get('/', async (req, res) => {
   try {
@@ -65,6 +66,18 @@ router.post('/webhook', async (req, res) => {
   try {
     await handleWebhookPayload(req.body);
     res.status(200).json({ message: 'Webhook received' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Real-time sync endpoint
+router.post('/sync', async (req, res) => {
+  try {
+    const { provider, userId } = req.body;
+    const token = await oauthService.getOAuthToken(provider, userId);
+    // Implement logic to sync data with provider API using the token
+    res.status(200).json({ message: 'Sync initiated' });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
