@@ -1,27 +1,13 @@
 const express = require('express');
-const { run } = require('./services/emailDispatch');
-const authenticateToken = require('./middleware/auth');
-const rateLimit = require('./middleware/rateLimit');
-const acsRoutes = require('./routes/acs'); // New import
+const bodyParser = require('body-parser');
+const voiceAgentRoutes = require('./routes/voiceAgent');
 
 const app = express();
-app.use(express.json());
 
-// Start Kafka consumer
-run().catch(console.error);
+app.use(bodyParser.json());
 
-// Example protected route with rate limiting and JWT authentication
-app.get('/protected', authenticateToken, rateLimit, (req, res) => {
-  res.json({ message: 'This is a protected route', userId: req.userId, bento: req.bento });
-});
-
-// New endpoint for testing rate limiting
-app.get('/some-endpoint', rateLimit, (req, res) => {
-  res.json({ message: 'This is a test endpoint', prospectId: req.query.prospectId, bento: req.query.bento });
-});
-
-// ACS API routes
-app.use('/acs', acsRoutes);
+// Include the voice agent routes
+app.use('/api/voice-agent', voiceAgentRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
