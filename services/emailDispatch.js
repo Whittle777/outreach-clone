@@ -7,6 +7,8 @@ const { getShard } = require('./getShard'); // Assuming getShard is in a separat
 const { google } = require('googleapis');
 const axios = require('axios');
 const redis = require('redis');
+const nodemailer = require('nodemailer');
+const smtpConfig = require('../config/smtpConfig');
 const { createAbuseComplaint } = require('../models/AbuseComplaint');
 const { processBounceNotification } = require('../services/bounceNotificationProcessor');
 const { logTrackingPixelEvent, wrapLink } = require('../services/trackingPixelLogger'); // New import
@@ -16,6 +18,7 @@ const ngoe = require('./ngoe'); // New import
 const producer = kafka.producer();
 const consumer = kafka.consumer();
 const redisClient = redis.createClient();
+const transporter = nodemailer.createTransport(smtpConfig);
 
 async function run() {
   await producer.connect();
@@ -117,6 +120,20 @@ async function run() {
         }
         return messages;
       }),
+      Broadway.stage('sendEmail', async (messages) => {
+        for (const message of messages) {
+          const { email, subject, emailContent } = message;
+          const mailOptions = {
+            from: smtpConfig.auth.user,
+            to: email,
+            subject: subject,
+            html: emailContent,
+          };
+          await transporter.sendMail(mailOptions);
+          console.log(`Email sent to ${email}`);
+        }
+        return messages;
+      }),
       Broadway.stage('releaseLock', async (messages) => {
         for (const message of messages) {
           const { prospectId, bento } = message;
@@ -188,6 +205,8 @@ async function simulateHighLoad(numMessages) {
       prospectId: `prospect-${i}`,
       bento: i % 3,
       newStatus: 'Dispatched',
+      email: `prospect-${i}@example.com`,
+      subject: 'Test Email',
       emailContent: 'SGVsbG8gV29ybGQh', // Base64 encoded "Hello World!"
       provider: 'google', // or 'microsoft'
       accessToken: 'your_access_token_here',
