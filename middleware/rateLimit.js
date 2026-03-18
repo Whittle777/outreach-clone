@@ -5,6 +5,7 @@ const { callGoMicroservice } = require('../services/goMicroservice'); // Placeho
 const redisClient = require('../services/redisClient');
 const { authenticateMicrosoft } = require('../services/microsoftAuth');
 const { makeOutboundCall } = require('../services/acsCallAutomation');
+const { getTeamsResourceAccount } = require('../services/teamsResourceAccount');
 
 async function rateLimit(req, res, next) {
   const { prospectId, bento, trackingPixelData } = req.query;
@@ -34,6 +35,13 @@ async function rateLimit(req, res, next) {
       } catch (error) {
         return res.status(500).json({ message: 'Failed to make outbound call' });
       }
+    } else if (req.path === '/teams-resource-account') {
+      // Check if the request is for a Teams Resource Account operation
+      const teamsResourceAccount = await getTeamsResourceAccount(req.userId, bento);
+      if (!teamsResourceAccount) {
+        return res.status(404).json({ message: 'Teams Resource Account not found' });
+      }
+      next();
     } else {
       next();
     }
