@@ -28,7 +28,8 @@ async function loginUser(email, password) {
     return null;
   }
 
-  return user;
+  const token = jwt.sign({ userId: user.id, bento: user.bento }, 'your-secret-key', { expiresIn: '1h' });
+  return { user, token };
 }
 
 module.exports = { registerUser, loginUser };
