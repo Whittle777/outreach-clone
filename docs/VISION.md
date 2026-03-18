@@ -298,4 +298,4 @@ Asynchronous Webhooks: Telephony is notoriously stateful, which makes scaling ha
 
 STIR/SHAKEN Compliance: Because you are using Teams phone numbers natively via ACS, Microsoft handles much of the underlying carrier compliance. However, you must implement strict dialing rate limits in your queue to prevent your Teams numbers from being flagged as "Spam Risk" by downstream carriers.
 
-Fallback Audio: If the TTS engine fails to generate the agentic voicemail in time, your database should always have a "fallback" generic pre-recorded audio URL ready to inject so you don't leave dead air on a prospect's voicemail.
+Fallback Audio: If the TTS engine fails to generate the agentic voicemail in time, your database should always have a "fallback" generic pre-recorded audio URL ready to inject so you don't leave dead air on a prospect's voicemail. . .

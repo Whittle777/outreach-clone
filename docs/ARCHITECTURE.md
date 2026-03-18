@@ -4,7 +4,7 @@ System design and tech stack rules.
 
 ## Overview
 
-This project is a headless REST API for a sales engagement platform (similar to Outreach.io or Apollo). The backend handles user authentication, prospect management, email sequences, activity tracking, and voice agent orchestration.
+This project is a headless REST API for a sales engagement platform (similar to Outreach.io or Apollo). The backend handles user authentication, prospect management, email sequences, activity tracking, voice agent orchestration, and AI-driven workflow automation.
 
 ## Tech Stack
 
@@ -28,6 +28,11 @@ This project is a headless REST API for a sales engagement platform (similar to 
 - **Text-to-Speech (TTS):** ElevenLabs or Azure AI Speech for hyper-realistic audio generation
 - **Audio Storage:** Cloud Blob Storage (Azure Blob or AWS S3) for .wav/.mp3 voicemail files
 - **Message Queues:** Azure Service Bus, AWS SQS, or RabbitMQ as alternatives to Kafka
+
+### AI & Orchestration Stack
+- **Next-Gen Orchestration Engine (NGOE):** Async scheduling and execution of complex AI agent tasks without blocking standard paths
+- **Model Context Protocol (MCP):** MCP Gateway for secure, standardized communication between central AI agents and distributed enterprise data silos
+- **AI Classification:** Buyer sentiment analysis (positive, objection, referral, unsubscribe) via LLM
 
 ## Core Data Models
 
@@ -54,6 +59,8 @@ Automated email campaigns owned by Users.
 - Name (e.g., "Q3 Inbound Leads")
 - Belongs to a User (one-to-many relationship)
 - Sequence Status (Active, Paused, Completed)
+- Bento identifier for multi-tenant isolation
+- SchemaTag for categorization
 
 ### Sequence Steps
 Individual email templates within a Sequence.
@@ -63,6 +70,8 @@ Individual email templates within a Sequence.
 - Body Template
 - Belongs to a Sequence (one-to-many relationship)
 - Personalization Waterfall Configuration (enrichment data source hierarchy)
+- Bento identifier for multi-tenant isolation
+- SchemaTag for categorization
 
 ### Email Activities
 Tracking table for sent emails.
@@ -100,6 +109,7 @@ Tracks autonomous voice agent interactions.
 3. **API Design:** RESTful endpoints for CRUD operations on Users, Prospects, Sequences, and Voice Agent Calls
 4. **Future Work:** Email-sending cron jobs and SMTP connections are out of scope for MVP
 5. **Voice Agent Integration:** Azure ACS Call Automation API for Teams-native outbound calling with voicemail drop
+6. **Multi-Tenant Isolation:** Cell-based sharding with Bento identifiers to prevent noisy neighbor problems
 
 ## Multi-Tenant Infrastructure (Phase 2)
 
@@ -323,3 +333,5 @@ Tracks autonomous voice agent interactions.
 4. Establish foundation for future microservices migration (Strangler Fig pattern)
 5. Implement Abuse Complaints and Tracking Pixel Events models for telemetry tracking
 6. Prepare data models for Voice Agent Calls integration (Phase 5+)
+7. Support multi-tenant isolation with Bento identifiers in core models
+8. Enable schema tagging for analytics aggregation across data centers
