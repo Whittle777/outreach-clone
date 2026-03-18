@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { hashPassword, comparePassword, prisma } = require('../models/User');
-const jwt = require('jsonwebtoken');
+const { registerUser, loginUser } = require('../services/userService');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
 // Register a new user
 router.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;
+  const { email, password, bento } = req.body;
 
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -16,10 +15,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const hashedPassword = await hashPassword(password);
-    const newUser = await prisma.user.create({
-      data: { username, email, password: hashedPassword }
-    });
+    const newUser = await registerUser(email, password, bento);
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
@@ -37,7 +33,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const isMatch = await comparePassword(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
