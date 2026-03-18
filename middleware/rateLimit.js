@@ -1,6 +1,7 @@
 const { checkRateLimit, handleRateLimitError } = require('../services/rateLimiting');
 const { getAbuseComplaintCount } = require('../models/AbuseComplaint');
 const { monitorAbuseComplaints } = require('../services/abuseComplaintMonitor');
+const { callGoMicroservice } = require('../services/goMicroservice'); // Placeholder for Go microservice integration
 
 async function rateLimit(req, res, next) {
   const { prospectId, bento, trackingPixelData } = req.query;
@@ -17,7 +18,8 @@ async function rateLimit(req, res, next) {
     return res.status(403).json({ message: 'Abuse complaint detected' });
   }
 
-  const isAllowed = await checkRateLimit(prospectId, bento);
+  // Call Go microservice for rate limiting
+  const isAllowed = await callGoMicroservice(prospectId, bento);
 
   if (isAllowed) {
     next();
