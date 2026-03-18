@@ -9,7 +9,7 @@ app.use(express.json());
 // Start Kafka consumer
 run().catch(console.error);
 
-// Example protected route with rate limiting
+// Example protected route with rate limiting and JWT authentication
 app.get('/protected', authenticateToken, rateLimit, (req, res) => {
   res.json({ message: 'This is a protected route', userId: req.userId, bento: req.bento });
 });
