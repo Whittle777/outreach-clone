@@ -70536,3 +70536,35 @@
 +            Use your repository map to find the correct files to edit. 
 +            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
 +            
+
+# 2026-03-18 11:36:23.546938
++
++            Act as a Senior Tech Lead. We are building the following feature: "Message Processing: Elixir's Broadway library for Kafka stream consumption"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 11:36:23.547118
++
++            Act as a Senior Tech Lead. We are building the following feature: "Message Processing: Elixir's Broadway library for Kafka stream consumption"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 11:37:02.900588
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-18 11:37:02.901181
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
