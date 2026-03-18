@@ -1,4 +1,4 @@
-const { checkRateLimit, handleRateLimitError } = require('../services/rateLimiting');
+const { checkRateLimit, handleRateLimitError } = require('../services/rateLimit');
 const { getAbuseComplaintCount } = require('../models/AbuseComplaint');
 const { monitorAbuseComplaints } = require('../services/abuseComplaintMonitor');
 const { callGoMicroservice } = require('../services/goMicroservice'); // Placeholder for Go microservice integration
