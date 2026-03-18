@@ -2,6 +2,7 @@ const express = require('express');
 const { run } = require('./services/emailDispatch');
 const authenticateToken = require('./middleware/auth');
 const rateLimit = require('./middleware/rateLimit');
+const acsRoutes = require('./routes/acs'); // New import
 
 const app = express();
 app.use(express.json());
@@ -18,6 +19,9 @@ app.get('/protected', authenticateToken, rateLimit, (req, res) => {
 app.get('/some-endpoint', rateLimit, (req, res) => {
   res.json({ message: 'This is a test endpoint', prospectId: req.query.prospectId, bento: req.query.bento });
 });
+
+// ACS API routes
+app.use('/acs', acsRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
