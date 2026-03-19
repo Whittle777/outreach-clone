@@ -5,7 +5,7 @@ const crypto = require('crypto');
 class MCP {
   constructor() {
     this.protocolVersion = '1.0';
-    this.secretKey = 'your-secret-key'; // This should be securely managed and not hardcoded in production
+    this.secretKey = process.env.MCP_SECRET_KEY || 'your-secret-key'; // Use environment variable for secret key
   }
 
   encrypt(data) {
