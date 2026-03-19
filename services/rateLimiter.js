@@ -1,28 +1,24 @@
-const redis = require('redis');
-const client = redis.createClient({
-  url: 'redis://localhost:6379'
-});
+const Redis = require('ioredis');
+const redis = new Redis();
 
-client.on('error', (err) => {
-  console.error('Redis Client Error', err);
-});
+class RateLimiter {
+  constructor(limit, duration) {
+    this.limit = limit;
+    this.duration = duration;
+  }
 
-async function incrementRequestCount(key) {
-  await client.connect();
-  const count = await client.incr(key);
-  await client.expire(key, 60); // Set expiration to 60 seconds
-  await client.disconnect();
-  return count;
+  async isRateLimited(key) {
+    const count = await redis.get(key);
+    return count >= this.limit;
+  }
+
+  async incrementRequestCount(key) {
+    const count = await redis.incr(key);
+    if (count === 1) {
+      await redis.expire(key, this.duration);
+    }
+    return count;
+  }
 }
 
-async function isRateLimited(key, limit) {
-  await client.connect();
-  const count = await client.get(key);
-  await client.disconnect();
-  return count >= limit;
-}
-
-module.exports = {
-  incrementRequestCount,
-  isRateLimited
-};
+module.exports = new RateLimiter(10, 60); // 10 requests per minute
