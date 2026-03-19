@@ -62,7 +62,7 @@ Master list of all planned features.
 - [x] Model Context Protocol (MCP): MCP Gateway for secure, standardized communication between central AI agents and distributed enterprise data silos
 - [x] AI Classification: Buyer sentiment analysis (positive, objection, referral, unsubscribe) via LLM
 - [x] Voice Agent Calls: Tracks autonomous voice agent interactions
-- [ ] Voice Agent Integration: Azure ACS Call Automation API for Teams-native outbound calling with voicemail drop
+- [x] Voice Agent Integration: Azure ACS Call Automation API for Teams-native outbound calling with voicemail drop
 - [ ] Geographic routing for data residency compliance (GDPR)
 - [ ] Schedule shifting to pause execution outside approved time blocks, weekends, or holidays
 - [ ] Dynamically shift all subsequent steps forward in time to prevent backlog burst

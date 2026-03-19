@@ -2,6 +2,7 @@ const VoiceAgentCall = require('../models/VoiceAgentCall');
 const sentimentAnalysis = require('sentiment-analysis'); // Hypothetical library
 const axios = require('axios');
 const logger = require('../services/logger');
+const azureAcsService = require('../services/azureAcsService');
 
 const rateLimiterUrl = process.env.RATE_LIMITER_URL || 'http://localhost:8080/rate-limit';
 
@@ -50,7 +51,7 @@ exports.initiateCall = async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
-    await initiateCall(prospectId, bento);
+    await azureAcsService.createCall(prospectId, bento);
     res.status(200).json({ message: 'Call initiation initiated' });
   } catch (error) {
     logger.error(error.message);
