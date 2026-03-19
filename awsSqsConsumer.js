@@ -7,6 +7,7 @@ const GeolocationService = require('./services/geolocationService');
 const { voiceCallLimiter } = require('./services/rateLimiter');
 const logger = require('../services/logger');
 const SentimentAnalysis = require('./services/sentimentAnalysis');
+const AIGenerator = require('./services/aiGenerator');
 const wss = require('../server').wss;
 
 AWS.config.update({
@@ -55,6 +56,10 @@ async function consumeMessages() {
 
         // Route data based on country
         const region = getRegionByCountry(country);
+
+        // Generate AI-generated call goal and talk track
+        const callGoal = await AIGenerator.generateCallGoal(messageBody);
+        const talkTrack = await AIGenerator.generateTalkTrack(messageBody);
 
         // Capture and store real-time text transcript
         const transcript = await captureTranscript(messageBody.prospectId);

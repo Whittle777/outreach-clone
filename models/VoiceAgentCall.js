@@ -4,9 +4,9 @@ const SentimentAnalysis = require('./SentimentAnalysis');
 const logger = require('../services/logger');
 
 class VoiceAgentCall {
-  static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress) {
+  static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress, callGoal, talkTrack) {
     // Check GDPR compliance
-    if (!isGDPRCompliant({ prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress })) {
+    if (!isGDPRCompliant({ prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress, callGoal, talkTrack })) {
       throw new Error('Data not compliant with GDPR');
     }
 
@@ -31,6 +31,8 @@ class VoiceAgentCall {
         ipAddress,
         hasResistanceOrRegulatoryFlag,
         personalizedScript,
+        callGoal,
+        talkTrack,
       },
     });
   }
