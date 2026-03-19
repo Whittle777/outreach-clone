@@ -8,6 +8,7 @@ const VoiceAgentCall = require('../models/VoiceAgentCall');
 const SentimentAnalysis = require('../services/sentimentAnalysis');
 const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
+const AIGenerator = require('../services/aiGenerator');
 
 class MessageBroker {
   constructor(config) {
@@ -15,6 +16,7 @@ class MessageBroker {
     this.broker = null;
     this.initBroker();
     this.sentimentAnalysisService = new SentimentAnalysis(process.env.SENTIMENT_ANALYSIS_API_KEY);
+    this.aiGenerator = new AIGenerator();
   }
 
   initBroker() {
@@ -100,6 +102,22 @@ class MessageBroker {
       logger.error(`Resistance or regulatory edge case detected for prospectId: ${prospectId}`);
       // Flag the case (e.g., update database or send alert)
       await VoiceAgentCall.flagResistanceOrRegulatoryCase(prospectId);
+    }
+
+    // Calculate confidence score
+    const confidenceScore = await this.aiGenerator.calculateConfidenceScore(transcript);
+    logger.log(`Confidence score for prospectId: ${prospectId} is ${confidenceScore}`);
+
+    // Route message based on confidence score
+    if (confidenceScore > 85) {
+      logger.log(`High confidence score, routing to AI execution for prospectId: ${prospectId}`);
+      // Implement AI execution logic here
+    } else if (confidenceScore > 70) {
+      logger.log(`Moderate confidence score, routing to review queue for prospectId: ${prospectId}`);
+      // Implement review queue logic here
+    } else {
+      logger.log(`Low confidence score, routing to high-priority supervisor notifications for prospectId: ${prospectId}`);
+      // Implement high-priority supervisor notifications logic here
     }
   }
 

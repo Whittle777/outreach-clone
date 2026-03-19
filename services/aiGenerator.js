@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+const axios = require('axios');
 
 class AIGenerator {
   constructor() {
@@ -8,16 +8,16 @@ class AIGenerator {
   async generateCallGoal(prospectData) {
     // Simulate AI-generated call goal
     // In a real-world scenario, this would involve calling an AI API
-    const callGoal = `Follow up on the recent interaction with ${prospectData.firstName} from ${prospectData.companyName}.`;
+    const callGoal = `Follow up on the recent interaction with ${prospectData.firstName} from ${prospectData.companyName}`;
     return callGoal;
   }
 
-  async generateTalkTrack(prospectData) {
-    // Simulate AI-generated talk track
+  async calculateConfidenceScore(transcript) {
+    // Simulate confidence score calculation
     // In a real-world scenario, this would involve calling an AI API
-    const talkTrack = `Hi ${prospectData.firstName}, I hope this call finds you well. I wanted to follow up on our recent interaction and discuss how we can assist you further.`;
-    return talkTrack;
+    const confidenceScore = Math.random() * 100; // Random score between 0 and 100
+    return confidenceScore;
   }
 }
 
-module.exports = new AIGenerator();
+module.exports = AIGenerator;

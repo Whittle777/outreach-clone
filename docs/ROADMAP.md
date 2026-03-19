@@ -81,7 +81,7 @@ Master list of all planned features.
 - [x] Mass Email Sequencing & Deliverability: Personalization Waterfall, Dynamic Generative Copy, Deliverability Gate Dashboard
 - [x] Prospect Calling & Voice Agents: 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks
 - [x] Autonomous Voice Agent Fleet Command for real-time monitoring
-- [ ] Human-in-the-Loop (HITL) Workflow: Confidence Score Routing, Split-Pane Review Interface
+- [x] Human-in-the-Loop (HITL) Workflow: Confidence Score Routing, Split-Pane Review Interface
 - [ ] System Resilience & Transparency: Temporal State Management, Real-Time Reasoning Logs, Dynamic Knowledge Graphs, Natural Language Guardrails
 - [ ] Omnichannel Integration: Embedded Command Centers in Slack and Microsoft Teams, Interactive Notifications for approval workflows within chat threads (Approve, Reject, Modify)
 - [ ] Data Consistency During Migration: Implement double-write strategy to keep legacy databases and new microservice datastores synchronized
