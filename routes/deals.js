@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const dealsService = require('../services/deals');
+const dealHealthService = require('../services/dealHealthService');
 
 router.post('/', async (req, res) => {
   try {
@@ -46,6 +47,15 @@ router.get('/', async (req, res) => {
   try {
     const deals = await dealsService.getAllDeals();
     res.json(deals);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/top-opportunities', async (req, res) => {
+  try {
+    const topOpportunities = await dealHealthService.getTopOpportunities();
+    res.json(topOpportunities);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
