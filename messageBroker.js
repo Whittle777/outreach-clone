@@ -4,6 +4,7 @@ const rabbitMQ = require('./messageBroker/rabbitMQ');
 const rateLimiter = require('../services/rateLimiter');
 const logger = require('../services/logger');
 const config = require('../config/settings');
+const VoiceAgentCall = require('../models/VoiceAgentCall');
 
 class MessageBroker {
   constructor(config) {
@@ -43,7 +44,21 @@ class MessageBroker {
   }
 
   async receiveMessage() {
-    return this.broker.receiveMessage();
+    const message = await this.broker.receiveMessage();
+    if (message) {
+      await this.handleMessage(message);
+    }
+    return message;
+  }
+
+  async handleMessage(message) {
+    // Assuming the message contains a prospectId and phoneNumber
+    const { prospectId, phoneNumber } = message;
+
+    // Update the VoiceAgentCall state to 'Failed'
+    await VoiceAgentCall.update(prospectId, { callStatus: 'Failed' });
+
+    logger.log(`Updated VoiceAgentCall state to 'Failed' for prospectId: ${prospectId}`);
   }
 
   async isRateLimited(key, limit) {
