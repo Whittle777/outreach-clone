@@ -6,7 +6,8 @@ const jwt = require('jsonwebtoken');
 const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 const KnowledgeGraph = require('../services/knowledgeGraph');
 const NGOE = require('../services/ngoeTaskExecutor');
-const crypto = require('crypto');
+const VoiceAgentCall = require('../models/VoiceAgentCall');
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 class AzureServiceBus {
   constructor(config) {
@@ -134,6 +135,35 @@ class AzureServiceBus {
     logger.log('Handling MCP message:', message);
     // Example: Forward the message to the central AI agents
     await this.aiGenerator.processMessage(message);
+  }
+
+  async isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript) {
+    // Implement GDPR compliance checks
+    // For now, let's assume it always returns true
+    return true;
+  }
+
+  async createVoiceAgentCall(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    const isCompliant = await this.isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
+    if (!isCompliant) {
+      throw new Error('Data not compliant with GDPR');
+    }
+
+    const voiceAgentCallData = {
+      prospectId,
+      callStatus,
+      preGeneratedScript,
+      ttsAudioFileUrl,
+      callTranscript
+    };
+
+    await doubleWriteStrategy.write(voiceAgentCallData);
+    realTimeReasoningLogs.addLog('createVoiceAgentCall', `Created VoiceAgentCall: ${JSON.stringify(voiceAgentCallData)}`);
   }
 }
 

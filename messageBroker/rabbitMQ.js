@@ -9,6 +9,7 @@ const MicrosoftTeamsApp = require('../services/microsoftTeamsApp');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const NGOE = require('../services/ngoeTaskExecutor');
 const crypto = require('crypto');
+const VoiceAgentCall = require('../models/VoiceAgentCall');
 
 class RabbitMQ {
   constructor(config) {
@@ -195,6 +196,29 @@ class RabbitMQ {
     // Implement GDPR compliance checks
     // For now, let's assume it always returns true
     return true;
+  }
+
+  async createVoiceAgentCall(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    const isCompliant = await this.isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
+    if (!isCompliant) {
+      throw new Error('Data not compliant with GDPR');
+    }
+
+    const voiceAgentCallData = {
+      prospectId,
+      callStatus,
+      preGeneratedScript,
+      ttsAudioFileUrl,
+      callTranscript
+    };
+
+    await doubleWriteStrategy.write(voiceAgentCallData);
+    realTimeReasoningLogs.addLog('createVoiceAgentCall', `Created VoiceAgentCall: ${JSON.stringify(voiceAgentCallData)}`);
   }
 }
 
