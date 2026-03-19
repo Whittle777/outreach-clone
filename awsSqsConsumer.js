@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const { processMessage } = require('./messageProcessor');
 const { storeSentimentAnalysis } = require('./services/sentimentAnalysis');
+const { initiateCall } = require('./services/azureCommunicationService');
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -31,6 +32,9 @@ async function consumeMessages() {
         const metadata = { source: 'example-source' }; // Example metadata
 
         await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata);
+
+        // Initiate call using Azure Communication Services
+        await initiateCall(messageBody.prospectId, messageBody.bento);
 
         const deleteParams = {
           QueueUrl: queueUrl,
