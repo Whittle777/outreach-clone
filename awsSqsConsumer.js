@@ -62,6 +62,10 @@ async function consumeMessages() {
 
         // Initiate call using Azure Communication Services
         await initiateCall(messageBody.prospectId, messageBody.bento, country, region);
+
+        // Capture and store real-time text transcript
+        const transcript = await captureTranscript(messageBody.prospectId);
+        await storeTranscript(messageBody.prospectId, transcript);
       });
     }
   } catch (error) {
@@ -85,6 +89,18 @@ function isGDPRCompliant(messageBody) {
   // Example GDPR compliance check
   // Ensure that the message contains a valid email and does not contain sensitive data
   return messageBody.email && !messageBody.sensitiveData;
+}
+
+async function captureTranscript(prospectId) {
+  // Simulate capturing a transcript
+  // In a real-world scenario, this would involve listening to the call and transcribing it
+  return `Transcript for prospectId ${prospectId}`;
+}
+
+async function storeTranscript(prospectId, transcript) {
+  // Store the transcript in the database
+  // This is a placeholder for the actual database interaction
+  console.log(`Stored transcript for prospectId ${prospectId}: ${transcript}`);
 }
 
 module.exports = {

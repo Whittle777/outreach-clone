@@ -59,6 +59,10 @@ class MessageBroker {
     await VoiceAgentCall.update(prospectId, { callStatus: 'Failed' });
 
     logger.log(`Updated VoiceAgentCall state to 'Failed' for prospectId: ${prospectId}`);
+
+    // Capture and store real-time text transcript
+    const transcript = await captureTranscript(prospectId);
+    await storeTranscript(prospectId, transcript);
   }
 
   async isRateLimited(key, limit) {
