@@ -21,6 +21,23 @@ const createCall = async (prospectId, bento) => {
   }
 };
 
+const handleVoicemailDrop = async (callId, bento) => {
+  try {
+    const response = await axios.post(`${azureAcsUrl}/calls/${callId}/voicemail`, {
+      bento,
+    }, {
+      headers: {
+        'Ocp-Apim-Subscription-Key': azureAcsKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    logger.error(`Error handling voicemail drop for call ${callId}: ${error.message}`);
+    throw error;
+  }
+};
+
 module.exports = {
   createCall,
+  handleVoicemailDrop,
 };

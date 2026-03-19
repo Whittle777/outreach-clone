@@ -51,7 +51,12 @@ exports.initiateCall = async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
-    await azureAcsService.createCall(prospectId, bento);
+    const callData = await azureAcsService.createCall(prospectId, bento);
+    const callId = callData.id; // Assuming the response contains the call ID
+
+    // Handle voicemail drop
+    await azureAcsService.handleVoicemailDrop(callId, bento);
+
     res.status(200).json({ message: 'Call initiation initiated' });
   } catch (error) {
     logger.error(error.message);
