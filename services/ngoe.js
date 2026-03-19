@@ -18,6 +18,7 @@ const mcp = require('./mcp');
 const { authenticateMicrosoft } = require('../services/microsoftAuth');
 const azureServiceBusProducer = require('../services/azureServiceBusProducer');
 const rabbitMQProducer = require('../services/rabbitMQProducer');
+const naturalLanguageGuardrails = require('./naturalLanguageGuardrails');
 
 async function run() {
   await azureServiceBusProducer.sendMessage({ topic: 'ngoe-tasks', message: 'Initialize NGOE' });
@@ -74,6 +75,9 @@ async function executeTask(task) {
 
 async function sendEmail(payload) {
   const { prospectId, bento, emailContent, provider } = payload;
+
+  // Enforce natural language guardrails
+  naturalLanguageGuardrails.enforcePolicyDirectives(emailContent);
 
   if (provider === 'google') {
     const auth = new google.auth.GoogleAuth({

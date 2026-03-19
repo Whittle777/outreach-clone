@@ -1,6 +1,7 @@
 // services/mcp.js
 
 const crypto = require('crypto');
+const naturalLanguageGuardrails = require('./naturalLanguageGuardrails');
 
 class MCP {
   constructor() {
