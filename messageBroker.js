@@ -82,6 +82,14 @@ class MessageBroker {
         client.send(JSON.stringify({ type: 'voiceCallUpdate', data: message }));
       }
     });
+
+    // Detect and flag resistance or regulatory edge cases
+    const hasResistanceOrRegulatoryFlag = await VoiceAgentCall.detectResistanceOrRegulatoryEdgeCase(prospectId, transcript);
+    if (hasResistanceOrRegulatoryFlag) {
+      logger.error(`Resistance or regulatory edge case detected for prospectId: ${prospectId}`);
+      // Flag the case (e.g., update database or send alert)
+      await VoiceAgentCall.flagResistanceOrRegulatoryCase(prospectId);
+    }
   }
 
   async isRateLimited(key, limit) {
