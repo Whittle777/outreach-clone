@@ -5,6 +5,7 @@ const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
 const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 const KnowledgeGraph = require('../services/knowledgeGraph');
+const MicrosoftTeamsApp = require('../services/microsoftTeamsApp');
 
 class RabbitMQ {
   constructor(config) {
@@ -13,6 +14,7 @@ class RabbitMQ {
     this.connection = null;
     this.channel = null;
     this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
+    this.microsoftTeamsApp = new MicrosoftTeamsApp();
     this.init();
   }
 
@@ -40,19 +42,10 @@ class RabbitMQ {
 
     const message = await this.channel.get(this.queueName, { noAck: true });
     if (message) {
-      realTimeReasoningLogs.addLog('receiveMessage', `Message received from RabbitMQ: ${JSON.stringify(message.content.toString())}`);
+      realTimeReasoningLogs.addLog('receiveMessage', `Message received from RabbitMQ: ${message.content.toString()}`);
       return JSON.parse(message.content.toString());
     }
     return null;
-  }
-
-  async close() {
-    if (this.channel) {
-      await this.channel.close();
-    }
-    if (this.connection) {
-      await this.connection.close();
-    }
   }
 
   async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
@@ -100,6 +93,10 @@ class RabbitMQ {
 
   async close() {
     await this.knowledgeGraph.close();
+  }
+
+  async sendMessageToMicrosoftTeams(message) {
+    await this.microsoftTeamsApp.sendMessage(message);
   }
 }
 

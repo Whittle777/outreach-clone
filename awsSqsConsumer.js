@@ -4,6 +4,8 @@ const queueUrl = 'https://sqs.us-east-1.amazonaws.com/123456789012/your-queue-na
 const wss = require('./websocketServer');
 const KnowledgeGraph = require('../services/knowledgeGraph');
 const config = require('../config/settings');
+const RabbitMQ = require('../messageBroker/rabbitMQ');
+const rabbitMQ = new RabbitMQ(config.rabbitMQ);
 
 const knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
 
@@ -27,6 +29,9 @@ async function consumeMessages() {
 
         // Create knowledge graph nodes
         await knowledgeGraph.createNode('Prospect', messageBody);
+
+        // Send message to Microsoft Teams
+        await rabbitMQ.sendMessageToMicrosoftTeams(`New message from SQS: ${JSON.stringify(messageBody)}`);
 
         // Delete the message from the queue
         const deleteParams = {
