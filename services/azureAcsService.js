@@ -36,7 +36,22 @@ const handleVoicemailDrop = async (callId, bento) => {
   }
 };
 
+const getTranscriptionResult = async (transcriptionId) => {
+  try {
+    const response = await axios.get(`${azureAcsUrl}/transcriptions/${transcriptionId}`, {
+      headers: {
+        'Ocp-Apim-Subscription-Key': azureAcsKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    logger.error(`Error getting transcription result for transcription ${transcriptionId}: ${error.message}`);
+    throw error;
+  }
+};
+
 module.exports = {
   createCall,
   handleVoicemailDrop,
+  getTranscriptionResult,
 };

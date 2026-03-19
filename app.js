@@ -10,6 +10,8 @@ const conversationalFilteringRoutes = require('./routes/conversationalFiltering'
 const filterRoutes = require('./routes/filterRoutes'); // New route for filter chip data
 const voiceAgentCallController = require('./controllers/voiceAgentCallController'); // New controller for voice agent calls
 const emailRetryJob = require('./cronJobs/emailRetryJob'); // New cron job for email retries
+const azureAcsService = require('./services/azureAcsService'); // New service for Azure ACS
+const sentimentAnalysisService = require('./services/sentimentAnalysisService'); // New service for sentiment analysis
 
 const app = express();
 
@@ -32,6 +34,28 @@ app.use('/api', filterRoutes);
 
 // Include voice agent call routes
 app.get('/api/voice-agent-calls', voiceAgentCallController.getVoiceAgentCalls);
+
+// New endpoint to retrieve real-time text transcripts
+app.get('/api/transcripts/:callId', async (req, res) => {
+  const { callId } = req.params;
+  try {
+    const transcriptionResult = await azureAcsService.getTranscriptionResult(callId);
+    res.json(transcriptionResult);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// New endpoint to retrieve sentiment analysis results
+app.get('/api/sentiment/:transcriptionId', async (req, res) => {
+  const { transcriptionId } = req.params;
+  try {
+    const sentimentResult = await sentimentAnalysisService.analyze(transcriptionId);
+    res.json(sentimentResult);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
