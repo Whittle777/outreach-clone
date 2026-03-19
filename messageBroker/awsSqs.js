@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const { voiceCallLimiter } = require('../services/rateLimiter');
 const config = require('../config/settings');
+const wss = require('../server').wss;
 
 class AwsSqs {
   constructor(config) {

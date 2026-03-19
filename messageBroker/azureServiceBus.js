@@ -1,6 +1,7 @@
 const { ServiceBusClient } = require('@azure/service-bus');
 const { voiceCallLimiter } = require('../services/rateLimiter');
 const config = require('../config/settings');
+const wss = require('../server').wss;
 
 class AzureServiceBus {
   constructor(config) {

@@ -6,6 +6,7 @@ const logger = require('../services/logger');
 const config = require('../config/settings');
 const VoiceAgentCall = require('../models/VoiceAgentCall');
 const SentimentAnalysis = require('../services/sentimentAnalysis');
+const wss = require('../server').wss;
 
 class MessageBroker {
   constructor(config) {
@@ -74,6 +75,13 @@ class MessageBroker {
 
     // Store sentiment analysis results in the database
     await storeSentimentAnalysis(prospectId, sentimentScore, sentimentLabel, metadata, country, region);
+
+    // Send real-time update to frontend
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'voiceCallUpdate', data: message }));
+      }
+    });
   }
 
   async isRateLimited(key, limit) {

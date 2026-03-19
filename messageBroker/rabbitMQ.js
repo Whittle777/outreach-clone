@@ -1,6 +1,7 @@
 const amqplib = require('amqplib');
 const { voiceCallLimiter } = require('../services/rateLimiter');
 const config = require('../config/settings');
+const wss = require('../server').wss;
 
 class RabbitMQ {
   constructor(config) {

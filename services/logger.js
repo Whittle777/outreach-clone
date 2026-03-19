@@ -1,4 +1,5 @@
 const winston = require('winston');
+const wss = require('../server').wss;
 
 const logger = winston.createLogger({
   level: 'info',
@@ -13,8 +14,18 @@ const logger = winston.createLogger({
 module.exports = {
   log: (message) => {
     logger.info(message);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'log', data: message }));
+      }
+    });
   },
   error: (message) => {
     logger.error(message);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'error', data: message }));
+      }
+    });
   },
 };

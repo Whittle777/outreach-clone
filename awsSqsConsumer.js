@@ -7,6 +7,7 @@ const GeolocationService = require('./services/geolocationService');
 const { voiceCallLimiter } = require('./services/rateLimiter');
 const logger = require('../services/logger');
 const SentimentAnalysis = require('./services/sentimentAnalysis');
+const wss = require('../server').wss;
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -70,6 +71,13 @@ async function consumeMessages() {
 
         // Initiate call using Azure Communication Services
         await initiateCall(messageBody.prospectId, messageBody.bento, country, region);
+
+        // Send real-time update to frontend
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'voiceCallUpdate', data: messageBody }));
+          }
+        });
       });
     }
   } catch (error) {
