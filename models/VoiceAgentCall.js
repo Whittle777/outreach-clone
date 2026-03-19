@@ -39,6 +39,17 @@ class VoiceAgentCall {
     // For now, let's assume it always returns false
     return false;
   }
+
+  static async updateCallStatus(id, newStatus) {
+    if (!['Queued', 'Dialing', 'Connected', 'Voicemail Dropped', 'Human Answered', 'Failed'].includes(newStatus)) {
+      throw new Error('Invalid call status');
+    }
+
+    return await prisma.voiceAgentCall.update({
+      where: { id },
+      data: { callStatus: newStatus },
+    });
+  }
 }
 
 module.exports = VoiceAgentCall;
