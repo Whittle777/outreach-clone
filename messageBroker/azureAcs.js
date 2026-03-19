@@ -53,6 +53,15 @@ class AzureAcs {
       throw new Error(`Failed to start transcription: ${error.message}`);
     }
   }
+
+  async getTranscriptionResult(transcriptionId) {
+    try {
+      const response = await axios.get(`${this.baseURL}/transcriptions/${transcriptionId}`, { headers: this.headers });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to get transcription result: ${error.message}`);
+    }
+  }
 }
 
 module.exports = AzureAcs;
