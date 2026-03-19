@@ -12,6 +12,7 @@ const scheduler = new Scheduler();
 const TtsService = require('../services/ttsService');
 const ttsService = new TtsService(config.elevenLabs.apiKey);
 const VoiceAgentCall = require('../models/VoiceAgentCall');
+const path = require('path');
 
 async function consumeMessages() {
   const params = {
@@ -48,15 +49,15 @@ async function consumeMessages() {
         // Generate TTS audio file
         if (messageBody.preGeneratedScript) {
           const ttsAudioFilePath = path.join(__dirname, `tts_audio_${messageBody.prospectId}.wav`);
-          await ttsService.generateTtsAudio(messageBody.preGeneratedScript, config.elevenLabs.voiceId, ttsAudioFilePath);
-          messageBody.ttsAudioFileUrl = `file://${ttsAudioFilePath}`;
+          const ttsAudioFileUrl = await ttsService.generateAndStoreTtsAudio(messageBody.preGeneratedScript, config.elevenLabs.voiceId, ttsAudioFilePath);
+          messageBody.ttsAudioFileUrl = ttsAudioFileUrl;
 
           // Create VoiceAgentCall record
           await VoiceAgentCall.create(
             messageBody.prospectId,
             'Queued',
             messageBody.preGeneratedScript,
-            messageBody.ttsAudioFileUrl,
+            ttsAudioFileUrl,
             ''
           );
         }

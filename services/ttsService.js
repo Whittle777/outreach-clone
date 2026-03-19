@@ -43,6 +43,17 @@ class TtsService {
       throw error;
     }
   }
+
+  async generateAndStoreTtsAudio(text, voiceId, outputFilePath) {
+    try {
+      await this.generateTtsAudio(text, voiceId, outputFilePath);
+      logger.log('TTS audio file generated and stored:', outputFilePath);
+      return outputFilePath;
+    } catch (error) {
+      logger.error('Failed to generate and store TTS audio file:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = TtsService;
