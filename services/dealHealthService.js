@@ -32,6 +32,22 @@ class DealHealthService {
       throw error;
     }
   }
+
+  async getConversionRateBySalesStage(salesStage) {
+    try {
+      const prospects = await prospectService.getProspectsBySalesStage(salesStage);
+      if (prospects.length === 0) {
+        return 0;
+      }
+
+      const convertedProspects = prospects.filter(prospect => prospect.status === 'Converted');
+      const conversionRate = (convertedProspects.length / prospects.length) * 100;
+      return conversionRate;
+    } catch (error) {
+      logger.error('Failed to get conversion rate by sales stage', { salesStage, error });
+      throw error;
+    }
+  }
 }
 
 module.exports = new DealHealthService();

@@ -1,51 +1,53 @@
-class DealHealthScore {
-  constructor(prospectId, score, status, metadata) {
-    this.prospectId = prospectId;
-    this.score = score;
-    this.status = status;
-    this.metadata = metadata;
+const DealHealthScore = require('../models/dealHealthScore');
+const logger = require('../services/logger');
+const prospectService = require('../services/prospectService');
+
+class DealHealthService {
+  async calculateDealHealthScore(prospectId, metadata) {
+    try {
+      const score = DealHealthScore.calculateScore(metadata);
+      const status = DealHealthScore.determineStatus(score);
+      const dealHealthScore = { prospectId, score, status, metadata };
+      logger.log('Deal Health Score Calculated', dealHealthScore);
+      return dealHealthScore;
+    } catch (error) {
+      logger.error('Failed to calculate deal health score', { prospectId, metadata, error });
+      throw error;
+    }
   }
 
-  static async create(prospectId, metadata) {
-    // Calculate the deal health score based on metadata
-    const score = this.calculateScore(metadata);
-    const status = this.determineStatus(score);
+  async getTopOpportunities() {
+    try {
+      const prospects = await prospectService.getAllProspects();
+      const dealHealthScores = await Promise.all(
+        prospects.map(prospect => this.calculateDealHealthScore(prospect.id, prospect.metadata))
+      );
 
-    // Check GDPR compliance
-    if (!isGDPRCompliant(metadata)) {
-      throw new Error('Data not compliant with GDPR');
+      dealHealthScores.sort((a, b) => b.score - a.score);
+
+      const topOpportunities = dealHealthScores.slice(0, 10); // Fetch top 10 opportunities
+      return topOpportunities;
+    } catch (error) {
+      logger.error('Failed to get top opportunities', { error });
+      throw error;
     }
-
-    return new DealHealthScore(prospectId, score, status, metadata);
   }
 
-  static calculateScore(metadata) {
-    // Example calculation: sum of scores for different criteria
-    let score = 0;
-    if (metadata.recentInteraction) {
-      score += 20;
-    }
-    if (metadata.openRate) {
-      score += 30;
-    }
-    if (metadata.clickRate) {
-      score += 25;
-    }
-    if (metadata.replyRate) {
-      score += 25;
-    }
-    return score;
-  }
+  async getConversionRateBySalesStage(salesStage) {
+    try {
+      const prospects = await prospectService.getProspectsBySalesStage(salesStage);
+      if (propects.length === 0) {
+        return 0;
+      }
 
-  static determineStatus(score) {
-    if (score >= 80) {
-      return 'High';
-    } else if (score >= 50) {
-      return 'Medium';
-    } else {
-      return 'Low';
+      const convertedProspects = prospects.filter(prospect => prospect.status === 'Converted');
+      const conversionRate = (convertedProspects.length / prospects.length) * 100;
+      return conversionRate;
+    } catch (error) {
+      logger.error('Failed to get conversion rate by sales stage', { salesStage, error });
+      throw error;
     }
   }
 }
 
-module.exports = DealHealthScore;
+module.exports = new DealHealthService();
