@@ -83,3 +83,14 @@ model TrackingPixelEvent {
   updatedAt    DateTime  @updatedAt
   prospect     Prospect  @relation(fields: [prospectId], references: [id])
 }
+
+model Deal {
+  id         Int       @id @default(autoincrement())
+  value      Float
+  closeDate  DateTime
+  status     String
+  bento      String
+  schemaTag  String    @default("default")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
