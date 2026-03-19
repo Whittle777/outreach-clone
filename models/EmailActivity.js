@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function createEmailActivity(prospectId, sequenceStepId, status, bento) {
+async function createEmailActivity(prospectId, sequenceStepId, status, bento, retryAttempts = 0) {
   const shard = getShard(bento);
   return await prisma[shard].emailActivity.create({
     data: {
@@ -9,6 +9,7 @@ async function createEmailActivity(prospectId, sequenceStepId, status, bento) {
       sequenceStepId,
       status,
       bento,
+      retryAttempts,
     },
   });
 }
@@ -27,11 +28,11 @@ async function getEmailActivitiesBySequenceStepId(sequenceStepId, bento) {
   });
 }
 
-async function updateEmailActivity(id, status, bento) {
+async function updateEmailActivity(id, status, bento, retryAttempts) {
   const shard = getShard(bento);
   return await prisma[shard].emailActivity.update({
     where: { id },
-    data: { status },
+    data: { status, retryAttempts },
   });
 }
 
