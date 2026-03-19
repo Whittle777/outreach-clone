@@ -4,6 +4,7 @@ const { createProspect, getProspectById, getAllProspects, updateProspect, delete
 const { handleProspectStatusChange } = require('../services/eventHandlers');
 const { handleWebhookPayload } = require('../services/webhook');
 const oauthService = require('../services/oauthService'); // New import
+const UIComponentGenerator = require('../services/uiComponentGenerator'); // New import
 
 router.get('/', async (req, res) => {
   try {
@@ -103,6 +104,20 @@ router.put('/:id/call-status', async (req, res) => {
     });
 
     res.json(updatedProspect);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Route to generate UI components based on user text prompts
+router.post('/generate-ui', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ message: 'Prompt is required' });
+    }
+    const uiComponent = UIComponentGenerator.generateComponent(prompt);
+    res.json({ uiComponent });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
