@@ -3,7 +3,6 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
-3. [ ] Implement a message producer for Azure Service Bus
 4. [ ] Implement a message consumer for Azure Service Bus
 5. [ ] Implement a message producer for AWS SQS
 6. [ ] Implement a message consumer for AWS SQS

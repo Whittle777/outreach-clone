@@ -16,6 +16,7 @@ const { analyzeOpenRates } = require('../services/openRateAnalyzer'); // New imp
 const ngoe = require('./ngoe'); // New import
 const { generateEmailContent } = require('./gpt4'); // New import
 const { analyzeSentiment } = require('./gemini'); // New import
+const azureServiceBusProducer = require('./azureServiceBusProducer'); // New import
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -177,6 +178,11 @@ async function run() {
               value: JSON.stringify({ type: 'sendEmail', payload: message }),
             }],
           });
+        }
+      }),
+      Broadway.stage('sendToAzureServiceBus', async (messages) => {
+        for (const message of messages) {
+          await azureServiceBusProducer.sendMessage(message);
         }
       }),
     ],
