@@ -2,6 +2,7 @@ const neo4j = require('neo4j-driver');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const DealHealthScore = require('../models/dealHealthScore');
 const logger = require('../services/logger');
+const dealHealthService = require('../services/dealHealthService');
 
 class KnowledgeGraph {
   constructor(uri, user, password) {
@@ -40,7 +41,7 @@ class KnowledgeGraph {
   async createDealHealthScore(prospectId, metadata) {
     const session = this.driver.session();
     try {
-      const dealHealthScore = await DealHealthScore.create(prospectId, metadata);
+      const dealHealthScore = await dealHealthService.calculateDealHealthScore(prospectId, metadata);
       const result = await session.run(
         `CREATE (d:DealHealthScore {prospectId: $prospectId, score: $score, status: $status, metadata: $metadata}) RETURN d`,
         dealHealthScore
