@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 class VoiceAgentCall {
-  static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, sentimentAnalysis, bento) {
+  static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, sentimentScore, sentimentLabel, bento) {
     return await prisma.voiceAgentCall.create({
       data: {
         prospectId,
@@ -10,7 +10,8 @@ class VoiceAgentCall {
         preGeneratedScript,
         ttsAudioFileUrl,
         callTranscript,
-        sentimentAnalysis,
+        sentimentScore,
+        sentimentLabel,
         bento,
       },
     });

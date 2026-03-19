@@ -1,10 +1,16 @@
 const VoiceAgentCall = require('../models/VoiceAgentCall');
-const { initiateCall } = require('../services/azureCommunicationService');
+const sentimentAnalysis = require('sentiment-analysis'); // Hypothetical library
 
 exports.create = async (req, res) => {
   try {
-    const { prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, sentimentAnalysis, bento } = req.body;
-    const newCall = await VoiceAgentCall.create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, sentimentAnalysis, bento);
+    const { prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento } = req.body;
+
+    // Perform sentiment analysis
+    const sentiment = sentimentAnalysis(callTranscript);
+    const sentimentScore = sentiment.score;
+    const sentimentLabel = sentiment.label;
+
+    const newCall = await VoiceAgentCall.create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, sentimentScore, sentimentLabel, bento);
     res.status(201).json(newCall);
   } catch (error) {
     res.status(500).json({ error: error.message });
