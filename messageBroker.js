@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken');
 const AIGenerator = require('../services/aiGenerator');
 const NGOE = require('../services/ngoeTaskExecutor');
 const MCPGateway = require('./messageBroker/mcpGateway');
+const crypto = require('crypto');
 
 class MessageBroker {
   constructor(config) {
@@ -43,21 +44,46 @@ class MessageBroker {
     }
   }
 
+  encrypt(data) {
+    const cipher = crypto.createCipher('aes-256-cbc', process.env.ENCRYPTION_KEY, process.env.ENCRYPTION_IV);
+    let encrypted = cipher.update(data, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+  }
+
+  decrypt(encryptedData) {
+    const decipher = crypto.createDecipher('aes-256-cbc', process.env.ENCRYPTION_KEY, process.env.ENCRYPTION_IV);
+    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  }
+
   async sendMessage(message, token) {
+    const encryptedMessage = this.encrypt(JSON.stringify(message));
     try {
-      return await this.broker.sendMessage(message, token);
+      return await this.broker.sendMessage(encryptedMessage, token);
     } catch (error) {
       logger.error(`Primary broker failed: ${error.message}`);
-      return await this.fallbackBroker.sendMessage(message, token);
+      return await this.fallbackBroker.sendMessage(encryptedMessage, token);
     }
   }
 
   async receiveMessage(token) {
     try {
-      return await this.broker.receiveMessage(token);
+      const encryptedMessage = await this.broker.receiveMessage(token);
+      if (encryptedMessage) {
+        const message = JSON.parse(this.decrypt(encryptedMessage));
+        return message;
+      }
+      return null;
     } catch (error) {
       logger.error(`Primary broker failed: ${error.message}`);
-      return await this.fallbackBroker.receiveMessage(token);
+      const encryptedMessage = await this.fallbackBroker.receiveMessage(token);
+      if (encryptedMessage) {
+        const message = JSON.parse(this.decrypt(encryptedMessage));
+        return message;
+      }
+      return null;
     }
   }
 
@@ -141,11 +167,13 @@ class MessageBroker {
   }
 
   async sendMCPMessage(message, token) {
-    return this.mcpGateway.sendMessage(message, token);
+    const encryptedMessage = this.encrypt(JSON.stringify(message));
+    return this.mcpGateway.sendMessage(encryptedMessage, token);
   }
 
   async receiveMCPMessage(encryptedMessage, token) {
-    return this.mcpGateway.receiveMessage(encryptedMessage, token);
+    const decryptedMessage = this.decrypt(encryptedMessage);
+    return this.mcpGateway.receiveMessage(decryptedMessage, token);
   }
 }
 

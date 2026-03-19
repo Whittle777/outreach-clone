@@ -8,6 +8,7 @@ const KnowledgeGraph = require('../services/knowledgeGraph');
 const MicrosoftTeamsApp = require('../services/microsoftTeamsApp');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const NGOE = require('../services/ngoeTaskExecutor');
+const crypto = require('crypto');
 
 class RabbitMQ {
   constructor(config) {
@@ -25,6 +26,20 @@ class RabbitMQ {
     this.connection = await amqplib.connect(this.url);
     this.channel = await this.connection.createChannel();
     await this.channel.assertQueue(this.queueName, { durable: true });
+  }
+
+  encrypt(data) {
+    const cipher = crypto.createCipher('aes-256-cbc', process.env.ENCRYPTION_KEY, process.env.ENCRYPTION_IV);
+    let encrypted = cipher.update(data, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+  }
+
+  decrypt(encryptedData) {
+    const decipher = crypto.createDecipher('aes-256-cbc', process.env.ENCRYPTION_KEY, process.env.ENCRYPTION_IV);
+    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
   }
 
   async sendMessage(message, token) {

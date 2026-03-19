@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 const KnowledgeGraph = require('../services/knowledgeGraph');
 const NGOE = require('../services/ngoeTaskExecutor');
+const crypto = require('crypto');
 
 class AzureServiceBus {
   constructor(config) {
@@ -14,6 +15,20 @@ class AzureServiceBus {
     this.receiver = this.serviceBusClient.createReceiver(config.subscriptionName);
     this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
     this.ngoe = new NGOE();
+  }
+
+  encrypt(data) {
+    const cipher = crypto.createCipher('aes-256-cbc', process.env.ENCRYPTION_KEY, process.env.ENCRYPTION_IV);
+    let encrypted = cipher.update(data, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+  }
+
+  decrypt(encryptedData) {
+    const decipher = crypto.createDecipher('aes-256-cbc', process.env.ENCRYPTION_KEY, process.env.ENCRYPTION_IV);
+    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
   }
 
   async sendMessage(message, token) {
