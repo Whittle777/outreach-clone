@@ -7,6 +7,8 @@ const config = require('../config/settings');
 const RabbitMQ = require('../messageBroker/rabbitMQ');
 const rabbitMQ = new RabbitMQ(config.rabbitMQ);
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
+const Scheduler = require('../services/scheduler');
+const scheduler = new Scheduler();
 
 const knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
 
@@ -36,6 +38,11 @@ async function consumeMessages() {
 
         // Double-write strategy
         await doubleWriteStrategy.write(messageBody);
+
+        // Check for migration message
+        if (messageBody.type === 'migration' && messageBody.action === 'schedule') {
+          scheduler.scheduleMigration(messageBody.maintenanceWindow);
+        }
 
         // Delete the message from the queue
         const deleteParams = {
