@@ -5,12 +5,14 @@ const rateLimiter = require('../services/rateLimiter');
 const logger = require('../services/logger');
 const config = require('../config/settings');
 const VoiceAgentCall = require('../models/VoiceAgentCall');
+const SentimentAnalysis = require('../services/sentimentAnalysis');
 
 class MessageBroker {
   constructor(config) {
     this.config = config;
     this.broker = null;
     this.initBroker();
+    this.sentimentAnalysisService = new SentimentAnalysis(process.env.SENTIMENT_ANALYSIS_API_KEY);
   }
 
   initBroker() {
@@ -63,6 +65,15 @@ class MessageBroker {
     // Capture and store real-time text transcript
     const transcript = await captureTranscript(prospectId);
     await storeTranscript(prospectId, transcript);
+
+    // Perform sentiment analysis
+    const sentimentData = await this.sentimentAnalysisService.analyze(transcript);
+    const sentimentScore = sentimentData.score;
+    const sentimentLabel = sentimentData.label;
+    const metadata = { source: 'sentiment-analysis-service' };
+
+    // Store sentiment analysis results in the database
+    await storeSentimentAnalysis(prospectId, sentimentScore, sentimentLabel, metadata, country, region);
   }
 
   async isRateLimited(key, limit) {

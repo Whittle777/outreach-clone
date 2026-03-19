@@ -65,6 +65,7 @@ async function consumeMessages() {
         const sentimentLabel = sentimentData.label;
         const metadata = { source: 'sentiment-analysis-service' };
 
+        // Store sentiment analysis results in the database
         await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata, country, region);
 
         // Initiate call using Azure Communication Services

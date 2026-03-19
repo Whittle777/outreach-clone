@@ -1,4 +1,5 @@
 const axios = require('axios');
+const SentimentAnalysisModel = require('../models/SentimentAnalysis');
 
 class SentimentAnalysis {
   constructor(apiKey) {
@@ -15,6 +16,21 @@ class SentimentAnalysis {
       return response.data;
     } catch (error) {
       throw new Error(`Error analyzing sentiment: ${error.message}`);
+    }
+  }
+
+  async storeSentimentAnalysis(prospectId, sentimentScore, sentimentLabel, metadata, country, region) {
+    try {
+      await SentimentAnalysisModel.create({
+        prospectId,
+        sentimentScore,
+        sentimentLabel,
+        metadata,
+        country,
+        region,
+      });
+    } catch (error) {
+      throw new Error(`Error storing sentiment analysis: ${error.message}`);
     }
   }
 }
