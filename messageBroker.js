@@ -128,6 +128,7 @@ class MessageBroker {
     if (confidenceScore > 85) {
       logger.log(`High confidence score, routing to AI execution for prospectId: ${prospectId}`);
       // Implement AI execution logic here
+      await this.aiGenerator.executeAI(prospectId, transcript);
     } else if (confidenceScore > 70) {
       logger.log(`Moderate confidence score, routing to review queue for prospectId: ${prospectId}`);
       // Implement review queue logic here
