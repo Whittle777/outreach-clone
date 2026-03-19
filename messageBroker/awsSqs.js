@@ -5,12 +5,14 @@ const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
 const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 const KnowledgeGraph = require('../services/knowledgeGraph');
+const NGOE = require('../services/ngoeTaskExecutor');
 
 class AwsSqs {
   constructor(config) {
     this.sqs = new AWS.SQS({ region: 'us-east-1' });
     this.queueUrl = config.queueUrl;
     this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
+    this.ngoe = new NGOE();
   }
 
   async sendMessage(message, token) {
@@ -95,6 +97,10 @@ class AwsSqs {
 
   async close() {
     await this.knowledgeGraph.close();
+  }
+
+  async executeNGOETask(task) {
+    return this.ngoe.executeTask(task);
   }
 }
 

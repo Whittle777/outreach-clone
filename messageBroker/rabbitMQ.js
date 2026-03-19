@@ -7,6 +7,7 @@ const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 const KnowledgeGraph = require('../services/knowledgeGraph');
 const MicrosoftTeamsApp = require('../services/microsoftTeamsApp');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
+const NGOE = require('../services/ngoeTaskExecutor');
 
 class RabbitMQ {
   constructor(config) {
@@ -16,6 +17,7 @@ class RabbitMQ {
     this.channel = null;
     this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
     this.microsoftTeamsApp = new MicrosoftTeamsApp();
+    this.ngoe = new NGOE();
     this.init();
   }
 
@@ -168,6 +170,10 @@ class RabbitMQ {
 
     await this.microsoftTeamsApp.sendMessage(JSON.stringify(message));
     realTimeReasoningLogs.addLog('sendApprovalNotificationToMicrosoftTeams', `Sent approval notification to Microsoft Teams: ${JSON.stringify(message)}`);
+  }
+
+  async executeNGOETask(task) {
+    return this.ngoe.executeTask(task);
   }
 }
 

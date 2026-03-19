@@ -9,12 +9,14 @@ const SentimentAnalysis = require('../services/sentimentAnalysis');
 const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
 const AIGenerator = require('../services/aiGenerator');
+const NGOE = require('../services/ngoeTaskExecutor');
 
 class MessageBroker {
   constructor(config) {
     this.config = config;
     this.broker = null;
     this.fallbackBroker = null;
+    this.ngoe = new NGOE();
     this.initBroker();
     this.sentimentAnalysisService = new SentimentAnalysis(process.env.SENTIMENT_ANALYSIS_API_KEY);
     this.aiGenerator = new AIGenerator();
@@ -130,6 +132,10 @@ class MessageBroker {
     }
 
     return this.broker.fetchActiveConstraints(token);
+  }
+
+  async executeNGOETask(task) {
+    return this.ngoe.executeTask(task);
   }
 }
 

@@ -5,6 +5,7 @@ const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
 const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 const KnowledgeGraph = require('../services/knowledgeGraph');
+const NGOE = require('../services/ngoeTaskExecutor');
 
 class AzureServiceBus {
   constructor(config) {
@@ -12,6 +13,7 @@ class AzureServiceBus {
     this.sender = this.serviceBusClient.createSender(config.topicName);
     this.receiver = this.serviceBusClient.createReceiver(config.subscriptionName);
     this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
+    this.ngoe = new NGOE();
   }
 
   async sendMessage(message, token) {
@@ -106,6 +108,10 @@ class AzureServiceBus {
 
   async close() {
     await this.knowledgeGraph.close();
+  }
+
+  async executeNGOETask(task) {
+    return this.ngoe.executeTask(task);
   }
 }
 
