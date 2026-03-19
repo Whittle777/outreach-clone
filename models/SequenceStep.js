@@ -3,6 +3,7 @@ const prisma = new PrismaClient();
 
 async function createSequenceStep(sequenceId, order, delayDays, subject, body, bento, schemaTag = "default", scheduledTime = null, state = "pending") {
   const shard = getShard(bento);
+  const calculatedScheduledTime = calculateScheduledTime(delayDays);
   return await prisma[shard].sequenceStep.create({
     data: {
       sequenceId,
@@ -12,7 +13,7 @@ async function createSequenceStep(sequenceId, order, delayDays, subject, body, b
       body,
       bento,
       schemaTag,
-      scheduledTime,
+      scheduledTime: scheduledTime || calculatedScheduledTime,
       state,
     },
   });
@@ -58,6 +59,12 @@ function getShard(bento) {
   // Simple sharding logic based on bento value
   // For example, you can use a hash function or a modulo operation
   return `shard_${bento % 3}`;
+}
+
+function calculateScheduledTime(delayDays) {
+  const now = new Date();
+  now.setDate(now.getDate() + delayDays);
+  return now.toISOString();
 }
 
 module.exports = {

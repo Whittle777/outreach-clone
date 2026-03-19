@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { createSequenceStep } = require('../models/SequenceStep');
 
 exports.getAllSequenceSteps = async (req, res) => {
   try {
@@ -26,16 +27,8 @@ exports.getSequenceStepById = async (req, res) => {
 
 exports.createSequenceStep = async (req, res) => {
   try {
-    const { sequenceId, order, delayDays, subject, body } = req.body;
-    const sequenceStep = await prisma.sequenceStep.create({
-      data: {
-        sequenceId,
-        order,
-        delayDays,
-        subject,
-        body,
-      },
-    });
+    const { sequenceId, order, delayDays, subject, body, bento } = req.body;
+    const sequenceStep = await createSequenceStep(sequenceId, order, delayDays, subject, body, bento);
     res.status(201).json(sequenceStep);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create sequence step' });
@@ -44,10 +37,10 @@ exports.createSequenceStep = async (req, res) => {
 
 exports.updateSequenceStep = async (req, res) => {
   try {
-    const { order, delayDays, subject, body } = req.body;
+    const { order, delayDays, subject, body, bento } = req.body;
     const sequenceStep = await prisma.sequenceStep.update({
       where: { id: parseInt(req.params.id) },
-      data: { order, delayDays, subject, body },
+      data: { order, delayDays, subject, body, bento },
     });
     res.json(sequenceStep);
   } catch (error) {
