@@ -155,6 +155,16 @@ Records of natural language prompts and their resolved queries.
 - Result Count
 - Fallback Logic Applied (if any)
 
+### TimeBlockConfig
+Configuration for scheduling time blocks and approved calling hours.
+- Start Time
+- End Time
+- Days of Week (array)
+- Holiday Exclusions
+- User/Team Association
+- Bento identifier for multi-tenant isolation
+- Active Status
+
 ## Architecture Decisions
 
 1. **Database Migration:** Migrating from MongoDB to PostgreSQL with Prisma ORM
@@ -309,6 +319,35 @@ Records of natural language prompts and their resolved queries.
 - **Negative Filtering:** Exclude companies with recent AI-related press releases or job postings
 - **Dynamic Script Generation:** Call scripts automatically populated with prospect-specific context
 
+### Personalization Waterfall
+- **Visual Hierarchy:** Drag-and-drop interface for ranking enrichment data sources
+- **Priority Order:** Fundraising News > LinkedIn Posts > Technographic Data > Company Website > Social Media
+- **Top-Down Evaluation:** AI evaluates sources sequentially to find first viable personalization hook
+- **Fallback Mechanism:** If no personalization found, use generic template with basic prospect info
+
+### Dynamic Generative Copy
+- **AI-Drafted Emails:** Structurally unique emails for every recipient based on core intent rules
+- **Tone Controls:** Selectable tone options (Direct, Professional, Sincere)
+- **Spam Filter Avoidance:** Avoid "snowshoeing" by generating diverse content structures
+
+### Deliverability Gate Dashboard
+- **Data Quality Verification:** Progress bar showing percentage of verified emails vs. suppressed contacts (bounces, honeypots)
+- **Dynamic Send Limits:** Real-time speedometer/line chart visualizing active send volume against AI-calculated safe thresholds
+- **Domain Health Monitoring:** Traffic-light indicators (Green/Yellow/Red) for critical DNS records (SPF, DKIM, DMARC)
+- **AI Email Warmup Status:** Dedicated panel showing ratio of outbound emails to automated warmup interactions
+
+### 30-Second Pre-Call Brief Dashboard
+- **Ephemeral UI:** Triggered before scheduled calls, replaces manual research with synthesized bullet points
+- **Algorithmically Recommended Call Goal:** AI-suggested definitive objective for the call
+- **Omnichannel Context Summary:** Recent website visits, opened emails, engagement history
+- **AI-Generated Discovery Questions:** Tailored talk tracks and conversation starters
+
+### Autonomous Voice Agent Fleet Command
+- **Live Monitoring Dashboard:** Real-time observation of simultaneous AI calls
+- **Real-Time Text Transcripts:** Live transcription of call conversations
+- **Parallel Sentiment Analysis:** Continuous sentiment tracking during calls
+- **Visual Flags:** Indicators for calls hitting resistance or regulatory edge cases
+
 ## Predictive Dialer System (Phase 9+)
 
 ### Predictive Pacing Engine
@@ -337,6 +376,47 @@ Records of natural language prompts and their resolved queries.
 - Automatically pulls lead lists from CRM
 - Pushes call dispositions and recordings back to CRM
 - Instantly triggers "screen pops" displaying prospect profile as call connects
+
+## Human-in-the-Loop (HITL) Workflow
+
+### Confidence Score Routing
+- **High Confidence (>85%):** Solid green progress bar/checkmark, AI executes autonomously and logs action
+- **Moderate Confidence (70-84%):** Amber/yellow warning tooltip, action paused and routed to review queue
+- **Low Confidence (<70%):** Red alert icon, workflow halts with high-priority supervisor notifications
+
+### Split-Pane Review Interface
+- **Left Rail (Review Queue):** Paginated list of pending tasks sorted by urgency or pipeline value
+- **Center Pane (Contextual Record):** Displays exact source material (enriched profiles, past emails, raw call transcripts, audio controls)
+- **Right Pane (Agentic Action Panel):** Concise AI summary, drafted response, and tactile controls to accept, reject, or inline-edit
+
+### Oversight Portal
+- Dedicated interface for human Account Executives to provide contextual feedback
+- Correct AI drafts before external communications are sent
+- Prevent algorithmic hallucinations in customer-facing content
+
+## System Resilience & Transparency
+
+### Temporal State Management
+- Decouples UI from background engine
+- Paused workflows saved as durable objects
+- Tasks resume exactly where left off without redundant API calls
+
+### Real-Time Reasoning Logs
+- Step-by-step visual timeline explaining agent's chain-of-thought
+- Example: Searched CRM → Found no activity → Queried web → Drafted email
+- Provides transparency into AI decision-making process
+
+### Dynamic Knowledge Graphs
+- On-the-fly node visualizations mapping prospect relationships
+- Corporate hierarchy visualization
+- Inferred pain points and connection mapping
+- Proves AI's logic through visual representation
+
+### Natural Language Guardrails
+- Governance environment where admins type strict policy directives
+- Example: "Never offer >15% discount without approval"
+- System instantly translates into executable middleware constraints
+- Prevents unauthorized actions through natural language policies
 
 ## Application Decomposition Strategy (Phase 1)
 
@@ -398,35 +478,6 @@ Records of natural language prompts and their resolved queries.
 - Dynamic UI generation based on user text prompts
 - Intent-driven shortcuts and predictive search
 - Visual filter chips for active constraints
-
-### Mass Email Sequencing & Deliverability
-- Personalization Waterfall: Visual hierarchy for enrichment data sources (Fundraising News > LinkedIn Posts > Technographic Data)
-- Dynamic Generative Copy: AI-drafted emails with tone controls (Direct, Professional, Sincere)
-- Deliverability Gate Dashboard: Data quality verification, send limits, domain health monitoring
-
-### Prospect Calling & Voice Agents
-- 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks
-- Autonomous Voice Agent Fleet Command for real-time monitoring
-- Real-time text transcripts and parallel sentiment analysis
-- Visual flags for calls hitting resistance or regulatory edge cases
-- Auto-dialing feature with sequential task completion workflow
-
-### Human-in-the-Loop (HITL) Workflow
-- **Confidence Score Routing:**
-  - High Confidence (>85%): Solid green progress bar/checkmark, AI executes autonomously
-  - Moderate Confidence (70-84%): Amber/yellow warning tooltip, action paused and routed to review queue
-  - Low Confidence (<70%): Red alert icon, workflow halts with high-priority supervisor notifications
-- **Split-Pane Review Interface:**
-  - Left Rail: Paginated list of pending tasks sorted by urgency or pipeline value
-  - Center Pane: Contextual record (enriched profiles, past emails, raw call transcripts, audio controls)
-  - Right Pane: Agentic action panel with AI summary, drafted response, and accept/reject/inline-edit controls
-- **Oversight Portal:** Dedicated interface for human AEs to provide contextual feedback, correct AI drafts, and prevent algorithmic hallucinations before external communications are sent
-
-### System Resilience & Transparency
-- **Temporal State Management:** Durable workflow objects for paused workflows that resume exactly where left off
-- **Real-Time Reasoning Logs:** Step-by-step visual timeline explaining agent chain-of-thought (e.g., Searched CRM → Found no activity → Queried web → Drafted email)
-- **Dynamic Knowledge Graphs:** On-the-fly node visualizations mapping prospect, corporate hierarchy, and inferred pain points
-- **Natural Language Guardrails:** Governance environment where admins type policy directives translated into executable middleware constraints
 
 ### Omnichannel Integration
 - Embedded Command Centers in Slack and Microsoft Teams
@@ -516,3 +567,11 @@ Records of natural language prompts and their resolved queries.
 15. Support persona and tech-stack targeting with third-party enrichment API integration points
 16. Implement Predictive Dialer System with pacing engine, compliance safeguards, and AMD
 17. Enable bi-directional CRM integration for lead lists and call disposition tracking
+18. Add TimeBlockConfig model for scheduling time blocks and approved calling hours
+19. Implement confidence score routing thresholds (>85%, 70-84%, <70%) for HITL workflow
+20. Support Natural Language Guardrails for policy directive translation to middleware constraints
+21. Enable Dynamic Knowledge Graphs visualization for prospect relationships
+22. Implement Real-Time Reasoning Logs for AI chain-of-thought transparency
+23. Add Deliverability Gate Dashboard with data quality verification and domain health monitoring
+24. Implement Personalization Waterfall hierarchy for enrichment data source ranking
+25. Support 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks

@@ -368,4 +368,4 @@ What is most key is the autodialer functionality - let's make this extremely rob
 
         Answering Machine Detection (AMD): AI-driven audio analysis that operates in milliseconds to distinguish between live human voices, voicemails, busy signals, and disconnected numbers, ensuring only live connections are routed to the sales floor.
 
-        Bi-Directional CRM Integration: Seamless API connectivity (via Webhooks or RESTful APIs) that automatically pulls lead lists, pushes call dispositions and recordings back to the CRM, and instantly triggers "screen pops" displaying the prospect's profile for the agent as the call connects.
+        Bi-Directional CRM Integration: Seamless API connectivity (via Webhooks or RESTful APIs) that automatically pulls lead lists, pushes call dispositions and recordings back to the CRM, and instantly triggers "screen pops" displaying the prospect's profile for the agent as the call connects. 
