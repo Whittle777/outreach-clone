@@ -3,6 +3,7 @@ const { voiceCallLimiter } = require('../services/rateLimiter');
 const config = require('../config/settings');
 const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
+const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 
 class RabbitMQ {
   constructor(config) {
@@ -26,6 +27,7 @@ class RabbitMQ {
     }
 
     await this.channel.sendToQueue(this.queueName, Buffer.from(JSON.stringify(message)));
+    realTimeReasoningLogs.addLog('sendMessage', `Message sent to RabbitMQ: ${JSON.stringify(message)}`);
   }
 
   async receiveMessage(token) {
@@ -36,6 +38,7 @@ class RabbitMQ {
 
     const message = await this.channel.get(this.queueName, { noAck: true });
     if (message) {
+      realTimeReasoningLogs.addLog('receiveMessage', `Message received from RabbitMQ: ${JSON.stringify(message.content.toString())}`);
       return JSON.parse(message.content.toString());
     }
     return null;
@@ -63,6 +66,7 @@ class RabbitMQ {
 
     if (await rateLimiter.isRateLimited(key)) {
       console.log(`Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
+      realTimeReasoningLogs.addLog('sendMessageWithRateLimit', `Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
       return;
     }
 
@@ -78,6 +82,7 @@ class RabbitMQ {
 
     // Placeholder for fetching active constraints
     // This should be replaced with actual logic to fetch constraints from RabbitMQ
+    realTimeReasoningLogs.addLog('fetchActiveConstraints', 'Fetching active constraints');
     return {
       constraints: [
         { id: 1, name: 'Constraint 1' },

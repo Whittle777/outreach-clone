@@ -3,6 +3,7 @@ const { voiceCallLimiter } = require('../services/rateLimiter');
 const config = require('../config/settings');
 const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
+const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 
 class AzureServiceBus {
   constructor(config) {
@@ -18,6 +19,7 @@ class AzureServiceBus {
     }
 
     await this.sender.sendMessages({ body: message });
+    realTimeReasoningLogs.addLog('sendMessage', `Message sent to Azure Service Bus: ${JSON.stringify(message)}`);
   }
 
   async receiveMessage(token) {
@@ -30,6 +32,7 @@ class AzureServiceBus {
     if (receivedMessages.length > 0) {
       const message = receivedMessages[0];
       await message.complete();
+      realTimeReasoningLogs.addLog('receiveMessage', `Message received from Azure Service Bus: ${JSON.stringify(message.body)}`);
       return message.body;
     }
     return null;
@@ -53,6 +56,7 @@ class AzureServiceBus {
       entraObjectId
     };
     await this.sender.sendMessages({ body: messageWithEntraObjectId });
+    realTimeReasoningLogs.addLog('sendMessageWithEntraObjectId', `Message sent with Entra Object ID: ${JSON.stringify(messageWithEntraObjectId)}`);
   }
 
   async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
@@ -68,6 +72,7 @@ class AzureServiceBus {
 
     if (await rateLimiter.isRateLimited(key)) {
       console.log(`Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
+      realTimeReasoningLogs.addLog('sendMessageWithRateLimit', `Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
       return;
     }
 
@@ -83,6 +88,7 @@ class AzureServiceBus {
 
     // Placeholder for fetching active constraints
     // This should be replaced with actual logic to fetch constraints from Azure Service Bus
+    realTimeReasoningLogs.addLog('fetchActiveConstraints', 'Fetching active constraints');
     return {
       constraints: [
         { id: 1, name: 'Constraint 1' },

@@ -3,6 +3,7 @@ const { voiceCallLimiter } = require('../services/rateLimiter');
 const config = require('../config/settings');
 const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
+const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 
 class AwsSqs {
   constructor(config) {
@@ -21,6 +22,7 @@ class AwsSqs {
       QueueUrl: this.queueUrl,
     };
     await this.sqs.sendMessage(params).promise();
+    realTimeReasoningLogs.addLog('sendMessage', `Message sent to SQS: ${JSON.stringify(message)}`);
   }
 
   async receiveMessage(token) {
@@ -40,6 +42,7 @@ class AwsSqs {
         QueueUrl: this.queueUrl,
         ReceiptHandle: message.ReceiptHandle,
       }).promise();
+      realTimeReasoningLogs.addLog('receiveMessage', `Message received from SQS: ${JSON.stringify(message.Body)}`);
       return JSON.parse(message.Body);
     }
     return null;
@@ -58,6 +61,7 @@ class AwsSqs {
 
     if (await rateLimiter.isRateLimited(key)) {
       console.log(`Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
+      realTimeReasoningLogs.addLog('sendMessageWithRateLimit', `Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
       return;
     }
 
@@ -73,6 +77,7 @@ class AwsSqs {
 
     // Placeholder for fetching active constraints
     // This should be replaced with actual logic to fetch constraints from AWS SQS
+    realTimeReasoningLogs.addLog('fetchActiveConstraints', 'Fetching active constraints');
     return {
       constraints: [
         { id: 1, name: 'Constraint 1' },
