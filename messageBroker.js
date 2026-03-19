@@ -10,6 +10,7 @@ const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
 const AIGenerator = require('../services/aiGenerator');
 const NGOE = require('../services/ngoeTaskExecutor');
+const MCPGateway = require('./messageBroker/mcpGateway');
 
 class MessageBroker {
   constructor(config) {
@@ -20,6 +21,7 @@ class MessageBroker {
     this.initBroker();
     this.sentimentAnalysisService = new SentimentAnalysis(process.env.SENTIMENT_ANALYSIS_API_KEY);
     this.aiGenerator = new AIGenerator();
+    this.mcpGateway = new MCPGateway(config.mcpGateway);
   }
 
   initBroker() {
@@ -136,6 +138,14 @@ class MessageBroker {
 
   async executeNGOETask(task) {
     return this.ngoe.executeTask(task);
+  }
+
+  async sendMCPMessage(message, token) {
+    return this.mcpGateway.sendMessage(message, token);
+  }
+
+  async receiveMCPMessage(encryptedMessage, token) {
+    return this.mcpGateway.receiveMessage(encryptedMessage, token);
   }
 }
 
