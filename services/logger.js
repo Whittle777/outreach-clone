@@ -13,22 +13,22 @@ const logger = winston.createLogger({
 });
 
 module.exports = {
-  log: (message) => {
-    logger.info(message);
+  log: (message, data) => {
+    logger.info(message, data);
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ type: 'log', data: message }));
+        client.send(JSON.stringify({ type: 'log', data: { message, data } }));
       }
     });
-    doubleWriteStrategy.write({ type: 'log', data: message });
+    doubleWriteStrategy.write({ type: 'log', data: { message, data } });
   },
-  error: (message) => {
-    logger.error(message);
+  error: (message, data) => {
+    logger.error(message, data);
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ type: 'error', data: message }));
+        client.send(JSON.stringify({ type: 'error', data: { message, data } }));
       }
     });
-    doubleWriteStrategy.write({ type: 'error', data: message });
+    doubleWriteStrategy.write({ type: 'error', data: { message, data } });
   },
 };
