@@ -18,6 +18,7 @@ class RateLimiter {
     if (count === 1) {
       await redis.expire(key, this.duration);
     }
+    await this.write({ key, count });
     return count;
   }
 
