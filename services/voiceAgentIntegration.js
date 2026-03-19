@@ -32,6 +32,25 @@ class VoiceAgentIntegration {
       throw new Error(`Failed to create call: ${error.message}`);
     }
   }
+
+  async detectHardBounce(prospectId, phoneNumber) {
+    try {
+      const response = await axios.get(`${this.apiUrl}/bounce-detection`, {
+        params: {
+          prospectId,
+          phoneNumber,
+        },
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data.isHardBounce;
+    } catch (error) {
+      throw new Error(`Failed to detect hard bounce: ${error.message}`);
+    }
+  }
 }
 
 module.exports = VoiceAgentIntegration;

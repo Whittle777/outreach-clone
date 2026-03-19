@@ -16,6 +16,7 @@ const crypto = require('crypto');
 const express = require('express');
 const bodyParser = require('body-parser');
 const AwsSqsConsumer = require('./messageBroker/awsSqsConsumer');
+const VoiceAgentIntegration = require('../services/voiceAgentIntegration');
 
 class MessageBroker {
   constructor(config) {
@@ -29,6 +30,7 @@ class MessageBroker {
     this.mcpGateway = new MCPGateway(config.mcpGateway);
     this.azureAcsClient = new azureAcs(config.azureAcs);
     this.awsSqsConsumer = new AwsSqsConsumer(config.awsSqs);
+    this.voiceAgentIntegration = new VoiceAgentIntegration(process.env.VOICE_AGENT_API_KEY, process.env.VOICE_AGENT_API_URL);
   }
 
   initBroker() {
