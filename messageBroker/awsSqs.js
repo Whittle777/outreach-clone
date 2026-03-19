@@ -11,7 +11,7 @@ const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 class AwsSqs {
   constructor(config) {
-    this.sqs = new AWS.SQS({ region: 'us-east-1' });
+    this.sqs = new AWS.SQS({ region: config.region });
     this.queueUrl = config.queueUrl;
     this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
     this.ngoe = new NGOE();
