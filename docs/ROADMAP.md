@@ -76,7 +76,7 @@ Master list of all planned features.
 - [x] Real-time text transcripts and parallel sentiment analysis
 - [x] Visual flags for calls hitting resistance or regulatory edge cases
 - [x] Conversational Filtering System: Dynamic UI generation based on user text prompts
-- [ ] Intent-driven shortcuts and predictive search
+- [x] Intent-driven shortcuts and predictive search
 - [ ] Visual filter chips for active constraints
 - [ ] Mass Email Sequencing & Deliverability: Personalization Waterfall, Dynamic Generative Copy, Deliverability Gate Dashboard
 - [ ] Prospect Calling & Voice Agents: 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks
