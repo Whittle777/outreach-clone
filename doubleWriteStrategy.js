@@ -1,11 +1,14 @@
 // services/doubleWriteStrategy.js
 
 const logger = require('./logger');
+const fs = require('fs');
+const path = require('path');
 
 class DoubleWriteStrategy {
   constructor() {
     this.legacyDatastore = null;
     this.newDatastore = null;
+    this.backupPath = path.join(__dirname, 'backup.json');
   }
 
   setLegacyDatastore(datastore) {
@@ -20,29 +23,51 @@ class DoubleWriteStrategy {
     try {
       await this.legacyDatastore.write(data);
       logger.log('Legacy datastore write successful', data);
-
-      // Check for conflict in the new datastore
-      const conflict = await this.newDatastore.checkForConflict(data);
-      if (conflict) {
-        logger.error('Conflict detected in new datastore:', conflict);
-        // Handle conflict, e.g., log, alert, or retry
-        this.handleConflict(conflict);
-      } else {
-        await this.newDatastore.write(data);
-        logger.log('New datastore write successful', data);
-        logger.log('Double-write successful');
-      }
+      await this.newDatastore.write(data);
+      logger.log('New datastore write successful', data);
+      logger.log('Double-write successful');
     } catch (error) {
       logger.error('Double-write failed:', error);
       throw error;
     }
   }
 
-  handleConflict(conflict) {
-    // Implement conflict handling logic
-    // For now, we'll just log the conflict
-    logger.error('Handling conflict:', conflict);
-    // Additional handling logic can be added here
+  async backup() {
+    try {
+      const data = await this.legacyDatastore.readAll();
+      fs.writeFileSync(this.backupPath, JSON.stringify(data, null, 2));
+      logger.log('Backup successful');
+    } catch (error) {
+      logger.error('Backup failed:', error);
+      throw error;
+    }
+  }
+
+  async rollback() {
+    try {
+      if (fs.existsSync(this.backupPath)) {
+        const backupData = JSON.parse(fs.readFileSync(this.backupPath, 'utf8'));
+        await this.legacyDatastore.writeAll(backupData);
+        logger.log('Rollback successful');
+      } else {
+        logger.error('No backup found');
+      }
+    } catch (error) {
+      logger.error('Rollback failed:', error);
+      throw error;
+    }
+  }
+
+  async simulateMigration() {
+    try {
+      await this.backup();
+      await this.newDatastore.migrateFrom(this.legacyDatastore);
+      logger.log('Migration successful');
+    } catch (error) {
+      logger.error('Migration failed:', error);
+      await this.rollback();
+      throw error;
+    }
   }
 }
 

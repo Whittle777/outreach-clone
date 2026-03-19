@@ -57,6 +57,18 @@ class DoubleWriteStrategy {
       throw error;
     }
   }
+
+  async simulateMigration() {
+    try {
+      await this.backup();
+      await this.newDatastore.migrateFrom(this.legacyDatastore);
+      logger.log('Migration successful');
+    } catch (error) {
+      logger.error('Migration failed:', error);
+      await this.rollback();
+      throw error;
+    }
+  }
 }
 
 module.exports = new DoubleWriteStrategy();
