@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { voiceCallLimiter } = require('./rateLimiter');
 const SentimentAnalysisService = require('./sentimentAnalysisService');
+const Transcript = require('../models/transcript');
 
 class VoiceAgentIntegration {
   constructor(apiKey, apiUrl) {
@@ -84,6 +85,13 @@ class VoiceAgentIntegration {
 
       const transcriptionId = response.data.transcriptionId;
       const sentimentAnalysisResult = await this.sentimentAnalysisService.analyze(transcriptionId);
+      const transcriptData = {
+        callId,
+        transcriptionId,
+        sentimentAnalysisResult,
+      };
+
+      await Transcript.create(transcriptData);
       return { transcriptionId, sentimentAnalysisResult };
     } catch (error) {
       throw new Error(`Failed to start transcription: ${error.message}`);
