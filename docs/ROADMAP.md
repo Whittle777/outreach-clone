@@ -71,7 +71,7 @@ Master list of all planned features.
 - [x] Native STIR/SHAKEN compliance handled by Microsoft backend
 - [x] Implement strict dialing rate limits to prevent "Spam Risk" flags from carriers
 - [x] Voice agent call rate limits per Teams phone number
-- [ ] Unsubscribe & Bounce Handling: Exponential backoff retries for soft bounces
+- [x] Unsubscribe & Bounce Handling: Exponential backoff retries for soft bounces
 - [ ] Permanent 'Failed' state mutation for hard bounces
 - [ ] Real-time text transcripts and parallel sentiment analysis
 - [ ] Visual flags for calls hitting resistance or regulatory edge cases

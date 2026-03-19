@@ -11,6 +11,10 @@ const config = {
     url: process.env.RABBITMQ_URL,
     queueName: process.env.RABBITMQ_QUEUE_NAME,
   },
+  emailService: {
+    retryLimit: parseInt(process.env.EMAIL_RETRY_LIMIT) || 5,
+    backoffInterval: parseInt(process.env.EMAIL_BACKOFF_INTERVAL) || 1000, // in milliseconds
+  },
 };
 
 module.exports = config;
