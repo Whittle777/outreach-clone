@@ -3,9 +3,9 @@
 const prisma = require('../prismaClient');
 
 class VoiceAgentCall {
-  static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress) {
+  static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress, teamsResourceAccountObjectId) {
     // Check GDPR compliance
-    if (!isGDPRCompliant({ prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress })) {
+    if (!isGDPRCompliant({ prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress, teamsResourceAccountObjectId })) {
       throw new Error('Data not compliant with GDPR');
     }
 
@@ -24,6 +24,7 @@ class VoiceAgentCall {
         callTranscript,
         bento,
         ipAddress,
+        teamsResourceAccountObjectId,
         hasResistanceOrRegulatoryFlag,
       },
     });
