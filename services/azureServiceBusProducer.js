@@ -4,8 +4,8 @@ const config = require('../config');
 const serviceBusClient = new ServiceBusClient(config.azureServiceBus.connectionString);
 const sender = serviceBusClient.createSender(config.azureServiceBus.topicName);
 
-async function sendMessage(message) {
-  await sender.sendMessages(message);
+async function sendMessage(topic, message) {
+  await sender.sendMessages({ body: message });
 }
 
 async function close() {

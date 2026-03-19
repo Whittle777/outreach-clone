@@ -10,11 +10,11 @@ async function connect() {
   await channel.assertQueue(config.rabbitMQ.queueName, { durable: true });
 }
 
-async function sendMessage(message) {
+async function sendMessage(queue, message) {
   if (!channel) {
     await connect();
   }
-  channel.sendToQueue(config.rabbitMQ.queueName, Buffer.from(JSON.stringify(message)));
+  channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)));
 }
 
 async function close() {

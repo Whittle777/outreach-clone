@@ -16,13 +16,13 @@ const { createAbuseComplaint } = require('../models/AbuseComplaint');
 const { processBounceNotification } = require('../services/bounceNotificationProcessor');
 const mcp = require('./mcp');
 const { authenticateMicrosoft } = require('../services/microsoftAuth');
-
-const producer = require('../config/kafka').producer();
-const consumer = require('../config/kafka').consumer();
-const redisClient = redis.createClient();
+const azureServiceBusProducer = require('../services/azureServiceBusProducer');
+const rabbitMQProducer = require('../services/rabbitMQProducer');
 
 async function run() {
-  await producer.connect();
+  await azureServiceBusProducer.sendMessage({ topic: 'ngoe-tasks', message: 'Initialize NGOE' });
+  await rabbitMQProducer.sendMessage({ queue: 'ngoe-tasks', message: 'Initialize NGOE' });
+
   await consumer.connect();
   await consumer.subscribe({ topic: 'ngoe-tasks', fromBeginning: true });
   await redisClient.connect();
