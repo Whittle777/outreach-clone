@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const { processMessage } = require('./messageProcessor');
+const { storeSentimentAnalysis } = require('./services/sentimentAnalysis');
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -21,7 +22,16 @@ async function consumeMessages() {
     const data = await sqs.receiveMessage(params).promise();
     if (data.Messages) {
       data.Messages.forEach(async (message) => {
-        await processMessage(JSON.parse(message.Body));
+        const messageBody = JSON.parse(message.Body);
+        await processMessage(messageBody);
+
+        // Simulate sentiment analysis
+        const sentimentScore = 0.8; // Example score
+        const sentimentLabel = 'Positive'; // Example label
+        const metadata = { source: 'example-source' }; // Example metadata
+
+        await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata);
+
         const deleteParams = {
           QueueUrl: queueUrl,
           ReceiptHandle: message.ReceiptHandle,
