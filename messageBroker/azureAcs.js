@@ -10,7 +10,7 @@ class AzureAcs {
     };
   }
 
-  async createCall(targetPhoneNumber) {
+  async createCall(targetPhoneNumber, country) {
     const payload = {
       targetParticipants: [
         {
@@ -18,6 +18,15 @@ class AzureAcs {
         }
       ]
     };
+
+    // Geographic routing logic
+    if (country === 'US') {
+      payload.region = 'us-central';
+    } else if (country === 'EU') {
+      payload.region = 'eu-central';
+    } else {
+      payload.region = 'global';
+    }
 
     try {
       const response = await axios.post(`${this.baseURL}/calls`, payload, { headers: this.headers });

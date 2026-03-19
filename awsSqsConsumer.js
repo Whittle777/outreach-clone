@@ -25,7 +25,7 @@ async function consumeMessages(config) {
           if (messageBody.type === 'voicemailDrop') {
             await messageBroker.handleVoicemailDrop(messageBody.prospectId, messageBody.phoneNumber, messageBody.message, messageBody.token);
           } else if (messageBody.type === 'createCall') {
-            await voiceAgentIntegration.createCall(messageBody.prospectId, messageBody.phoneNumber, messageBody.script);
+            await voiceAgentIntegration.createCall(messageBody.prospectId, messageBody.phoneNumber, messageBody.script, messageBody.country);
           } else {
             await processMessage(messageBody);
           }
