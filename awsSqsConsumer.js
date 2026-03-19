@@ -3,6 +3,7 @@ const axios = require('axios');
 const { processMessage } = require('./messageProcessor');
 const { storeSentimentAnalysis } = require('./services/sentimentAnalysis');
 const { initiateCall } = require('./services/azureCommunicationService');
+const GeolocationService = require('./services/geolocationService');
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -14,6 +15,7 @@ const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 
 const queueUrl = process.env.AWS_SQS_QUEUE_URL;
 const rateLimiterUrl = process.env.RATE_LIMITER_URL || 'http://localhost:8080/rate-limit';
+const geolocationService = new GeolocationService(process.env.GEOLOCATION_API_KEY);
 
 async function consumeMessages() {
   const params = {
@@ -31,15 +33,18 @@ async function consumeMessages() {
         // Check rate limit
         const response = await axios.get(`${rateLimiterUrl}/${messageBody.prospectId}`);
         if (response.data.allowed) {
+          // Determine the user's country based on IP address
+          const country = await geolocationService.getCountryByIp(messageBody.ipAddress);
+
           // Simulate sentiment analysis
           const sentimentScore = 0.8; // Example score
           const sentimentLabel = 'Positive'; // Example label
           const metadata = { source: 'example-source' }; // Example metadata
 
-          await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata);
+          await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata, country);
 
           // Initiate call using Azure Communication Services
-          await initiateCall(messageBody.prospectId, messageBody.bento);
+          await initiateCall(messageBody.prospectId, messageBody.bento, country);
         } else {
           console.log(`Rate limit exceeded for prospectId: ${messageBody.prospectId}`);
         }
