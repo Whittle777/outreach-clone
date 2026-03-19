@@ -28,12 +28,12 @@ class MessageBroker {
   }
 
   async sendMessage(message) {
-    const key = `message:${message.id}`;
+    const key = `message:${message.id}:${message.phoneNumber}`;
     const limit = 10; // Example limit, should be configurable
     const isLimited = await this.isRateLimited(key, limit);
 
     if (isLimited) {
-      logger.log(`Rate limit exceeded for message: ${message.id}`);
+      logger.log(`Rate limit exceeded for message: ${message.id} with phone number: ${message.phoneNumber}`);
       throw new Error('Rate limit exceeded');
     }
 
