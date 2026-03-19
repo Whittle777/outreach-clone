@@ -3,6 +3,11 @@ const prisma = new PrismaClient();
 
 class AudioFile {
   static async create(file, metadata, country) {
+    // Check GDPR compliance
+    if (!isGDPRCompliant(metadata)) {
+      throw new Error('Data not compliant with GDPR');
+    }
+
     return await prisma.audioFile.create({
       data: {
         fileName: file.name,
@@ -29,6 +34,12 @@ class AudioFile {
       },
     });
   }
+}
+
+function isGDPRCompliant(metadata) {
+  // Example GDPR compliance check
+  // Ensure that the metadata does not contain sensitive data
+  return !metadata.sensitiveData;
 }
 
 module.exports = AudioFile;

@@ -30,6 +30,12 @@ async function consumeMessages() {
         const messageBody = JSON.parse(message.Body);
         await processMessage(messageBody);
 
+        // Check GDPR compliance
+        if (!isGDPRCompliant(messageBody)) {
+          console.log(`Message not compliant with GDPR: ${messageBody}`);
+          return;
+        }
+
         // Check rate limit
         const response = await axios.get(`${rateLimiterUrl}/${messageBody.prospectId}`);
         if (response.data.allowed) {
@@ -74,6 +80,12 @@ function getRegionByCountry(country) {
     default:
       return 'us-west-2';
   }
+}
+
+function isGDPRCompliant(messageBody) {
+  // Example GDPR compliance check
+  // Ensure that the message contains a valid email and does not contain sensitive data
+  return messageBody.email && !messageBody.sensitiveData;
 }
 
 module.exports = {

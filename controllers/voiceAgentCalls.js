@@ -14,6 +14,11 @@ exports.create = async (req, res) => {
   try {
     const { prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress } = req.body;
 
+    // Check GDPR compliance
+    if (!isGDPRCompliant(req.body)) {
+      return res.status(400).json({ error: 'Data not compliant with GDPR' });
+    }
+
     // Check rate limit
     const isAllowed = await rateLimiterService.checkRateLimit(prospectId);
     if (!isAllowed) {
@@ -55,6 +60,11 @@ exports.initiateCall = async (req, res) => {
   try {
     const { prospectId, bento, teamsResourceAccountObjectId, ipAddress } = req.body;
 
+    // Check GDPR compliance
+    if (!isGDPRCompliant(req.body)) {
+      return res.status(400).json({ error: 'Data not compliant with GDPR' });
+    }
+
     // Check rate limit
     const isAllowed = await rateLimiterService.checkRateLimit(prospectId);
     if (!isAllowed) {
@@ -92,4 +102,10 @@ function getRegionByCountry(country) {
     default:
       return 'us-west-2';
   }
+}
+
+function isGDPRCompliant(data) {
+  // Example GDPR compliance check
+  // Ensure that the data contains a valid email and does not contain sensitive data
+  return data.email && !data.sensitiveData;
 }
