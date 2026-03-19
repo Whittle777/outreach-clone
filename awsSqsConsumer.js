@@ -2,6 +2,7 @@ const { ServiceBusClient } = require('@azure/service-bus');
 const messageBroker = require('./messageBroker');
 const logger = require('./services/logger');
 const VoiceAgentIntegration = require('./services/voiceAgentIntegration');
+const azureAcsService = require('./services/azureAcsService');
 
 const voiceAgentIntegration = new VoiceAgentIntegration('YOUR_API_KEY', 'https://api.azureacs.com');
 
@@ -20,6 +21,8 @@ async function consumeMessages(config) {
           await messageBroker.handleVoicemailDrop(messageBody.prospectId, messageBody.phoneNumber, messageBody.message, messageBody.token);
         } else if (messageBody.type === 'createCall') {
           await voiceAgentIntegration.createCall(messageBody.prospectId, messageBody.phoneNumber, messageBody.script, messageBody.country);
+        } else if (messageBody.type === 'updateCallFlags') {
+          await azureAcsService.updateCallFlags(messageBody.callId, messageBody.flags);
         } else {
           await processMessage(messageBody);
         }

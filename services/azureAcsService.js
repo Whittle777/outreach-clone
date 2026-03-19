@@ -64,9 +64,26 @@ const detectResistanceOrRegulatoryEdgeCases = async (callId) => {
   }
 };
 
+const updateCallFlags = async (callId, flags) => {
+  try {
+    const response = await axios.put(`${azureAcsUrl}/calls/${callId}/flags`, {
+      flags,
+    }, {
+      headers: {
+        'Ocp-Apim-Subscription-Key': azureAcsKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    logger.error(`Error updating call flags for call ${callId}: ${error.message}`);
+    throw error;
+  }
+};
+
 module.exports = {
   createCall,
   handleVoicemailDrop,
   getTranscriptionResult,
   detectResistanceOrRegulatoryEdgeCases,
+  updateCallFlags,
 };
