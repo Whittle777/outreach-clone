@@ -8,6 +8,7 @@ const { makeOutboundCall } = require('../services/acsCallAutomation');
 const { getTeamsResourceAccount } = require('../services/teamsResourceAccount');
 const { uploadAudioFile } = require('../services/audioFileStorage');
 const { AudioFile } = require('../models/AudioFile');
+const MessageBroker = require('../messageBroker');
 
 async function rateLimit(req, res, next) {
   const { prospectId, bento, trackingPixelData } = req.query;

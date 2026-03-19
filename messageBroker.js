@@ -1,6 +1,7 @@
 const azureServiceBus = require('./messageBroker/azureServiceBus');
 const awsSqs = require('./messageBroker/awsSqs');
 const rabbitMQ = require('./messageBroker/rabbitMQ');
+const rateLimiter = require('../services/rateLimiter');
 
 class MessageBroker {
   constructor(config) {
@@ -31,6 +32,14 @@ class MessageBroker {
 
   async receiveMessage() {
     return this.broker.receiveMessage();
+  }
+
+  async isRateLimited(key, limit) {
+    return rateLimiter.isRateLimited(key, limit);
+  }
+
+  async incrementRequestCount(key) {
+    return rateLimiter.incrementRequestCount(key);
   }
 }
 
