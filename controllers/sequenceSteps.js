@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { createSequenceStep } = require('../models/SequenceStep');
+const { createSequenceStep, updateSequenceStep } = require('../models/SequenceStep');
 
 exports.getAllSequenceSteps = async (req, res) => {
   try {
@@ -37,11 +37,8 @@ exports.createSequenceStep = async (req, res) => {
 
 exports.updateSequenceStep = async (req, res) => {
   try {
-    const { order, delayDays, subject, body, bento } = req.body;
-    const sequenceStep = await prisma.sequenceStep.update({
-      where: { id: parseInt(req.params.id) },
-      data: { order, delayDays, subject, body, bento },
-    });
+    const { order, delayDays, subject, body, bento, state } = req.body;
+    const sequenceStep = await updateSequenceStep(parseInt(req.params.id), order, delayDays, subject, body, bento, state);
     res.json(sequenceStep);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update sequence step' });
