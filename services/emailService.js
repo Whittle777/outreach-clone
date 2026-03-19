@@ -4,6 +4,7 @@ const config = require('../config');
 const rateLimiter = require('../services/rateLimiter');
 const Email = require('../models/email'); // Assuming the email model is in models/email.js
 const EmailActivities = require('../models/emailActivities'); // Assuming the emailActivities model is in models/emailActivities.js
+const Prospect = require('../models/Prospect'); // Assuming the Prospect model is in models/Prospect.js
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport(smtpConfig);
@@ -52,6 +53,8 @@ async function sendScheduledEmails() {
           console.log(`Hard bounce detected for ${prospect.email}.`);
           // Update the email status to 'bounced' in the database
           await EmailActivities.updateStatus(prospect.email, 'bounced');
+          // Mark the prospect as failed
+          await Prospect.markProspectAsFailed(prospect.email, prospect.bento);
           break;
         } else {
           console.error(`Error sending email to ${prospect.email}:`, error);

@@ -64,6 +64,14 @@ async function updateProspectStatus(prospectId, bento, newStatus) {
   });
 }
 
+async function markProspectAsFailed(prospectId, bento) {
+  const shard = getShard(bento);
+  return await prisma[shard].prospect.update({
+    where: { id: prospectId },
+    data: { status: 'Failed' },
+  });
+}
+
 function getShard(bento) {
   // Simple sharding logic based on bento value
   // For example, you can use a hash function or a modulo operation
@@ -78,4 +86,5 @@ module.exports = {
   deleteProspect,
   getProspectUserId,
   updateProspectStatus,
+  markProspectAsFailed, // New method to mark prospect as failed
 };

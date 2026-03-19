@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const voiceAgentRoutes = require('./routes/voiceAgent');
 const awsSqsConsumer = require('./services/awsSqsConsumer');
+const prospectRoutes = require('./routes/prospect'); // New route for prospects
 
 const app = express();
 
@@ -9,6 +10,9 @@ app.use(bodyParser.json());
 
 // Include the voice agent routes
 app.use('/api/voice-agent', voiceAgentRoutes);
+
+// Include the prospect routes
+app.use('/api/prospect', prospectRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
