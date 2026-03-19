@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const fs = require('fs');
+const mcp = require('../services/mcp');
 
 // Configure AWS SDK
 AWS.config.update({
@@ -27,6 +28,19 @@ async function uploadFileToStorage(buffer, fileName) {
   }
 }
 
+// Simulate sending file upload details to a recipient using MCP Gateway
+async function notifyFileUpload(fileName, fileUrl, recipient) {
+  const data = { fileName, fileUrl };
+  const { decryptedResponse, isVerified } = await mcp.simulateCommunication(JSON.stringify(data), recipient);
+
+  if (isVerified) {
+    console.log('File upload notification sent successfully:', decryptedResponse);
+  } else {
+    console.error('Failed to verify file upload notification response');
+  }
+}
+
 module.exports = {
   uploadFileToStorage,
+  notifyFileUpload,
 };

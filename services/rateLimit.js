@@ -1,4 +1,5 @@
 const redisClient = require('../services/redisClient');
+const mcp = require('../services/mcp');
 
 async function checkRateLimit(prospectId, bento) {
   const script = `
@@ -31,6 +32,17 @@ async function checkRateLimit(prospectId, bento) {
 async function handleRateLimitError(prospectId, bento) {
   // Log the rate limit error or take other necessary actions
   console.error(`Rate limit exceeded for prospectId: ${prospectId}, bento: ${bento}`);
+
+  // Simulate sending rate limit error to a recipient using MCP Gateway
+  const data = { prospectId, bento, error: 'Rate limit exceeded' };
+  const recipient = 'recipient@example.com';
+  const { decryptedResponse, isVerified } = await mcp.simulateCommunication(JSON.stringify(data), recipient);
+
+  if (isVerified) {
+    console.log('Rate limit error sent successfully:', decryptedResponse);
+  } else {
+    console.error('Failed to verify rate limit error response');
+  }
 }
 
 module.exports = {

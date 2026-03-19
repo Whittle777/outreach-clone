@@ -34,6 +34,31 @@ class MCP {
     const calculatedSignature = hmac.digest('hex');
     return calculatedSignature === signature;
   }
+
+  // Simulate end-to-end communication
+  async simulateCommunication(data, recipient) {
+    const encryptedData = this.encrypt(data);
+    const signature = this.sign(encryptedData);
+
+    // Simulate sending encrypted data and signature to recipient
+    const response = await this.sendToRecipient(encryptedData, signature, recipient);
+
+    // Simulate receiving response from recipient
+    const decryptedResponse = this.decrypt(response.encryptedData);
+    const isVerified = this.verify(decryptedResponse, response.signature);
+
+    return { decryptedResponse, isVerified };
+  }
+
+  async sendToRecipient(encryptedData, signature, recipient) {
+    // Simulate sending data to recipient
+    // In a real-world scenario, this would involve network communication
+    // For now, we'll just return a mock response
+    return {
+      encryptedData,
+      signature,
+    };
+  }
 }
 
 module.exports = new MCP();

@@ -1,7 +1,8 @@
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const { uploadFileToStorage } = require('./storage');
+const { uploadFileToStorage, notifyFileUpload } = require('./storage');
+const mcp = require('../services/mcp');
 
 /**
  * Generates Text-to-Speech (TTS) audio for the given text.
@@ -30,6 +31,10 @@ async function generateTTS(text) {
 
       // Upload the audio file to Azure Blob Storage
       const audioFileUrl = await uploadFileToStorage(fs.readFileSync(audioFilePath), path.basename(audioFilePath));
+
+      // Notify the recipient of the file upload using MCP Gateway
+      const recipient = 'recipient@example.com';
+      await notifyFileUpload(path.basename(audioFilePath), audioFileUrl, recipient);
 
       // Delete the local audio file
       fs.unlinkSync(audioFilePath);
