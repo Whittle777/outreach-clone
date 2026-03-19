@@ -5,6 +5,7 @@ const { storeSentimentAnalysis } = require('./services/sentimentAnalysis');
 const { initiateCall } = require('./services/azureCommunicationService');
 const GeolocationService = require('./services/geolocationService');
 const { voiceCallLimiter } = require('./services/rateLimiter');
+const logger = require('../services/logger');
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -33,14 +34,14 @@ async function consumeMessages() {
 
         // Check GDPR compliance
         if (!isGDPRCompliant(messageBody)) {
-          console.log(`Message not compliant with GDPR: ${messageBody}`);
+          logger.error(`Message not compliant with GDPR: ${JSON.stringify(messageBody)}`);
           return;
         }
 
         // Check rate limit
         const key = `voiceCall:${messageBody.prospectId}`;
         if (await voiceCallLimiter.isRateLimited(key)) {
-          console.log(`Rate limit exceeded for prospectId: ${messageBody.prospectId}`);
+          logger.log(`Rate limit exceeded for prospectId: ${messageBody.prospectId}`);
           return;
         }
 
