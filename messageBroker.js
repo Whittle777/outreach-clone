@@ -175,6 +175,13 @@ class MessageBroker {
     const decryptedMessage = this.decrypt(encryptedMessage);
     return this.mcpGateway.receiveMessage(decryptedMessage, token);
   }
+
+  async handleMCPMessage(message) {
+    // Implement logic to handle messages received from the MCP Gateway
+    logger.log('Handling MCP message:', message);
+    // Example: Forward the message to the central AI agents
+    await this.aiGenerator.processMessage(message);
+  }
 }
 
 module.exports = MessageBroker;

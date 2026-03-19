@@ -102,6 +102,13 @@ class AwsSqs {
   async executeNGOETask(task) {
     return this.ngoe.executeTask(task);
   }
+
+  async handleMCPMessage(message) {
+    // Implement logic to handle messages received from the MCP Gateway
+    logger.log('Handling MCP message:', message);
+    // Example: Forward the message to the central AI agents
+    await this.aiGenerator.processMessage(message);
+  }
 }
 
 module.exports = AwsSqs;
