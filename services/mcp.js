@@ -3,11 +3,13 @@
 const crypto = require('crypto');
 const naturalLanguageGuardrails = require('./naturalLanguageGuardrails');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
+const AIGenerator = require('../services/aiGenerator'); // Add this line
 
 class MCP {
   constructor() {
     this.protocolVersion = '1.0';
     this.secretKey = process.env.MCP_SECRET_KEY || 'your-secret-key'; // Use environment variable for secret key
+    this.aiGenerator = new AIGenerator(); // Add this line
   }
 
   encrypt(data) {
@@ -66,6 +68,12 @@ class MCP {
     // Implement double-write logic for legacy datastore
     // For now, let's assume it's a no-op
     await doubleWriteStrategy.write(data);
+  }
+
+  // Add this method to handle real-time predictions
+  async getRealTimePrediction(data) {
+    const prediction = await this.aiGenerator.generateCallGoal(data);
+    return prediction;
   }
 }
 
