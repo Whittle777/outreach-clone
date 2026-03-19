@@ -2,6 +2,10 @@ const AWS = require('aws-sdk');
 const sqs = new AWS.SQS({ region: 'us-east-1' });
 const queueUrl = 'https://sqs.us-east-1.amazonaws.com/123456789012/your-queue-name';
 const wss = require('./websocketServer');
+const KnowledgeGraph = require('../services/knowledgeGraph');
+const config = require('../config/settings');
+
+const knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
 
 async function consumeMessages() {
   const params = {
@@ -20,6 +24,9 @@ async function consumeMessages() {
             client.send(JSON.stringify(messageBody));
           }
         });
+
+        // Create knowledge graph nodes
+        await knowledgeGraph.createNode('Prospect', messageBody);
 
         // Delete the message from the queue
         const deleteParams = {

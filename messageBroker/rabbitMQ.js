@@ -4,6 +4,7 @@ const config = require('../config/settings');
 const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
 const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
+const KnowledgeGraph = require('../services/knowledgeGraph');
 
 class RabbitMQ {
   constructor(config) {
@@ -11,6 +12,7 @@ class RabbitMQ {
     this.queueName = config.queueName;
     this.connection = null;
     this.channel = null;
+    this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
     this.init();
   }
 
@@ -89,6 +91,15 @@ class RabbitMQ {
         { id: 2, name: 'Constraint 2' }
       ]
     };
+  }
+
+  async createKnowledgeGraphNodes(prospectData) {
+    await this.knowledgeGraph.createNode('Prospect', prospectData);
+    realTimeReasoningLogs.addLog('createKnowledgeGraphNodes', `Created knowledge graph nodes for prospect: ${prospectData.firstName}`);
+  }
+
+  async close() {
+    await this.knowledgeGraph.close();
   }
 }
 

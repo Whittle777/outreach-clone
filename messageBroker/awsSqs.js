@@ -4,11 +4,13 @@ const config = require('../config/settings');
 const wss = require('../server').wss;
 const jwt = require('jsonwebtoken');
 const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
+const KnowledgeGraph = require('../services/knowledgeGraph');
 
 class AwsSqs {
   constructor(config) {
     this.sqs = new AWS.SQS({ region: 'us-east-1' });
     this.queueUrl = config.queueUrl;
+    this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
   }
 
   async sendMessage(message, token) {
@@ -84,6 +86,15 @@ class AwsSqs {
         { id: 2, name: 'Constraint 2' }
       ]
     };
+  }
+
+  async createKnowledgeGraphNodes(prospectData) {
+    await this.knowledgeGraph.createNode('Prospect', prospectData);
+    realTimeReasoningLogs.addLog('createKnowledgeGraphNodes', `Created knowledge graph nodes for prospect: ${prospectData.firstName}`);
+  }
+
+  async close() {
+    await this.knowledgeGraph.close();
   }
 }
 
