@@ -1,5 +1,4 @@
-const AWS = require('aws-sdk');
-const sqs = new AWS.SQS({ region: 'us-east-1' });
+const { ServiceBusClient } = require('@azure/service-bus');
 const messageBroker = require('./messageBroker');
 const logger = require('./services/logger');
 const VoiceAgentIntegration = require('./services/voiceAgentIntegration');
@@ -7,43 +6,38 @@ const VoiceAgentIntegration = require('./services/voiceAgentIntegration');
 const voiceAgentIntegration = new VoiceAgentIntegration('YOUR_API_KEY', 'https://api.azureacs.com');
 
 async function consumeMessages(config) {
-  const params = {
-    QueueUrl: config.queueUrl,
-    WaitTimeSeconds: 20,
-  };
+  const serviceBusClient = new ServiceBusClient(config.connectionString);
+  const receiver = serviceBusClient.createReceiver(config.queueName);
 
-  try {
-    const data = await sqs.receiveMessage(params).promise();
-    if (data.Messages) {
-      data.Messages.forEach(async (message) => {
-        // Process the message
-        const messageBody = JSON.parse(message.Body);
-        console.log(' [x] Received %s', messageBody);
+  receiver.subscribe({
+    async processMessage(message) {
+      console.log(' [x] Received %s', message.body);
 
-        // Process the message
-        try {
-          if (messageBody.type === 'voicemailDrop') {
-            await messageBroker.handleVoicemailDrop(messageBody.prospectId, messageBody.phoneNumber, messageBody.message, messageBody.token);
-          } else if (messageBody.type === 'createCall') {
-            await voiceAgentIntegration.createCall(messageBody.prospectId, messageBody.phoneNumber, messageBody.script, messageBody.country);
-          } else {
-            await processMessage(messageBody);
-          }
-        } catch (error) {
-          logger.error('Error processing message:', error, { messageBody });
+      // Process the message
+      try {
+        const messageBody = JSON.parse(message.body);
+        if (messageBody.type === 'voicemailDrop') {
+          await messageBroker.handleVoicemailDrop(messageBody.prospectId, messageBody.phoneNumber, messageBody.message, messageBody.token);
+        } else if (messageBody.type === 'createCall') {
+          await voiceAgentIntegration.createCall(messageBody.prospectId, messageBody.phoneNumber, messageBody.script, messageBody.country);
+        } else {
+          await processMessage(messageBody);
         }
+      } catch (error) {
+        logger.error('Error processing message:', error, { messageBody });
+      }
 
-        // Delete the message from the queue
-        const deleteParams = {
-          QueueUrl: config.queueUrl,
-          ReceiptHandle: message.ReceiptHandle,
-        };
-        await sqs.deleteMessage(deleteParams).promise();
-      });
+      // Complete the message
+      await message.complete();
+    },
+    async processError(err) {
+      logger.error('Error processing message:', err);
     }
-  } catch (error) {
-    logger.error('Error consuming messages:', error);
-  }
+  });
+
+  // Close the receiver and the client when done
+  // await receiver.close();
+  // await serviceBusClient.close();
 }
 
 module.exports = {

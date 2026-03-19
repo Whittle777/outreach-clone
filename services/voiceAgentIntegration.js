@@ -6,12 +6,13 @@ class VoiceAgentIntegration {
     this.apiUrl = apiUrl;
   }
 
-  async createCall(prospectId, phoneNumber, script) {
+  async createCall(prospectId, phoneNumber, script, country) {
     try {
       const response = await axios.post(`${this.apiUrl}/calls`, {
         prospectId,
         phoneNumber,
         script,
+        country,
       }, {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
