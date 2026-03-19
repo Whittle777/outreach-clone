@@ -4,7 +4,7 @@ System design and tech stack rules.
 
 ## Overview
 
-This project is a headless REST API for a sales engagement platform (similar to Outreach.io or Apollo). The backend handles user authentication, prospect management, email sequences, activity tracking, voice agent orchestration, and AI-driven workflow automation.
+This project is a headless REST API for a sales engagement platform (similar to Outreach.io or Apollo). The backend handles user authentication, prospect management, email sequences, activity tracking, voice agent orchestration, AI-driven workflow automation, and natural language query processing.
 
 ## Tech Stack
 
@@ -33,6 +33,12 @@ This project is a headless REST API for a sales engagement platform (similar to 
 - **Next-Gen Orchestration Engine (NGOE):** Async scheduling and execution of complex AI agent tasks without blocking standard paths
 - **Model Context Protocol (MCP):** MCP Gateway for secure, standardized communication between central AI agents and distributed enterprise data silos
 - **AI Classification:** Buyer sentiment analysis (positive, objection, referral, unsubscribe) via LLM
+- **Natural Language Querying (NLQ):** Translation of conversational prompts into complex database queries (SQL/GraphQL)
+- **Agentic Reasoning Engine:** Autonomous fallback logic for handling missing or messy data with third-party enrichment
+
+### Testing & Development Stack
+- **Email Provider Flexibility:** Support for multiple email providers including Gmail (personal accounts) for testing
+- **Configuration Management:** Environment-based provider switching to enable easy testing with different SMTP/API credentials
 
 ## Core Data Models
 
@@ -53,6 +59,8 @@ Leads being contacted through email campaigns.
 - Status (e.g., Uncontacted, Bounced, Replied)
 - Phone Number (for voice agent integration)
 - Call History and Voicemail Drop Records
+- Country/Region for GDPR compliance
+- Tags for categorization and filtering
 
 ### Sequences
 Automated email campaigns owned by Users.
@@ -102,6 +110,51 @@ Tracks autonomous voice agent interactions.
 - Call Transcript and Sentiment Analysis
 - Teams Resource Account Object ID used
 
+### Sentiment Analysis
+AI-driven classification of prospect interactions.
+- Links to Prospect or Voice Agent Call
+- Sentiment Score (numerical value)
+- Sentiment Label (positive, objection, referral, unsubscribe)
+- Metadata for context
+- Country/Region for GDPR compliance
+
+### AudioFile
+Stores metadata for generated audio files.
+- File Name
+- File Type (.wav, .mp3)
+- Storage URL (Blob Storage)
+- Associated Prospect or Call
+- Country/Region for GDPR compliance
+- Generation Timestamp
+
+### DealHealthScore
+Automated scoring system for deal health assessment.
+- Score Value (0-100)
+- Status Classification (High, Medium, Low)
+- Metadata for calculation factors
+- Calculation Timestamp
+- Associated Prospect or Opportunity
+
+### TaskQueue
+Dynamic task playlists generated from natural language queries.
+- Task ID
+- Linked Prospect(s)
+- Task Type (Call, Email, Meeting, etc.)
+- Priority/Urgency Score
+- Status (Pending, In Progress, Completed)
+- Generated From Prompt (NLQ source)
+- AI Confidence Score
+- Human Review Required Flag
+
+### NaturalLanguageQueryLog
+Records of natural language prompts and their resolved queries.
+- User ID
+- Original Prompt Text
+- Resolved Query Parameters
+- Execution Timestamp
+- Result Count
+- Fallback Logic Applied (if any)
+
 ## Architecture Decisions
 
 1. **Database Migration:** Migrating from MongoDB to PostgreSQL with Prisma ORM
@@ -110,6 +163,9 @@ Tracks autonomous voice agent interactions.
 4. **Future Work:** Email-sending cron jobs and SMTP connections are out of scope for MVP
 5. **Voice Agent Integration:** Azure ACS Call Automation API for Teams-native outbound calling with voicemail drop
 6. **Multi-Tenant Isolation:** Cell-based sharding with Bento identifiers to prevent noisy neighbor problems
+7. **GDPR Compliance:** All data models include country/region fields and GDPR compliance checks before data operations
+8. **Natural Language Querying:** Conversational prompts translated into database queries with agentic fallback logic
+9. **Dynamic Task Generation:** AI-driven creation of actionable task playlists from query results
 
 ## Multi-Tenant Infrastructure (Phase 2)
 
@@ -232,6 +288,56 @@ Tracks autonomous voice agent interactions.
 - **Human Answer Handling:** AddParticipant command to bridge call to sales agent's Teams client
 - **Fallback Audio:** Generic pre-recorded audio URL ready if TTS generation fails
 
+### Natural Language Querying (NLQ) Workflow
+- **Prompt Processing:** User enters natural language query (e.g., "show me prospects in the US and Canada")
+- **Query Translation:** LLM converts prompt to database query parameters
+- **Agentic Reasoning:** If data is missing or incomplete, agent autonomously finds alternative filters
+  - Example: If Country field is blank, filter by phone number country code (+1)
+  - Example: Query third-party enrichment APIs (ZoomInfo, BuiltWith) for missing tech stack data
+- **Fallback Logic:** Deductive proxies when direct data unavailable (e.g., job postings mentioning AI = likely AI adopter)
+- **Task Queue Generation:** Results compiled into ordered, actionable task playlist
+
+### Dynamic Task Queue System
+- **Task Playlist Creation:** Instant compilation of query results into prioritized task list
+- **UI State Control:** AI actively changes interface to "execution mode" with split-pane view
+- **Easy Completion Workflow:** List of calls/tasks that can be completed sequentially with next item auto-showing
+- **Natural Language to UI State:** Autonomous agent powers workflow from prompt to actionable interface
+
+### Persona & Tech-Stack Targeting
+- **Title Filtering:** Search for titles containing specific keywords (e.g., "VP," "Vice President," "Head of")
+- **Tech Stack Detection:** API calls to providers like ZoomInfo or BuiltWith for company technology stack
+- **Negative Filtering:** Exclude companies with recent AI-related press releases or job postings
+- **Dynamic Script Generation:** Call scripts automatically populated with prospect-specific context
+
+## Predictive Dialer System (Phase 9+)
+
+### Predictive Pacing Engine
+- Core algorithm processing real-time metrics: Average Handle Time (AHT), live-connect rates
+- Dynamically calculates optimal number of simultaneous lines per available agent
+- Adjusts dialing speed based on agent availability and call outcomes
+
+### Compliance & Abandonment Safeguards
+- TCPA standards compliance with automatic throttling if dropped-call rate approaches 3% threshold
+- Automatic Do Not Call (DNC) list scrubbing before dialing
+- Real-time monitoring of abandonment rates with emergency stop mechanisms
+
+### Administrative Tuning Dashboard
+- Human-in-the-loop control panel for sales managers
+- Set hard limits on dial-to-agent ratios
+- Customize maximum ring times per campaign
+- Manual override capability for algorithm pacing on high-priority campaigns
+
+### Answering Machine Detection (AMD)
+- AI-driven audio analysis operating in milliseconds
+- Distinguishes between live human voices, voicemails, busy signals, and disconnected numbers
+- Ensures only live connections are routed to sales floor
+
+### Bi-Directional CRM Integration
+- Seamless API connectivity via Webhooks or RESTful APIs
+- Automatically pulls lead lists from CRM
+- Pushes call dispositions and recordings back to CRM
+- Instantly triggers "screen pops" displaying prospect profile as call connects
+
 ## Application Decomposition Strategy (Phase 1)
 
 ### Strangler Fig Pattern
@@ -270,6 +376,8 @@ Tracks autonomous voice agent interactions.
 
 ### Deal Health Scores
 - Automated scoring flagging at-risk deals based on prospect engagement and momentum
+- Score calculation factors: status (Engaged = +20), recent activity, etc.
+- Status classification: High (≥80), Medium (50-79), Low (<50)
 
 ### Top Opportunities
 - Prioritized list of high-value deals nearing close dates
@@ -301,6 +409,7 @@ Tracks autonomous voice agent interactions.
 - Autonomous Voice Agent Fleet Command for real-time monitoring
 - Real-time text transcripts and parallel sentiment analysis
 - Visual flags for calls hitting resistance or regulatory edge cases
+- Auto-dialing feature with sequential task completion workflow
 
 ### Human-in-the-Loop (HITL) Workflow
 - **Confidence Score Routing:**
@@ -311,6 +420,7 @@ Tracks autonomous voice agent interactions.
   - Left Rail: Paginated list of pending tasks sorted by urgency or pipeline value
   - Center Pane: Contextual record (enriched profiles, past emails, raw call transcripts, audio controls)
   - Right Pane: Agentic action panel with AI summary, drafted response, and accept/reject/inline-edit controls
+- **Oversight Portal:** Dedicated interface for human AEs to provide contextual feedback, correct AI drafts, and prevent algorithmic hallucinations before external communications are sent
 
 ### System Resilience & Transparency
 - **Temporal State Management:** Durable workflow objects for paused workflows that resume exactly where left off
@@ -372,6 +482,18 @@ Tracks autonomous voice agent interactions.
 - **STIR/SHAKEN Compliance:** Microsoft handles carrier compliance via Teams phone numbers; implement strict dialing rate limits to prevent "Spam Risk" flags
 - **Fallback Audio:** Database maintains generic pre-recorded audio URL for TTS generation failures
 
+## Testing & Development Requirements
+
+### Email Provider Flexibility
+- Support testing with multiple email providers (Gmail, Outlook, etc.)
+- Environment-based configuration for SMTP/API credentials
+- Easy switching between personal Gmail accounts and production providers
+
+### GDPR Compliance
+- All data models include country/region fields for data residency compliance
+- GDPR compliance checks before data operations in controllers and models
+- Data processing consent tracking
+
 ## Immediate Goals (MVP)
 
 1. Complete Prisma/Postgres schema implementation
@@ -385,3 +507,12 @@ Tracks autonomous voice agent interactions.
 6. Prepare data models for Voice Agent Calls integration (Phase 5+)
 7. Support multi-tenant isolation with Bento identifiers in core models
 8. Enable schema tagging for analytics aggregation across data centers
+9. Add Sentiment Analysis, AudioFile, and DealHealthScore models for AI-driven features
+10. Implement GDPR compliance checks across all data operations
+11. Enable flexible email provider testing configuration
+12. Add TaskQueue model for dynamic task playlist generation from natural language queries
+13. Implement NaturalLanguageQueryLog for tracking prompt-to-query translations
+14. Prepare agentic reasoning engine for fallback logic when data is missing or incomplete
+15. Support persona and tech-stack targeting with third-party enrichment API integration points
+16. Implement Predictive Dialer System with pacing engine, compliance safeguards, and AMD
+17. Enable bi-directional CRM integration for lead lists and call disposition tracking
