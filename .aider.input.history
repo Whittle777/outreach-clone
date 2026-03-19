@@ -76150,3 +76150,45 @@
 +            Use your repository map to find the correct files to edit. 
 +            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
 +            
+
+# 2026-03-18 21:46:31.740089
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-18 21:46:31.740178
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-18 22:16:31.752511
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
+
+# 2026-03-18 22:16:31.752898
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
+
+# 2026-03-18 22:20:17.642458
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-18 22:20:17.642598
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            

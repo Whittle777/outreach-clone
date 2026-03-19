@@ -15,6 +15,7 @@ const { logTrackingPixelEvent, wrapLink } = require('../services/trackingPixelLo
 const { analyzeOpenRates } = require('../services/openRateAnalyzer'); // New import
 const ngoe = require('./ngoe'); // New import
 const { generateEmailContent } = require('./gpt4'); // New import
+const { analyzeSentiment } = require('./gemini'); // New import
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -127,6 +128,14 @@ async function run() {
           const prompt = `Generate an email with subject "${subject}" and content "${emailContent}" for prospect ${prospectId} in bento ${bento}.`;
           const generatedContent = await generateEmailContent(prompt);
           message.emailContent = generatedContent;
+        }
+        return messages;
+      }),
+      Broadway.stage('analyzeSentiment', async (messages) => {
+        for (const message of messages) {
+          const { emailContent } = message;
+          const sentiment = await analyzeSentiment(emailContent);
+          message.sentiment = sentiment;
         }
         return messages;
       }),

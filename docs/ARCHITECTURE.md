@@ -322,6 +322,56 @@ Tracks autonomous voice agent interactions.
 - Embedded Command Centers in Slack and Microsoft Teams
 - Interactive Notifications for approval workflows within chat threads (Approve, Reject, Modify)
 
+## Coding Principles
+
+### Strict Type Safety
+- Utilization of static typing or comprehensive type hinting to catch structural errors at compile-time rather than run-time
+
+### Centralized Error Handling and Logging
+- Standardized exception management and structured, searchable logs (e.g., JSON format) to rapidly diagnose production issues
+
+### Modular, Loosely Coupled Architecture
+- Adherence to principles like SOLID and Dependency Injection, ensuring that changes or failures in one module do not cascade through the entire system
+
+### Comprehensive Documentation
+- Up-to-date READMEs, architectural decision records (ADRs), and auto-generated API specifications (like Swagger/OpenAPI) to ensure knowledge is shared and persistent
+
+### Graceful Degradation and Resiliency
+- Fallback mechanisms, retries, and rate limiting that allow the system to remain partially operational even when external services fail
+
+## Microsoft Teams Calling Integration Details
+
+### Core Technology Stack
+- **Telephony & Teams Interoperability:** Azure Communication Services (ACS) Call Automation API - Microsoft's CPaaS solution sharing backend with Teams
+- **Teams Phone Extensibility:** Native support for outbound PSTN calls using Teams Resource Accounts and caller IDs
+- **AI/Agentic Engine:** LLM (GPT-4, Gemini) paired with high-fidelity Text-to-Speech (TTS) API (ElevenLabs or Azure AI Speech)
+- **Backend & Queueing:** Event-driven backend (Node.js, Python, or Go) with message broker (Azure Service Bus, AWS SQS, RabbitMQ) for auto-dialing queue management
+- **Storage:** Cloud Blob Storage (Azure Blob or AWS S3) for generated .wav or .mp3 voicemail files
+
+### Implementation Flow
+
+#### Step A: Agentic Voicemail Generation (Pre-Flight Check)
+- **Context Gathering:** CRM passes prospect data (name, company, recent LinkedIn post, etc.) to AI backend
+- **Scripting:** LLM generates highly contextual 20-30 second script tailored to prospect
+- **Audio Generation:** Script sent to TTS provider for hyper-realistic audio file generation
+- **Storage:** Audio file saved to Blob Storage with publicly accessible (obfuscated) URL
+
+#### Step B: Auto-Dialer & Teams Integration
+- **Initiate Call:** Backend triggers ACS Call Automation CreateCall endpoint
+- **Teams Caller ID:** Use onBehalfOf parameter with Microsoft Entra Object ID of Teams Resource Account for official caller ID display
+- **Scale:** Decoupled message queue enables scaling worker nodes to increase Calls-Per-Second (CPS) rate with automatic pausing on carrier rate limits
+
+#### Step C: Answering Machine Detection (AMD) & Voicemail Drop
+- **Call Connected Webhook:** ACS sends CallConnected webhook event to backend
+- **Call Progress Analysis:** Utilize AMD to determine human vs. machine answer
+- **Voicemail Path:** Wait for tone, detect beep, fire Play action via ACS API with pre-generated audio URL, then hang up
+- **Human Path:** Fire AddParticipant command to bridge call to sales agent's Microsoft Teams client in real-time with CRM screen-pop
+
+### Robustness & Scalability
+- **Asynchronous Webhooks:** Stateless app design receiving events (RecognizeCompleted, PlayFailed) via Azure Event Grid, looking up call state in Redis
+- **STIR/SHAKEN Compliance:** Microsoft handles carrier compliance via Teams phone numbers; implement strict dialing rate limits to prevent "Spam Risk" flags
+- **Fallback Audio:** Database maintains generic pre-recorded audio URL for TTS generation failures
+
 ## Immediate Goals (MVP)
 
 1. Complete Prisma/Postgres schema implementation

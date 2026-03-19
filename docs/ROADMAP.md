@@ -90,3 +90,41 @@ Master list of all planned features.
 - [ ] Top Opportunities: Prioritized list of high-value deals nearing close dates
 - [ ] Win/Loss Modeling: Conversion rates analyzed by sales stage or forecast category
 - [ ] AI Projections: Machine learning models predicting quarterly performance based on historical win rates and seasonality
+
+## Newly Added Features
+
+- [ ] Text-to-Speech (TTS): ElevenLabs or Azure AI Speech for hyper-realistic audio generation
+- [ ] Audio Storage: Cloud Blob Storage (Azure Blob or AWS S3) for .wav/.mp3 voicemail files
+- [ ] Message Queues: Azure Service Bus, AWS SQS, or RabbitMQ as alternatives to Kafka
+- [ ] Next-Gen Orchestration Engine (NGOE): Async scheduling and execution of complex AI agent tasks without blocking standard paths
+- [ ] Model Context Protocol (MCP): MCP Gateway for secure, standardized communication between central AI agents and distributed enterprise data silos
+- [ ] AI Classification: Buyer sentiment analysis (positive, objection, referral, unsubscribe) via LLM
+- [ ] Voice Agent Calls: Tracks autonomous voice agent interactions
+- [ ] Voice Agent Integration: Azure ACS Call Automation API for Teams-native outbound calling with voicemail drop
+- [ ] Geographic routing for data residency compliance (GDPR)
+- [ ] Schedule shifting to pause execution outside approved time blocks, weekends, or holidays
+- [ ] Dynamically shift all subsequent steps forward in time to prevent backlog burst
+- [ ] Alternative brokers: Azure Service Bus, AWS SQS, RabbitMQ for voice agent call queues
+- [ ] Teams Phone Integration: Use onBehalfOf parameter with Microsoft Entra Object ID for Teams Resource Account caller ID
+- [ ] Native STIR/SHAKEN compliance handled by Microsoft backend
+- [ ] Implement strict dialing rate limits to prevent "Spam Risk" flags from carriers
+- [ ] Voice agent call rate limits per Teams phone number
+- [ ] Unsubscribe & Bounce Handling: Exponential backoff retries for soft bounces
+- [ ] Permanent 'Failed' state mutation for hard bounces
+- [ ] Real-time text transcripts and parallel sentiment analysis
+- [ ] Visual flags for calls hitting resistance or regulatory edge cases
+- [ ] Conversational Filtering System: Dynamic UI generation based on user text prompts
+- [ ] Intent-driven shortcuts and predictive search
+- [ ] Visual filter chips for active constraints
+- [ ] Mass Email Sequencing & Deliverability: Personalization Waterfall, Dynamic Generative Copy, Deliverability Gate Dashboard
+- [ ] Prospect Calling & Voice Agents: 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks
+- [ ] Autonomous Voice Agent Fleet Command for real-time monitoring
+- [ ] Human-in-the-Loop (HITL) Workflow: Confidence Score Routing, Split-Pane Review Interface
+- [ ] System Resilience & Transparency: Temporal State Management, Real-Time Reasoning Logs, Dynamic Knowledge Graphs, Natural Language Guardrails
+- [ ] Omnichannel Integration: Embedded Command Centers in Slack and Microsoft Teams, Interactive Notifications for approval workflows within chat threads (Approve, Reject, Modify)
+- [ ] Data Consistency During Migration: Implement double-write strategy to keep legacy databases and new microservice datastores synchronized
+- [ ] Ensure zero-downtime migration path
+- [ ] Deal Health Scores: Automated scoring flagging at-risk deals based on prospect engagement and momentum
+- [ ] Top Opportunities: Prioritized list of high-value deals nearing close dates
+- [ ] Win/Loss Modeling: Conversion rates analyzed by sales stage or forecast category
+- [ ] AI Projections: Machine learning models predicting quarterly performance based on historical win rates and seasonality
