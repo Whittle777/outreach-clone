@@ -19,6 +19,15 @@ class AudioFile {
       where: { id },
     });
   }
+
+  static async updateFileUrl(id, fileUrl) {
+    return await prisma.audioFile.update({
+      where: { id },
+      data: {
+        fileUrl,
+      },
+    });
+  }
 }
 
 module.exports = AudioFile;

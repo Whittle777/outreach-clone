@@ -1,4 +1,7 @@
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const { uploadAudioFile } = require('./audioFileStorage');
 
 /**
  * Generates Text-to-Speech (TTS) audio for the given text.
@@ -21,8 +24,18 @@ async function generateTTS(text) {
 
     // Check if the response status is 200 (OK)
     if (response.status === 200) {
+      // Save the audio file locally
+      const audioFilePath = path.join(__dirname, 'temp', `${Date.now()}.wav`);
+      fs.writeFileSync(audioFilePath, Buffer.from(response.data.audioFile, 'base64'));
+
+      // Upload the audio file to Azure Blob Storage
+      const audioFileUrl = await uploadAudioFile(path.basename(audioFilePath), audioFilePath);
+
+      // Delete the local audio file
+      fs.unlinkSync(audioFilePath);
+
       // Return the URL of the generated audio file
-      return response.data.audioUrl; // Replace with the actual field name for the audio URL
+      return audioFileUrl;
     } else {
       // Throw an error if the response status is not 200
       throw new Error('TTS generation failed');
