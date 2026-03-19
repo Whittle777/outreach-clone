@@ -50,8 +50,23 @@ const getTranscriptionResult = async (transcriptionId) => {
   }
 };
 
+const detectResistanceOrRegulatoryEdgeCases = async (callId) => {
+  try {
+    const response = await axios.get(`${azureAcsUrl}/calls/${callId}/resistance-detection`, {
+      headers: {
+        'Ocp-Apim-Subscription-Key': azureAcsKey,
+      },
+    });
+    return response.data.isResistanceOrRegulatoryEdgeCase;
+  } catch (error) {
+    logger.error(`Error detecting resistance or regulatory edge cases for call ${callId}: ${error.message}`);
+    throw error;
+  }
+};
+
 module.exports = {
   createCall,
   handleVoicemailDrop,
   getTranscriptionResult,
+  detectResistanceOrRegulatoryEdgeCases,
 };

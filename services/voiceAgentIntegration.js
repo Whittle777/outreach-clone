@@ -85,6 +85,21 @@ class VoiceAgentIntegration {
       throw new Error(`Failed to start transcription: ${error.message}`);
     }
   }
+
+  async detectResistanceOrRegulatoryEdgeCases(callId) {
+    try {
+      const response = await axios.get(`${this.apiUrl}/calls/${callId}/resistance-detection`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data.isResistanceOrRegulatoryEdgeCase;
+    } catch (error) {
+      throw new Error(`Failed to detect resistance or regulatory edge cases: ${error.message}`);
+    }
+  }
 }
 
 module.exports = VoiceAgentIntegration;
