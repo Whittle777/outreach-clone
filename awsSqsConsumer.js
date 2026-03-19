@@ -36,15 +36,18 @@ async function consumeMessages() {
           // Determine the user's country based on IP address
           const country = await geolocationService.getCountryByIp(messageBody.ipAddress);
 
+          // Route data based on country
+          const region = getRegionByCountry(country);
+
           // Simulate sentiment analysis
           const sentimentScore = 0.8; // Example score
           const sentimentLabel = 'Positive'; // Example label
           const metadata = { source: 'example-source' }; // Example metadata
 
-          await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata, country);
+          await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata, country, region);
 
           // Initiate call using Azure Communication Services
-          await initiateCall(messageBody.prospectId, messageBody.bento, country);
+          await initiateCall(messageBody.prospectId, messageBody.bento, country, region);
         } else {
           console.log(`Rate limit exceeded for prospectId: ${messageBody.prospectId}`);
         }
@@ -58,6 +61,18 @@ async function consumeMessages() {
     }
   } catch (error) {
     console.error('Error consuming message from SQS:', error);
+  }
+}
+
+function getRegionByCountry(country) {
+  // Example routing logic
+  switch (country) {
+    case 'US':
+      return 'us-east-1';
+    case 'EU':
+      return 'eu-west-1';
+    default:
+      return 'us-west-2';
   }
 }
 

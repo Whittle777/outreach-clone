@@ -23,13 +23,16 @@ exports.create = async (req, res) => {
     // Determine the user's country based on IP address
     const country = await geolocationService.getCountryByIp(ipAddress);
 
+    // Route data based on country
+    const region = getRegionByCountry(country);
+
     // Perform sentiment analysis
     const sentiment = sentimentAnalysis(callTranscript);
     const sentimentScore = sentiment.score;
     const sentimentLabel = sentiment.label;
 
     const logMessage = `Call created for prospect ${prospectId} with status ${callStatus} from country ${country}`;
-    const newCall = await VoiceAgentCall.create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, sentimentScore, sentimentLabel, bento, logMessage, country);
+    const newCall = await VoiceAgentCall.create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, sentimentScore, sentimentLabel, bento, logMessage, country, region);
     logger.log(logMessage);
     res.status(201).json(newCall);
   } catch (error) {
@@ -61,11 +64,14 @@ exports.initiateCall = async (req, res) => {
     // Determine the user's country based on IP address
     const country = await geolocationService.getCountryByIp(ipAddress);
 
-    const callData = await azureAcsService.createCall(prospectId, bento, teamsResourceAccountObjectId);
+    // Route data based on country
+    const region = getRegionByCountry(country);
+
+    const callData = await azureAcsService.createCall(prospectId, bento, teamsResourceAccountObjectId, country, region);
     const callId = callData.id; // Assuming the response contains the call ID
 
     // Handle voicemail drop
-    await azureAcsService.handleVoicemailDrop(callId, bento);
+    await azureAcsService.handleVoicemailDrop(callId, bento, country, region);
 
     const logMessage = `Call initiation initiated for prospect ${prospectId} from country ${country}`;
     logger.log(logMessage);
@@ -75,3 +81,15 @@ exports.initiateCall = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+function getRegionByCountry(country) {
+  // Example routing logic
+  switch (country) {
+    case 'US':
+      return 'us-east-1';
+    case 'EU':
+      return 'eu-west-1';
+    default:
+      return 'us-west-2';
+  }
+}
