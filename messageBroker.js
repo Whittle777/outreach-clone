@@ -1,6 +1,7 @@
 const azureServiceBus = require('./messageBroker/azureServiceBus');
 const awsSqs = require('./messageBroker/awsSqs');
 const rabbitMQ = require('./messageBroker/rabbitMQ');
+const azureAcs = require('./messageBroker/azureAcs');
 const rateLimiter = require('../services/rateLimiter');
 const logger = require('../services/logger');
 const config = require('../config/settings');
@@ -25,6 +26,7 @@ class MessageBroker {
     this.sentimentAnalysisService = new SentimentAnalysis(process.env.SENTIMENT_ANALYSIS_API_KEY);
     this.aiGenerator = new AIGenerator();
     this.mcpGateway = new MCPGateway(config.mcpGateway);
+    this.azureAcsClient = new azureAcs(config.azureAcs);
   }
 
   initBroker() {
@@ -191,6 +193,17 @@ class MessageBroker {
     // For now, let's assume it always returns true
     return true;
   }
+
+  async makeOutboundCall(phoneNumber) {
+    try {
+      const callData = await this.azureAcsClient.createCall(phoneNumber);
+      logger.log('Outbound call created successfully:', callData);
+      return callData;
+    } catch (error) {
+      logger.error('Failed to create outbound call:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = MessageBroker;
@@ -274,6 +287,22 @@ app.delete('/api/voice-agent-calls/:id', async (req, res) => {
     res.status(204).send();
   } catch (error) {
     logger.error('Error deleting VoiceAgentCall:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Define a route to make an outbound call
+app.post('/api/make-outbound-call', async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    if (!phoneNumber) {
+      return res.status(400).json({ error: 'Phone number is required' });
+    }
+
+    const callData = await this.makeOutboundCall(phoneNumber);
+    res.status(201).json(callData);
+  } catch (error) {
+    logger.error('Error making outbound call:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
