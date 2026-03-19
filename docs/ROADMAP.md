@@ -67,7 +67,7 @@ Master list of all planned features.
 - [x] Schedule shifting to pause execution outside approved time blocks, weekends, or holidays
 - [x] Dynamically shift all subsequent steps forward in time to prevent backlog burst
 - [x] Alternative brokers: Azure Service Bus, AWS SQS, RabbitMQ for voice agent call queues
-- [ ] Teams Phone Integration: Use onBehalfOf parameter with Microsoft Entra Object ID for Teams Resource Account caller ID
+- [x] Teams Phone Integration: Use onBehalfOf parameter with Microsoft Entra Object ID for Teams Resource Account caller ID
 - [ ] Native STIR/SHAKEN compliance handled by Microsoft backend
 - [ ] Implement strict dialing rate limits to prevent "Spam Risk" flags from carriers
 - [ ] Voice agent call rate limits per Teams phone number
