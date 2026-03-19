@@ -3,6 +3,7 @@ const smtpConfig = require('../config/smtpConfig');
 const config = require('../config');
 const rateLimiter = require('../services/rateLimiter');
 const Email = require('../models/email'); // Assuming the email model is in models/email.js
+const EmailActivities = require('../models/emailActivities'); // Assuming the emailActivities model is in models/emailActivities.js
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport(smtpConfig);
@@ -47,6 +48,11 @@ async function sendScheduledEmails() {
           const backoffTime = config.emailService.backoffInterval * Math.pow(2, retryCount - 1);
           console.log(`Soft bounce detected for ${prospect.email}. Retrying in ${backoffTime} ms...`);
           await new Promise(resolve => setTimeout(resolve, backoffTime));
+        } else if (error.response && error.response.status === 550) { // Hard bounce
+          console.log(`Hard bounce detected for ${prospect.email}.`);
+          // Update the email status to 'bounced' in the database
+          await EmailActivities.updateStatus(prospect.email, 'bounced');
+          break;
         } else {
           console.error(`Error sending email to ${prospect.email}:`, error);
           // Update the email status to 'bounced' in the database
