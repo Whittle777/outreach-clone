@@ -54,7 +54,7 @@ Master list of all planned features.
 
 - [x] Telephony API: Azure Communication Services (ACS) Call Automation API
 - [x] Teams Integration: Teams Phone Extensibility for outbound PSTN calls using Teams Resource Accounts
-- [ ] AI/LLM Engine: GPT-4, Gemini, or equivalent LLM providers
+- [x] AI/LLM Engine: GPT-4, Gemini, or equivalent LLM providers
 - [ ] Text-to-Speech (TTS): ElevenLabs or Azure AI Speech for hyper-realistic audio generation
 - [ ] Audio Storage: Cloud Blob Storage (Azure Blob or AWS S3) for .wav/.mp3 voicemail files
 - [ ] Message Queues: Azure Service Bus, AWS SQS, or RabbitMQ as alternatives to Kafka

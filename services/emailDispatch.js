@@ -14,6 +14,7 @@ const { processBounceNotification } = require('../services/bounceNotificationPro
 const { logTrackingPixelEvent, wrapLink } = require('../services/trackingPixelLogger'); // New import
 const { analyzeOpenRates } = require('../services/openRateAnalyzer'); // New import
 const ngoe = require('./ngoe'); // New import
+const { generateEmailContent } = require('./gpt4'); // New import
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();
@@ -117,6 +118,15 @@ async function run() {
           const { emailContent, trackingPixelData } = message;
           const wrappedEmailContent = wrapLinksInEmail(emailContent, trackingPixelData);
           message.emailContent = wrappedEmailContent;
+        }
+        return messages;
+      }),
+      Broadway.stage('generateEmailContent', async (messages) => {
+        for (const message of messages) {
+          const { prospectId, bento, subject, emailContent } = message;
+          const prompt = `Generate an email with subject "${subject}" and content "${emailContent}" for prospect ${prospectId} in bento ${bento}.`;
+          const generatedContent = await generateEmailContent(prompt);
+          message.emailContent = generatedContent;
         }
         return messages;
       }),

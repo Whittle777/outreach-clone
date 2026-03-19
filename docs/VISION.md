@@ -299,3 +299,23 @@ Asynchronous Webhooks: Telephony is notoriously stateful, which makes scaling ha
 STIR/SHAKEN Compliance: Because you are using Teams phone numbers natively via ACS, Microsoft handles much of the underlying carrier compliance. However, you must implement strict dialing rate limits in your queue to prevent your Teams numbers from being flagged as "Spam Risk" by downstream carriers.
 
 Fallback Audio: If the TTS engine fails to generate the agentic voicemail in time, your database should always have a "fallback" generic pre-recorded audio URL ready to inject so you don't leave dead air on a prospect's voicemail. . .
+
+
+
+
+
+Coding principles:
+        Strict Type Safety: Utilization of static typing or comprehensive type hinting to catch structural errors at compile-time rather than run-time.
+
+        Centralized Error Handling and Logging: Standardized exception management and structured, searchable logs (e.g., JSON format) to rapidly diagnose production issues.
+
+        Modular, Loosely Coupled Architecture: adherence to principles like SOLID and Dependency Injection, ensuring that changes or failures in one module do not cascade through the entire system.
+
+        Comprehensive Documentation: Up-to-date READMEs, architectural decision records (ADRs), and auto-generated API specifications (like Swagger/OpenAPI) to ensure knowledge is shared and persistent.
+
+        Graceful Degradation and Resiliency: Fallback mechanisms, retries, and rate limiting that allow the system to remain partially operational even when external services fail.
+
+
+
+
+I want to be able to test this program easily and with an email provider other than Outlook - like my personal gmail account
