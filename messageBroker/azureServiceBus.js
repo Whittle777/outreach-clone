@@ -37,10 +37,10 @@ class AzureServiceBus {
     await this.sender.sendMessages({ body: messageWithEntraObjectId });
   }
 
-  async sendMessageWithRateLimit(message, prospectId) {
-    const key = `voiceCall:${prospectId}`;
+  async sendMessageWithRateLimit(message, prospectId, phoneNumber) {
+    const key = `voiceCall:${prospectId}:${phoneNumber}`;
     if (await voiceCallLimiter.isRateLimited(key)) {
-      console.log(`Rate limit exceeded for prospectId: ${prospectId}`);
+      console.log(`Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
       return;
     }
 
