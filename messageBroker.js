@@ -51,7 +51,7 @@ class MessageBroker {
     }
 
     await this.incrementRequestCount(key);
-    return this.broker.sendMessage(message);
+    return this.broker.sendMessage(message, token);
   }
 
   async receiveMessage(token) {
@@ -60,7 +60,7 @@ class MessageBroker {
       throw new Error('Unauthorized access');
     }
 
-    const message = await this.broker.receiveMessage();
+    const message = await this.broker.receiveMessage(token);
     if (message) {
       await this.handleMessage(message);
     }
@@ -139,7 +139,7 @@ class MessageBroker {
       throw new Error('Unauthorized access');
     }
 
-    return this.broker.fetchActiveConstraints();
+    return this.broker.fetchActiveConstraints(token);
   }
 }
 
