@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { analyzeSentiment } = require('./llm');
 
 async function analyzeOpenRates(messages) {
   for (const message of messages) {
@@ -16,6 +17,12 @@ async function analyzeOpenRates(messages) {
 
     const openRate = (openCount / totalCount) * 100;
     console.log(`Open rate for prospectId ${prospectId}: ${openRate.toFixed(2)}%`);
+
+    // Analyze sentiment for each tracking pixel event
+    for (const event of trackingPixelEvents) {
+      const sentiment = await analyzeSentiment(event.data);
+      console.log(`Sentiment for event ${event.id}: ${sentiment}`);
+    }
   }
 }
 
