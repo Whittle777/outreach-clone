@@ -26,6 +26,15 @@ class AzureServiceBus {
     await this.receiver.close();
     await this.serviceBusClient.close();
   }
+
+  // Method to send message with Microsoft Entra Object ID
+  async sendMessageWithEntraObjectId(message, entraObjectId) {
+    const messageWithEntraObjectId = {
+      ...message,
+      entraObjectId
+    };
+    await this.sender.sendMessages({ body: messageWithEntraObjectId });
+  }
 }
 
 module.exports = AzureServiceBus;
