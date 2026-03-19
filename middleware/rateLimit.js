@@ -6,6 +6,8 @@ const redisClient = require('../services/redisClient');
 const { authenticateMicrosoft } = require('../services/microsoftAuth');
 const { makeOutboundCall } = require('../services/acsCallAutomation');
 const { getTeamsResourceAccount } = require('../services/teamsResourceAccount');
+const { uploadAudioFile } = require('../services/audioFileStorage');
+const { AudioFile } = require('../models/AudioFile');
 
 async function rateLimit(req, res, next) {
   const { prospectId, bento, trackingPixelData } = req.query;
@@ -42,6 +44,14 @@ async function rateLimit(req, res, next) {
         return res.status(404).json({ message: 'Teams Resource Account not found' });
       }
       next();
+    } else if (req.path === '/upload-audio-file') {
+      // Handle audio file upload
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+      const fileUrl = await uploadAudioFile(req.file.originalname, req.file.path);
+      const audioFile = await AudioFile.create(req.file, { fileUrl });
+      res.status(201).json(audioFile);
     } else {
       next();
     }
