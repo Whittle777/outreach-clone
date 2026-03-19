@@ -1,7 +1,13 @@
+// controllers/voiceAgentCalls.js
+
 const VoiceAgentCall = require('../models/VoiceAgentCall');
 const rateLimiter = require('../services/rateLimiter');
 const logger = require('../services/logger');
 const aiGenerator = require('../services/aiGenerator');
+const TtsService = require('../services/ttsService');
+const config = require('../config/settings');
+const ttsService = new TtsService(config.elevenLabs.apiKey);
+const path = require('path');
 
 exports.create = async (req, res) => {
   try {
@@ -59,6 +65,25 @@ exports.getFilterChips = async (req, res) => {
   } catch (error) {
     logger.error(`Error retrieving filter chips: ${error.message}`);
     res.status(500).json({ error: error.message });
+  }
+};
+
+exports.generateTtsAudio = async (req, res) => {
+  try {
+    const { prospectId, preGeneratedScript } = req.body;
+
+    // Validate input
+    if (!prospectId || !preGeneratedScript) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const ttsAudioFilePath = path.join(__dirname, `tts_audio_${prospectId}.wav`);
+    const ttsAudioFileUrl = await ttsService.generateAndStoreTtsAudio(preGeneratedScript, config.elevenLabs.voiceId, ttsAudioFilePath);
+
+    res.status(200).json({ ttsAudioFileUrl });
+  } catch (error) {
+    logger.error('Failed to generate TTS audio file:', error);
+    res.status(500).json({ error: 'Failed to generate TTS audio file' });
   }
 };
 
