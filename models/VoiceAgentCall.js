@@ -7,6 +7,9 @@ class VoiceAgentCall {
       throw new Error('Data not compliant with GDPR');
     }
 
+    // Detect resistance or regulatory edge cases
+    const hasResistanceOrRegulatoryFlag = await VoiceAgentCall.detectResistanceOrRegulatoryEdgeCases({ callTranscript });
+
     return await prisma.voiceAgentCall.create({
       data: {
         prospectId,
@@ -16,6 +19,7 @@ class VoiceAgentCall {
         callTranscript,
         bento,
         ipAddress,
+        hasResistanceOrRegulatoryFlag,
       },
     });
   }
