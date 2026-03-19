@@ -1,9 +1,9 @@
 const prisma = require('../prismaClient');
 
 class VoiceAgentCall {
-  static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, sentimentScore, sentimentLabel, bento, logMessage, country) {
+  static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress) {
     // Check GDPR compliance
-    if (!isGDPRCompliant({ prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, sentimentScore, sentimentLabel, bento, logMessage, country })) {
+    if (!isGDPRCompliant({ prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress })) {
       throw new Error('Data not compliant with GDPR');
     }
 
@@ -14,36 +14,35 @@ class VoiceAgentCall {
         preGeneratedScript,
         ttsAudioFileUrl,
         callTranscript,
-        sentimentScore,
-        sentimentLabel,
         bento,
-        logMessage,
-        country,
+        ipAddress,
       },
-    });
-  }
-
-  static async update(id, updateData) {
-    // Check GDPR compliance
-    if (!isGDPRCompliant(updateData)) {
-      throw new Error('Data not compliant with GDPR');
-    }
-
-    return await prisma.voiceAgentCall.update({
-      where: { id },
-      data: updateData,
     });
   }
 
   static async getAll() {
     return await prisma.voiceAgentCall.findMany();
   }
+
+  static async detectResistanceOrRegulatoryEdgeCases(call) {
+    // Example detection logic
+    // This is a placeholder for actual detection logic
+    const resistanceKeywords = ['busy', 'unavailable', 'regulatory', 'edge'];
+    const callTranscriptLower = call.callTranscript.toLowerCase();
+
+    for (const keyword of resistanceKeywords) {
+      if (callTranscriptLower.includes(keyword)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 function isGDPRCompliant(data) {
   // Example GDPR compliance check
-  // Ensure that the data does not contain sensitive data
-  return !data.sensitiveData;
+  // Ensure that the data contains a valid email and does not contain sensitive data
+  return data.email && !data.sensitiveData;
 }
 
 module.exports = VoiceAgentCall;

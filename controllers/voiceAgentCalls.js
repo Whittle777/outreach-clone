@@ -23,8 +23,12 @@ exports.create = async (req, res) => {
     // Create voice agent call
     const newCall = await VoiceAgentCall.create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress);
 
-    const logMessage = `Call created for prospect ${prospectId} with status ${callStatus} from IP ${ipAddress}`;
-    logger.log(logMessage);
+    // Detect resistance or regulatory edge cases
+    const isResistanceOrRegulatory = await VoiceAgentCall.detectResistanceOrRegulatoryEdgeCases(newCall);
+    if (isResistanceOrRegulatory) {
+      const logMessage = `Call for prospect ${prospectId} from IP ${ipAddress} hit resistance or regulatory edge case`;
+      logger.log(logMessage);
+    }
 
     res.status(201).json(newCall);
   } catch (error) {

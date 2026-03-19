@@ -74,7 +74,7 @@ Master list of all planned features.
 - [x] Unsubscribe & Bounce Handling: Exponential backoff retries for soft bounces
 - [x] Permanent 'Failed' state mutation for hard bounces
 - [x] Real-time text transcripts and parallel sentiment analysis
-- [ ] Visual flags for calls hitting resistance or regulatory edge cases
+- [x] Visual flags for calls hitting resistance or regulatory edge cases
 - [ ] Conversational Filtering System: Dynamic UI generation based on user text prompts
 - [ ] Intent-driven shortcuts and predictive search
 - [ ] Visual filter chips for active constraints
