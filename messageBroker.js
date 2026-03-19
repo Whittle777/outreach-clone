@@ -209,6 +209,61 @@ app.post('/api/classify-sentiment', async (req, res) => {
   }
 });
 
+// Define CRUD routes for VoiceAgentCall
+app.post('/api/voice-agent-calls', async (req, res) => {
+  try {
+    const { prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript } = req.body;
+    const voiceAgentCall = await VoiceAgentCall.create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
+    res.status(201).json(voiceAgentCall);
+  } catch (error) {
+    logger.error('Error creating VoiceAgentCall:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/voice-agent-calls/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const voiceAgentCall = await VoiceAgentCall.findById(id);
+    if (!voiceAgentCall) {
+      return res.status(404).json({ error: 'VoiceAgentCall not found' });
+    }
+    res.json(voiceAgentCall);
+  } catch (error) {
+    logger.error('Error retrieving VoiceAgentCall:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/api/voice-agent-calls/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript } = req.body;
+    const updatedVoiceAgentCall = await VoiceAgentCall.update(id, { callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript });
+    if (!updatedVoiceAgentCall) {
+      return res.status(404).json({ error: 'VoiceAgentCall not found' });
+    }
+    res.json(updatedVoiceAgentCall);
+  } catch (error) {
+    logger.error('Error updating VoiceAgentCall:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.delete('/api/voice-agent-calls/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedVoiceAgentCall = await VoiceAgentCall.delete(id);
+    if (!deletedVoiceAgentCall) {
+      return res.status(404).json({ error: 'VoiceAgentCall not found' });
+    }
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Error deleting VoiceAgentCall:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
