@@ -15,6 +15,7 @@ const MCPGateway = require('./messageBroker/mcpGateway');
 const crypto = require('crypto');
 const express = require('express');
 const bodyParser = require('body-parser');
+const AwsSqsConsumer = require('./messageBroker/awsSqsConsumer');
 
 class MessageBroker {
   constructor(config) {
@@ -27,6 +28,7 @@ class MessageBroker {
     this.aiGenerator = new AIGenerator();
     this.mcpGateway = new MCPGateway(config.mcpGateway);
     this.azureAcsClient = new azureAcs(config.azureAcs);
+    this.awsSqsConsumer = new AwsSqsConsumer(config.awsSqs);
   }
 
   initBroker() {
@@ -207,6 +209,10 @@ class MessageBroker {
 
   async handleVoicemailDrop(prospectId, phoneNumber, message, token) {
     return this.broker.handleVoicemailDrop(prospectId, phoneNumber, message, token);
+  }
+
+  startAwsSqsConsumer() {
+    this.awsSqsConsumer.startConsuming();
   }
 }
 
