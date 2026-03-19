@@ -204,6 +204,10 @@ class MessageBroker {
       throw error;
     }
   }
+
+  async handleVoicemailDrop(prospectId, phoneNumber, message, token) {
+    return this.broker.handleVoicemailDrop(prospectId, phoneNumber, message, token);
+  }
 }
 
 module.exports = MessageBroker;
@@ -303,6 +307,22 @@ app.post('/api/make-outbound-call', async (req, res) => {
     res.status(201).json(callData);
   } catch (error) {
     logger.error('Error making outbound call:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Define a route to handle voicemail drop
+app.post('/api/handle-voicemail-drop', async (req, res) => {
+  try {
+    const { prospectId, phoneNumber, message, token } = req.body;
+    if (!prospectId || !phoneNumber || !message || !token) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    await this.handleVoicemailDrop(prospectId, phoneNumber, message, token);
+    res.status(200).json({ message: 'Voicemail drop handled successfully' });
+  } catch (error) {
+    logger.error('Error handling voicemail drop:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

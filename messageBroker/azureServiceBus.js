@@ -8,6 +8,7 @@ const KnowledgeGraph = require('../services/knowledgeGraph');
 const NGOE = require('../services/ngoeTaskExecutor');
 const VoiceAgentCall = require('../models/VoiceAgentCall');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
+const azureAcsClient = require('../messageBroker/azureAcs');
 
 class AzureServiceBus {
   constructor(config) {
@@ -164,6 +165,28 @@ class AzureServiceBus {
 
     await doubleWriteStrategy.write(voiceAgentCallData);
     realTimeReasoningLogs.addLog('createVoiceAgentCall', `Created VoiceAgentCall: ${JSON.stringify(voiceAgentCallData)}`);
+  }
+
+  async handleVoicemailDrop(prospectId, phoneNumber, message, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    // Create a call using Azure ACS
+    const callData = await azureAcsClient.createCall(phoneNumber);
+    logger.log('Outbound call created successfully:', callData);
+
+    // Send a message to the queue to handle the voicemail drop
+    const voicemailMessage = {
+      prospectId,
+      phoneNumber,
+      callData,
+      message
+    };
+
+    await this.sendMessage(voicemailMessage, token);
+    realTimeReasoningLogs.addLog('handleVoicemailDrop', `Voicemail drop handled for prospectId: ${prospectId}`);
   }
 }
 
