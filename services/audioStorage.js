@@ -1,17 +1,39 @@
+const AWS = require('aws-sdk');
+const fs = require('fs');
+const path = require('path');
+
 class AudioStorage {
   constructor() {
-    // Initialize any necessary properties or configurations
+    this.s3 = new AWS.S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: process.env.AWS_REGION,
+    });
+    this.bucketName = process.env.AWS_BUCKET_NAME;
   }
 
-  async uploadAudioFile(file, metadata) {
-    // Implement the logic to upload an audio file
-    throw new Error('Method not implemented');
+  async uploadAudioFile(fileName, filePath) {
+    const fileContent = fs.readFileSync(filePath);
+    const params = {
+      Bucket: this.bucketName,
+      Key: fileName,
+      Body: fileContent,
+      ContentType: 'audio/wav', // or 'audio/mp3'
+    };
+
+    const uploadResult = await this.s3.upload(params).promise();
+    return uploadResult.Location;
   }
 
   async retrieveAudioFile(fileId) {
-    // Implement the logic to retrieve an audio file
-    throw new Error('Method not implemented');
+    const params = {
+      Bucket: this.bucketName,
+      Key: fileId,
+    };
+
+    const fileData = await this.s3.getObject(params).promise();
+    return fileData.Body;
   }
 }
 
-module.exports = AudioStorage;
+module.exports = new AudioStorage();

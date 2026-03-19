@@ -79456,3 +79456,51 @@
 +            Use your repository map to find the correct files to edit. 
 +            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
 +            
+
+# 2026-03-19 07:55:46.605466
++
++            Act as a Senior Tech Lead. We are building the following feature: "Audio Storage: Cloud Blob Storage (Azure Blob or AWS S3) for .wav/.mp3 voicemail files"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 07:55:46.605573
++
++            Act as a Senior Tech Lead. We are building the following feature: "Audio Storage: Cloud Blob Storage (Azure Blob or AWS S3) for .wav/.mp3 voicemail files"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 08:01:34.919599
++
++            Act as a Senior Tech Lead. We are building the following feature: "Message Queues: Azure Service Bus, AWS SQS, or RabbitMQ as alternatives to Kafka"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 08:01:34.920068
++
++            Act as a Senior Tech Lead. We are building the following feature: "Message Queues: Azure Service Bus, AWS SQS, or RabbitMQ as alternatives to Kafka"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 08:02:58.119121
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-19 08:02:58.119564
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            

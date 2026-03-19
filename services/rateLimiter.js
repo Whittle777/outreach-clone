@@ -31,4 +31,5 @@ class RateLimiter {
 module.exports = {
   voiceCallLimiter: new RateLimiter(10, 60), // 10 voice calls per minute
   emailLimiter: new RateLimiter(20, 60), // 20 emails per minute
+  audioFileLimiter: new RateLimiter(5, 60), // 5 audio file uploads per minute
 };

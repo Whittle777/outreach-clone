@@ -1,22 +1,22 @@
 const amqplib = require('amqplib');
 
-async function startConsumer() {
+async function startConsumer(config) {
   try {
-    const connection = await amqplib.connect('amqp://localhost');
+    const connection = await amqplib.connect(config.url);
     const channel = await connection.createChannel();
 
-    const queue = 'email-dispatch-requests';
+    const queue = config.queue;
     await channel.assertQueue(queue, { durable: true });
 
-    console.log(' [*] Waiting for messages in %s. To exit press CTRL+C', queue);
+    console.log(` [*] Waiting for messages in %s. To exit press CTRL+C`, queue);
 
     channel.consume(queue, async (msg) => {
       if (msg !== null) {
-        const emailRequest = JSON.parse(msg.content.toString());
-        console.log(' [x] Received %s', emailRequest);
+        const message = JSON.parse(msg.content.toString());
+        console.log(' [x] Received %s', message);
 
         // Process the message
-        await processMessage(emailRequest);
+        await processMessage(message);
 
         channel.ack(msg);
       }

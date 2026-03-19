@@ -1,4 +1,4 @@
-const audioFileStorage = require('../services/audioFileStorage');
+const audioFileStorage = require('../services/audioStorage');
 const AudioFile = require('../models/AudioFile');
 
 async function uploadAudioFile(req, res) {
