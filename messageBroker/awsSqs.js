@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const { voiceCallLimiter } = require('../services/rateLimiter');
+const config = require('../config/settings');
 
 class AwsSqs {
   constructor(config) {
@@ -34,12 +35,16 @@ class AwsSqs {
 
   async sendMessageWithRateLimit(message, prospectId, phoneNumber) {
     const key = `voiceCall:${prospectId}:${phoneNumber}`;
-    if (await voiceCallLimiter.isRateLimited(key)) {
+    const limit = config.rateLimits.teamsPhoneNumbers[phoneNumber]?.limit || 10;
+    const duration = config.rateLimits.teamsPhoneNumbers[phoneNumber]?.duration || 60;
+    const rateLimiter = new RateLimiter(limit, duration);
+
+    if (await rateLimiter.isRateLimited(key)) {
       console.log(`Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
       return;
     }
 
-    await voiceCallLimiter.incrementRequestCount(key);
+    await rateLimiter.incrementRequestCount(key);
     await this.sendMessage(message);
   }
 }

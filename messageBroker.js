@@ -3,6 +3,7 @@ const awsSqs = require('./messageBroker/awsSqs');
 const rabbitMQ = require('./messageBroker/rabbitMQ');
 const rateLimiter = require('../services/rateLimiter');
 const logger = require('../services/logger');
+const config = require('../config/settings');
 
 class MessageBroker {
   constructor(config) {
@@ -29,7 +30,7 @@ class MessageBroker {
 
   async sendMessage(message) {
     const key = `message:${message.id}:${message.phoneNumber}`;
-    const limit = 10; // Example limit, should be configurable
+    const limit = this.getRateLimitForPhoneNumber(message.phoneNumber);
     const isLimited = await this.isRateLimited(key, limit);
 
     if (isLimited) {
@@ -51,6 +52,14 @@ class MessageBroker {
 
   async incrementRequestCount(key) {
     return rateLimiter.incrementRequestCount(key);
+  }
+
+  getRateLimitForPhoneNumber(phoneNumber) {
+    const rateLimitConfig = this.config.rateLimits.teamsPhoneNumbers[phoneNumber];
+    if (rateLimitConfig) {
+      return rateLimitConfig.limit;
+    }
+    return 10; // Default limit if no specific configuration is found
   }
 }
 
