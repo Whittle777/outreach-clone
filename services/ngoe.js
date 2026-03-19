@@ -173,4 +173,4 @@ async function mcpSecureCommunication(payload) {
   await executeTask(task);
 }
 
-module.exports = { run };
+module.exports = { run, executeTask };
