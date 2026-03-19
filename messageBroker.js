@@ -14,6 +14,7 @@ class MessageBroker {
   constructor(config) {
     this.config = config;
     this.broker = null;
+    this.fallbackBroker = null;
     this.initBroker();
     this.sentimentAnalysisService = new SentimentAnalysis(process.env.SENTIMENT_ANALYSIS_API_KEY);
     this.aiGenerator = new AIGenerator();
@@ -23,12 +24,15 @@ class MessageBroker {
     switch (this.config.messageBroker) {
       case 'azure-service-bus':
         this.broker = new azureServiceBus(this.config.azureServiceBus);
+        this.fallbackBroker = new rabbitMQ(this.config.rabbitMQ);
         break;
       case 'aws-sqs':
         this.broker = new awsSqs(this.config.awsSqs);
+        this.fallbackBroker = new rabbitMQ(this.config.rabbitMQ);
         break;
       case 'rabbitmq':
         this.broker = new rabbitMQ(this.config.rabbitMQ);
+        this.fallbackBroker = new azureServiceBus(this.config.azureServiceBus);
         break;
       default:
         throw new Error('Unsupported message broker');
@@ -36,35 +40,21 @@ class MessageBroker {
   }
 
   async sendMessage(message, token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.isFleetCommandCenterUser) {
-      throw new Error('Unauthorized access');
+    try {
+      return await this.broker.sendMessage(message, token);
+    } catch (error) {
+      logger.error(`Primary broker failed: ${error.message}`);
+      return await this.fallbackBroker.sendMessage(message, token);
     }
-
-    const key = `message:${message.id}:${message.phoneNumber}`;
-    const limit = this.getRateLimitForPhoneNumber(message.phoneNumber);
-    const isLimited = await this.isRateLimited(key, limit);
-
-    if (isLimited) {
-      logger.log(`Rate limit exceeded for message: ${message.id} with phone number: ${message.phoneNumber}`);
-      throw new Error('Rate limit exceeded');
-    }
-
-    await this.incrementRequestCount(key);
-    return this.broker.sendMessage(message, token);
   }
 
   async receiveMessage(token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.isFleetCommandCenterUser) {
-      throw new Error('Unauthorized access');
+    try {
+      return await this.broker.receiveMessage(token);
+    } catch (error) {
+      logger.error(`Primary broker failed: ${error.message}`);
+      return await this.fallbackBroker.receiveMessage(token);
     }
-
-    const message = await this.broker.receiveMessage(token);
-    if (message) {
-      await this.handleMessage(message);
-    }
-    return message;
   }
 
   async handleMessage(message) {
