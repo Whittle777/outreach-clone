@@ -1,16 +1,19 @@
+const natural = require('natural');
+
 class NLPModule {
   constructor() {
-    // Initialize any necessary NLP models or libraries here
+    this.classifier = new natural.BayesClassifier();
   }
 
-  async parseTextPrompt(prompt) {
-    // Implement the logic to parse the user text prompt
-    // For now, let's just return a simple object with the parsed data
-    return {
-      intent: 'unknown',
-      entities: [],
-      sentiment: 'neutral'
-    };
+  train(data) {
+    data.forEach(({ text, category }) => {
+      this.classifier.addDocument(text, category);
+    });
+    this.classifier.train();
+  }
+
+  classify(text) {
+    return this.classifier.classify(text);
   }
 }
 

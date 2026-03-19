@@ -2,12 +2,14 @@ const axios = require('axios');
 const { voiceCallLimiter } = require('./rateLimiter');
 const SentimentAnalysisService = require('./sentimentAnalysisService');
 const Transcript = require('../models/transcript');
+const NLPModule = require('./nlpModule');
 
 class VoiceAgentIntegration {
   constructor(apiKey, apiUrl) {
     this.apiKey = apiKey;
     this.apiUrl = apiUrl;
     this.sentimentAnalysisService = new SentimentAnalysisService();
+    this.nlpModule = new NLPModule();
   }
 
   async createCall(prospectId, phoneNumber, script, country) {
@@ -96,6 +98,26 @@ class VoiceAgentIntegration {
     } catch (error) {
       throw new Error(`Failed to start transcription: ${error.message}`);
     }
+  }
+
+  async detectResistanceOrRegulatoryEdgeCases(callId) {
+    try {
+      const response = await axios.get(`${this.apiUrl}/calls/${callId}/resistance-detection`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data.isResistanceOrRegulatoryEdgeCase;
+    } catch (error) {
+      throw new Error(`Failed to detect resistance or regulatory edge cases: ${error.message}`);
+    }
+  }
+
+  async filterProspectsByNLP(prospects, query) {
+    const category = this.nlpModule.classify(query);
+    return prospects.filter(prospect => prospect.category === category);
   }
 }
 
