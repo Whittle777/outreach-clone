@@ -1,20 +1,18 @@
 const axios = require('axios');
 const logger = require('../services/logger');
+const AzureAcs = require('../messageBroker/azureAcs');
 
 const azureAcsUrl = process.env.AZURE_ACS_URL || 'https://your-azure-acs-url.com';
 const azureAcsKey = process.env.AZURE_ACS_KEY || 'your-azure-acs-key';
 
 const createCall = async (prospectId, bento, teamsResourceAccountObjectId) => {
   try {
-    const response = await axios.post(`${azureAcsUrl}/calls`, {
-      prospectId,
-      bento,
-      teamsResourceAccountObjectId,
-    }, {
-      headers: {
-        'Ocp-Apim-Subscription-Key': azureAcsKey,
-      },
+    const azureAcs = new AzureAcs({
+      connectionString: azureAcsUrl,
+      accessToken: azureAcsKey
     });
+
+    const response = await azureAcs.createCall(prospectId, 'US', teamsResourceAccountObjectId);
     return response.data;
   } catch (error) {
     logger.error(`Error creating call for prospect ${prospectId}: ${error.message}`);
