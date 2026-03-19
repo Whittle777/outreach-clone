@@ -113,7 +113,7 @@ Master list of all planned features.
 - [x] Permanent 'Failed' state mutation for hard bounces
 - [x] Real-time text transcripts and parallel sentiment analysis
 - [x] Visual flags for calls hitting resistance or regulatory edge cases
-- [ ] Conversational Filtering System: Dynamic UI generation based on user text prompts
+- [x] Conversational Filtering System: Dynamic UI generation based on user text prompts
 - [ ] Intent-driven shortcuts and predictive search
 - [ ] Visual filter chips for active constraints
 - [ ] Mass Email Sequencing & Deliverability: Personalization Waterfall, Dynamic Generative Copy, Deliverability Gate Dashboard
