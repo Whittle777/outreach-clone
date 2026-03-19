@@ -25,7 +25,7 @@ class RabbitMQ {
       throw new Error('Unauthorized access');
     }
 
-    await this.channel.sendToQueue(this.queueName, Buffer.from(message));
+    await this.channel.sendToQueue(this.queueName, Buffer.from(JSON.stringify(message)));
   }
 
   async receiveMessage(token) {
@@ -36,7 +36,7 @@ class RabbitMQ {
 
     const message = await this.channel.get(this.queueName, { noAck: true });
     if (message) {
-      return message.content.toString();
+      return JSON.parse(message.content.toString());
     }
     return null;
   }

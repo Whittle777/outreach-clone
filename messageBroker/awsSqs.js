@@ -17,7 +17,7 @@ class AwsSqs {
     }
 
     const params = {
-      MessageBody: message,
+      MessageBody: JSON.stringify(message),
       QueueUrl: this.queueUrl,
     };
     await this.sqs.sendMessage(params).promise();
@@ -40,7 +40,7 @@ class AwsSqs {
         QueueUrl: this.queueUrl,
         ReceiptHandle: message.ReceiptHandle,
       }).promise();
-      return message.Body;
+      return JSON.parse(message.Body);
     }
     return null;
   }
@@ -63,6 +63,22 @@ class AwsSqs {
 
     await rateLimiter.incrementRequestCount(key);
     await this.sendMessage(message, token);
+  }
+
+  async fetchActiveConstraints(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    // Placeholder for fetching active constraints
+    // This should be replaced with actual logic to fetch constraints from AWS SQS
+    return {
+      constraints: [
+        { id: 1, name: 'Constraint 1' },
+        { id: 2, name: 'Constraint 2' }
+      ]
+    };
   }
 }
 

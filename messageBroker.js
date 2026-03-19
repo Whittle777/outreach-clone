@@ -69,7 +69,7 @@ class MessageBroker {
 
   async handleMessage(message) {
     // Assuming the message contains a prospectId and phoneNumber
-    const { prospectId, phoneNumber } = message;
+    const { prospectId, phoneNumber, confidenceScore } = message;
 
     // Update the VoiceAgentCall state to 'Failed'
     await VoiceAgentCall.update(prospectId, { callStatus: 'Failed' });
@@ -103,10 +103,6 @@ class MessageBroker {
       // Flag the case (e.g., update database or send alert)
       await VoiceAgentCall.flagResistanceOrRegulatoryCase(prospectId);
     }
-
-    // Calculate confidence score
-    const confidenceScore = await this.aiGenerator.calculateConfidenceScore(transcript);
-    logger.log(`Confidence score for prospectId: ${prospectId} is ${confidenceScore}`);
 
     // Route message based on confidence score
     if (confidenceScore > 85) {
