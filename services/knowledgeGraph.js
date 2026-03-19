@@ -35,6 +35,12 @@ class KnowledgeGraph {
   async close() {
     await this.driver.close();
   }
+
+  async write(data) {
+    // Implement double-write logic for legacy datastore
+    // For now, let's assume it's a no-op
+    return;
+  }
 }
 
 module.exports = KnowledgeGraph;

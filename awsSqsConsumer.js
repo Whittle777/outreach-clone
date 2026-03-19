@@ -6,6 +6,7 @@ const KnowledgeGraph = require('../services/knowledgeGraph');
 const config = require('../config/settings');
 const RabbitMQ = require('../messageBroker/rabbitMQ');
 const rabbitMQ = new RabbitMQ(config.rabbitMQ);
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 const knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
 
@@ -32,6 +33,9 @@ async function consumeMessages() {
 
         // Send message to Microsoft Teams
         await rabbitMQ.sendMessageToMicrosoftTeams(`New message from SQS: ${JSON.stringify(messageBody)}`);
+
+        // Double-write strategy
+        await doubleWriteStrategy.write(messageBody);
 
         // Delete the message from the queue
         const deleteParams = {

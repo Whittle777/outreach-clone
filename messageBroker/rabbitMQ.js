@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
 const KnowledgeGraph = require('../services/knowledgeGraph');
 const MicrosoftTeamsApp = require('../services/microsoftTeamsApp');
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 class RabbitMQ {
   constructor(config) {

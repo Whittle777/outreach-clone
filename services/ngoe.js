@@ -19,6 +19,7 @@ const { authenticateMicrosoft } = require('../services/microsoftAuth');
 const azureServiceBusProducer = require('../services/azureServiceBusProducer');
 const rabbitMQProducer = require('../services/rabbitMQProducer');
 const naturalLanguageGuardrails = require('./naturalLanguageGuardrails');
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 async function run() {
   await azureServiceBusProducer.sendMessage({ topic: 'ngoe-tasks', message: 'Initialize NGOE' });
