@@ -3,16 +3,18 @@ const sentimentAnalysis = require('sentiment-analysis'); // Hypothetical library
 const axios = require('axios');
 const logger = require('../services/logger');
 const azureAcsService = require('../services/azureAcsService');
+const RateLimiterService = require('../services/rateLimiterService');
 
 const rateLimiterUrl = process.env.RATE_LIMITER_URL || 'http://localhost:8080/rate-limit';
+const rateLimiterService = new RateLimiterService(rateLimiterUrl);
 
 exports.create = async (req, res) => {
   try {
     const { prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento } = req.body;
 
     // Check rate limit
-    const response = await axios.get(`${rateLimiterUrl}/${prospectId}`);
-    if (!response.data.allowed) {
+    const isAllowed = await rateLimiterService.checkRateLimit(prospectId);
+    if (!isAllowed) {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
@@ -46,8 +48,8 @@ exports.initiateCall = async (req, res) => {
     const { prospectId, bento, teamsResourceAccountObjectId } = req.body;
 
     // Check rate limit
-    const response = await axios.get(`${rateLimiterUrl}/${prospectId}`);
-    if (!response.data.allowed) {
+    const isAllowed = await rateLimiterService.checkRateLimit(prospectId);
+    if (!isAllowed) {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
