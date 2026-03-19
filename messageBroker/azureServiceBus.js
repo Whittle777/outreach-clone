@@ -53,6 +53,17 @@ class AzureServiceBus {
     await rateLimiter.incrementRequestCount(key);
     await this.sendMessage(message);
   }
+
+  async fetchActiveConstraints() {
+    // Placeholder for fetching active constraints
+    // This should be replaced with actual logic to fetch constraints from Azure Service Bus
+    return {
+      constraints: [
+        { id: 1, name: 'Constraint 1' },
+        { id: 2, name: 'Constraint 2' }
+      ]
+    };
+  }
 }
 
 module.exports = AzureServiceBus;

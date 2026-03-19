@@ -99,6 +99,10 @@ class MessageBroker {
     }
     return 10; // Default limit if no specific configuration is found
   }
+
+  async fetchActiveConstraints() {
+    return this.broker.fetchActiveConstraints();
+  }
 }
 
 module.exports = MessageBroker;
