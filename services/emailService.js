@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 const smtpConfig = require('../config/smtpConfig');
 const config = require('../config');
 const rateLimiter = require('../services/rateLimiter');
+const Email = require('../models/email'); // Assuming the email model is in models/email.js
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport(smtpConfig);
@@ -31,6 +32,8 @@ async function sendScheduledEmails() {
         await transporter.sendMail(emailOptions);
         console.log(`Email sent to ${prospect.email}`);
         success = true;
+        // Update the email status to 'sent' in the database
+        await Email.update(prospect.email, { status: 'sent' });
       } catch (error) {
         if (error.response && error.response.status === 421) { // Soft bounce
           retryCount++;
@@ -39,6 +42,8 @@ async function sendScheduledEmails() {
           await new Promise(resolve => setTimeout(resolve, backoffTime));
         } else {
           console.error(`Error sending email to ${prospect.email}:`, error);
+          // Update the email status to 'bounced' in the database
+          await Email.update(prospect.email, { status: 'bounced' });
           break;
         }
       }
@@ -46,6 +51,8 @@ async function sendScheduledEmails() {
 
     if (!success) {
       console.error(`Failed to send email to ${prospect.email} after ${retryCount} retries.`);
+      // Update the email status to 'bounced' in the database
+      await Email.update(prospect.email, { status: 'bounced' });
     }
   }
 }
