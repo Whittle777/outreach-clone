@@ -9,6 +9,7 @@ const sentimentAnalysisRoutes = require('./routes/sentimentAnalysis'); // New ro
 const conversationalFilteringRoutes = require('./routes/conversationalFiltering'); // New route for conversational filtering
 const filterRoutes = require('./routes/filterRoutes'); // New route for filter chip data
 const voiceAgentCallController = require('./controllers/voiceAgentCallController'); // New controller for voice agent calls
+const emailRetryJob = require('./cronJobs/emailRetryJob'); // New cron job for email retries
 
 const app = express();
 
@@ -37,4 +38,6 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   // Start the AWS SQS consumer
   awsSqsConsumer.consumeMessages();
+  // Start the email retry job
+  emailRetryJob;
 });

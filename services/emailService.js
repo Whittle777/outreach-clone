@@ -73,6 +73,58 @@ async function sendScheduledEmails() {
   }
 }
 
+async function retrySoftBouncedEmails() {
+  const softBouncedEmails = await Email.getSoftBouncedEmails();
+
+  for (const email of softBouncedEmails) {
+    let retryCount = 0;
+    let success = false;
+
+    while (!success && retryCount < config.emailService.retryLimit) {
+      try {
+        // Check rate limit before sending the email
+        if (await rateLimiter.emailLimiter.isRateLimited(email.to)) {
+          console.log(`Rate limit exceeded for ${email.to}. Retrying in ${config.emailService.backoffInterval} ms...`);
+          await new Promise(resolve => setTimeout(resolve, config.emailService.backoffInterval));
+          continue;
+        }
+
+        await transporter.sendMail(email);
+        console.log(`Email retried and sent to ${email.to}`);
+        success = true;
+        // Update the email status to 'sent' in the database
+        await Email.update(email.to, { status: 'sent' });
+      } catch (error) {
+        if (error.response && error.response.status === 421) { // Soft bounce
+          retryCount++;
+          const backoffTime = config.emailService.backoffInterval * Math.pow(2, retryCount - 1);
+          console.log(`Soft bounce detected for ${email.to}. Retrying in ${backoffTime} ms...`);
+          await new Promise(resolve => setTimeout(resolve, backoffTime));
+        } else if (error.response && error.response.status === 550) { // Hard bounce
+          console.log(`Hard bounce detected for ${email.to}.`);
+          // Update the email status to 'bounced' in the database
+          await EmailActivities.updateStatus(email.to, 'bounced');
+          // Mark the prospect as failed
+          await Prospect.markProspectAsFailed(email.to, email.bento);
+          break;
+        } else {
+          console.error(`Error retrying email to ${email.to}:`, error);
+          // Update the email status to 'bounced' in the database
+          await Email.update(email.to, { status: 'bounced' });
+          break;
+        }
+      }
+    }
+
+    if (!success) {
+      console.error(`Failed to retry email to ${email.to} after ${retryCount} retries.`);
+      // Update the email status to 'bounced' in the database
+      await Email.update(email.to, { status: 'bounced' });
+    }
+  }
+}
+
 module.exports = {
   sendScheduledEmails,
+  retrySoftBouncedEmails,
 };

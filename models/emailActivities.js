@@ -32,6 +32,18 @@ class EmailActivities {
     const bounceCode = Math.floor(Math.random() * 10); // Random number for demonstration
     return hardBouncePatterns.includes(bounceCode.toString());
   }
+
+  static async getSoftBouncedEmails() {
+    try {
+      const softBouncedEmails = await prisma.emailActivities.findMany({
+        where: { status: 'soft-bounced' },
+      });
+      return softBouncedEmails;
+    } catch (error) {
+      console.error('Error fetching soft-bounced emails:', error);
+      return [];
+    }
+  }
 }
 
 module.exports = EmailActivities;
