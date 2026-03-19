@@ -2,6 +2,7 @@ const azureServiceBus = require('./messageBroker/azureServiceBus');
 const awsSqs = require('./messageBroker/awsSqs');
 const rabbitMQ = require('./messageBroker/rabbitMQ');
 const rateLimiter = require('../services/rateLimiter');
+const logger = require('../services/logger');
 
 class MessageBroker {
   constructor(config) {
@@ -27,6 +28,16 @@ class MessageBroker {
   }
 
   async sendMessage(message) {
+    const key = `message:${message.id}`;
+    const limit = 10; // Example limit, should be configurable
+    const isLimited = await this.isRateLimited(key, limit);
+
+    if (isLimited) {
+      logger.log(`Rate limit exceeded for message: ${message.id}`);
+      throw new Error('Rate limit exceeded');
+    }
+
+    await this.incrementRequestCount(key);
     return this.broker.sendMessage(message);
   }
 
