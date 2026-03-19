@@ -1,14 +1,22 @@
-const SentimentAnalysis = require('../models/SentimentAnalysis');
+const axios = require('axios');
 
-async function storeSentimentAnalysis(prospectId, sentimentScore, sentimentLabel, metadata) {
-  return await SentimentAnalysis.create(prospectId, sentimentScore, sentimentLabel, metadata);
+class SentimentAnalysis {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.apiUrl = 'https://api.sentimentanalysis.io/analyze';
+  }
+
+  async analyze(transcript) {
+    try {
+      const response = await axios.post(this.apiUrl, {
+        text: transcript,
+        apiKey: this.apiKey,
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Error analyzing sentiment: ${error.message}`);
+    }
+  }
 }
 
-async function getSentimentAnalysisByProspectId(prospectId) {
-  return await SentimentAnalysis.findByProspectId(prospectId);
-}
-
-module.exports = {
-  storeSentimentAnalysis,
-  getSentimentAnalysisByProspectId,
-};
+module.exports = SentimentAnalysis;

@@ -6,6 +6,7 @@ const { initiateCall } = require('./services/azureCommunicationService');
 const GeolocationService = require('./services/geolocationService');
 const { voiceCallLimiter } = require('./services/rateLimiter');
 const logger = require('../services/logger');
+const SentimentAnalysis = require('./services/sentimentAnalysis');
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -18,6 +19,7 @@ const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
 const queueUrl = process.env.AWS_SQS_QUEUE_URL;
 const rateLimiterUrl = process.env.RATE_LIMITER_URL || 'http://localhost:8080/rate-limit';
 const geolocationService = new GeolocationService(process.env.GEOLOCATION_API_KEY);
+const sentimentAnalysisService = new SentimentAnalysis(process.env.SENTIMENT_ANALYSIS_API_KEY);
 
 async function consumeMessages() {
   const params = {
@@ -53,19 +55,20 @@ async function consumeMessages() {
         // Route data based on country
         const region = getRegionByCountry(country);
 
-        // Simulate sentiment analysis
-        const sentimentScore = 0.8; // Example score
-        const sentimentLabel = 'Positive'; // Example label
-        const metadata = { source: 'example-source' }; // Example metadata
+        // Capture and store real-time text transcript
+        const transcript = await captureTranscript(messageBody.prospectId);
+        await storeTranscript(messageBody.prospectId, transcript);
+
+        // Perform sentiment analysis
+        const sentimentData = await sentimentAnalysisService.analyze(transcript);
+        const sentimentScore = sentimentData.score;
+        const sentimentLabel = sentimentData.label;
+        const metadata = { source: 'sentiment-analysis-service' };
 
         await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata, country, region);
 
         // Initiate call using Azure Communication Services
         await initiateCall(messageBody.prospectId, messageBody.bento, country, region);
-
-        // Capture and store real-time text transcript
-        const transcript = await captureTranscript(messageBody.prospectId);
-        await storeTranscript(messageBody.prospectId, transcript);
       });
     }
   } catch (error) {
