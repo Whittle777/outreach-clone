@@ -29,6 +29,13 @@ async function sendScheduledEmails() {
 
     while (!success && retryCount < config.emailService.retryLimit) {
       try {
+        // Check rate limit before sending the email
+        if (await rateLimiter.emailLimiter.isRateLimited(prospect.email)) {
+          console.log(`Rate limit exceeded for ${prospect.email}. Retrying in ${config.emailService.backoffInterval} ms...`);
+          await new Promise(resolve => setTimeout(resolve, config.emailService.backoffInterval));
+          continue;
+        }
+
         await transporter.sendMail(emailOptions);
         console.log(`Email sent to ${prospect.email}`);
         success = true;
