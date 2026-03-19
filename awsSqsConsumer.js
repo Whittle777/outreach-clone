@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const sqs = new AWS.SQS({ region: 'us-east-1' });
 const messageBroker = require('./messageBroker');
+const logger = require('./services/logger');
 
 async function consumeMessages(config) {
   const params = {
@@ -17,10 +18,14 @@ async function consumeMessages(config) {
         console.log(' [x] Received %s', messageBody);
 
         // Process the message
-        if (messageBody.type === 'voicemailDrop') {
-          await messageBroker.handleVoicemailDrop(messageBody.prospectId, messageBody.phoneNumber, messageBody.message, messageBody.token);
-        } else {
-          await processMessage(messageBody);
+        try {
+          if (messageBody.type === 'voicemailDrop') {
+            await messageBroker.handleVoicemailDrop(messageBody.prospectId, messageBody.phoneNumber, messageBody.message, messageBody.token);
+          } else {
+            await processMessage(messageBody);
+          }
+        } catch (error) {
+          logger.error('Error processing message:', error, { messageBody });
         }
 
         // Delete the message from the queue
@@ -32,7 +37,7 @@ async function consumeMessages(config) {
       });
     }
   } catch (error) {
-    console.error('Error consuming messages:', error);
+    logger.error('Error consuming messages:', error);
   }
 }
 
