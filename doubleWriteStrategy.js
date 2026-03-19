@@ -20,13 +20,29 @@ class DoubleWriteStrategy {
     try {
       await this.legacyDatastore.write(data);
       logger.log('Legacy datastore write successful', data);
-      await this.newDatastore.write(data);
-      logger.log('New datastore write successful', data);
-      logger.log('Double-write successful');
+
+      // Check for conflict in the new datastore
+      const conflict = await this.newDatastore.checkForConflict(data);
+      if (conflict) {
+        logger.error('Conflict detected in new datastore:', conflict);
+        // Handle conflict, e.g., log, alert, or retry
+        this.handleConflict(conflict);
+      } else {
+        await this.newDatastore.write(data);
+        logger.log('New datastore write successful', data);
+        logger.log('Double-write successful');
+      }
     } catch (error) {
       logger.error('Double-write failed:', error);
       throw error;
     }
+  }
+
+  handleConflict(conflict) {
+    // Implement conflict handling logic
+    // For now, we'll just log the conflict
+    logger.error('Handling conflict:', conflict);
+    // Additional handling logic can be added here
   }
 }
 
