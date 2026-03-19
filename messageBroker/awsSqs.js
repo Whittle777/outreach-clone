@@ -2,6 +2,7 @@ const AWS = require('aws-sdk');
 const { voiceCallLimiter } = require('../services/rateLimiter');
 const config = require('../config/settings');
 const wss = require('../server').wss;
+const jwt = require('jsonwebtoken');
 
 class AwsSqs {
   constructor(config) {
@@ -9,7 +10,12 @@ class AwsSqs {
     this.queueUrl = config.queueUrl;
   }
 
-  async sendMessage(message) {
+  async sendMessage(message, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const params = {
       MessageBody: message,
       QueueUrl: this.queueUrl,
@@ -17,7 +23,12 @@ class AwsSqs {
     await this.sqs.sendMessage(params).promise();
   }
 
-  async receiveMessage() {
+  async receiveMessage(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const params = {
       QueueUrl: this.queueUrl,
       WaitTimeSeconds: 20,
@@ -34,7 +45,12 @@ class AwsSqs {
     return null;
   }
 
-  async sendMessageWithRateLimit(message, prospectId, phoneNumber) {
+  async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const key = `voiceCall:${prospectId}:${phoneNumber}`;
     const limit = config.rateLimits.teamsPhoneNumbers[phoneNumber]?.limit || 10;
     const duration = config.rateLimits.teamsPhoneNumbers[phoneNumber]?.duration || 60;
@@ -46,7 +62,7 @@ class AwsSqs {
     }
 
     await rateLimiter.incrementRequestCount(key);
-    await this.sendMessage(message);
+    await this.sendMessage(message, token);
   }
 }
 

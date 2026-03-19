@@ -2,6 +2,7 @@ const amqplib = require('amqplib');
 const { voiceCallLimiter } = require('../services/rateLimiter');
 const config = require('../config/settings');
 const wss = require('../server').wss;
+const jwt = require('jsonwebtoken');
 
 class RabbitMQ {
   constructor(config) {
@@ -18,11 +19,21 @@ class RabbitMQ {
     await this.channel.assertQueue(this.queueName, { durable: true });
   }
 
-  async sendMessage(message) {
+  async sendMessage(message, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     await this.channel.sendToQueue(this.queueName, Buffer.from(message));
   }
 
-  async receiveMessage() {
+  async receiveMessage(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const message = await this.channel.get(this.queueName, { noAck: true });
     if (message) {
       return message.content.toString();
@@ -39,7 +50,12 @@ class RabbitMQ {
     }
   }
 
-  async sendMessageWithRateLimit(message, prospectId, phoneNumber) {
+  async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const key = `voiceCall:${prospectId}:${phoneNumber}`;
     const limit = config.rateLimits.teamsPhoneNumbers[phoneNumber]?.limit || 10;
     const duration = config.rateLimits.teamsPhoneNumbers[phoneNumber]?.duration || 60;
@@ -51,10 +67,15 @@ class RabbitMQ {
     }
 
     await rateLimiter.incrementRequestCount(key);
-    await this.sendMessage(message);
+    await this.sendMessage(message, token);
   }
 
-  async fetchActiveConstraints() {
+  async fetchActiveConstraints(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     // Placeholder for fetching active constraints
     // This should be replaced with actual logic to fetch constraints from RabbitMQ
     return {

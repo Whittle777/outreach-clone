@@ -7,6 +7,7 @@ const config = require('../config/settings');
 const VoiceAgentCall = require('../models/VoiceAgentCall');
 const SentimentAnalysis = require('../services/sentimentAnalysis');
 const wss = require('../server').wss;
+const jwt = require('jsonwebtoken');
 
 class MessageBroker {
   constructor(config) {
@@ -32,7 +33,12 @@ class MessageBroker {
     }
   }
 
-  async sendMessage(message) {
+  async sendMessage(message, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const key = `message:${message.id}:${message.phoneNumber}`;
     const limit = this.getRateLimitForPhoneNumber(message.phoneNumber);
     const isLimited = await this.isRateLimited(key, limit);
@@ -46,7 +52,12 @@ class MessageBroker {
     return this.broker.sendMessage(message);
   }
 
-  async receiveMessage() {
+  async receiveMessage(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const message = await this.broker.receiveMessage();
     if (message) {
       await this.handleMessage(message);
@@ -108,7 +119,12 @@ class MessageBroker {
     return 10; // Default limit if no specific configuration is found
   }
 
-  async fetchActiveConstraints() {
+  async fetchActiveConstraints(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     return this.broker.fetchActiveConstraints();
   }
 }

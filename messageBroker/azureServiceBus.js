@@ -2,6 +2,7 @@ const { ServiceBusClient } = require('@azure/service-bus');
 const { voiceCallLimiter } = require('../services/rateLimiter');
 const config = require('../config/settings');
 const wss = require('../server').wss;
+const jwt = require('jsonwebtoken');
 
 class AzureServiceBus {
   constructor(config) {
@@ -10,11 +11,21 @@ class AzureServiceBus {
     this.receiver = this.serviceBusClient.createReceiver(config.subscriptionName);
   }
 
-  async sendMessage(message) {
+  async sendMessage(message, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     await this.sender.sendMessages({ body: message });
   }
 
-  async receiveMessage() {
+  async receiveMessage(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const receivedMessages = await this.receiver.receiveMessages(1);
     if (receivedMessages.length > 0) {
       const message = receivedMessages[0];
@@ -31,7 +42,12 @@ class AzureServiceBus {
   }
 
   // Method to send message with Microsoft Entra Object ID
-  async sendMessageWithEntraObjectId(message, entraObjectId) {
+  async sendMessageWithEntraObjectId(message, entraObjectId, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const messageWithEntraObjectId = {
       ...message,
       entraObjectId
@@ -39,7 +55,12 @@ class AzureServiceBus {
     await this.sender.sendMessages({ body: messageWithEntraObjectId });
   }
 
-  async sendMessageWithRateLimit(message, prospectId, phoneNumber) {
+  async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     const key = `voiceCall:${prospectId}:${phoneNumber}`;
     const limit = config.rateLimits.teamsPhoneNumbers[phoneNumber]?.limit || 10;
     const duration = config.rateLimits.teamsPhoneNumbers[phoneNumber]?.duration || 60;
@@ -51,10 +72,15 @@ class AzureServiceBus {
     }
 
     await rateLimiter.incrementRequestCount(key);
-    await this.sendMessage(message);
+    await this.sendMessage(message, token);
   }
 
-  async fetchActiveConstraints() {
+  async fetchActiveConstraints(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
     // Placeholder for fetching active constraints
     // This should be replaced with actual logic to fetch constraints from Azure Service Bus
     return {
