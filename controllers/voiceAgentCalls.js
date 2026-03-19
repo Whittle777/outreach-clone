@@ -43,7 +43,7 @@ exports.getAll = async (req, res) => {
 
 exports.initiateCall = async (req, res) => {
   try {
-    const { prospectId, bento } = req.body;
+    const { prospectId, bento, teamsResourceAccountObjectId } = req.body;
 
     // Check rate limit
     const response = await axios.get(`${rateLimiterUrl}/${prospectId}`);
@@ -51,7 +51,7 @@ exports.initiateCall = async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded' });
     }
 
-    const callData = await azureAcsService.createCall(prospectId, bento);
+    const callData = await azureAcsService.createCall(prospectId, bento, teamsResourceAccountObjectId);
     const callId = callData.id; // Assuming the response contains the call ID
 
     // Handle voicemail drop

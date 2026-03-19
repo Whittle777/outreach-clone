@@ -4,11 +4,12 @@ const logger = require('../services/logger');
 const azureAcsUrl = process.env.AZURE_ACS_URL || 'https://your-azure-acs-url.com';
 const azureAcsKey = process.env.AZURE_ACS_KEY || 'your-azure-acs-key';
 
-const createCall = async (prospectId, bento) => {
+const createCall = async (prospectId, bento, teamsResourceAccountObjectId) => {
   try {
     const response = await axios.post(`${azureAcsUrl}/calls`, {
       prospectId,
       bento,
+      teamsResourceAccountObjectId,
     }, {
       headers: {
         'Ocp-Apim-Subscription-Key': azureAcsKey,
