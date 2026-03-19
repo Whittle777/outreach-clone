@@ -1,6 +1,7 @@
 const VoiceAgentCall = require('../models/VoiceAgentCall');
 const rateLimiter = require('../services/rateLimiter');
 const logger = require('../services/logger');
+const aiGenerator = require('../services/aiGenerator');
 
 exports.create = async (req, res) => {
   try {
@@ -20,8 +21,13 @@ exports.create = async (req, res) => {
     // Increment request count
     await rateLimiter.incrementRequestCount(rateLimitKey);
 
-    // Create voice agent call
-    const newCall = await VoiceAgentCall.create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress);
+    // Generate AI-generated call goal and talk track
+    const prospectData = await getProspectData(prospectId); // Assume this function fetches prospect data
+    const callGoal = await aiGenerator.generateCallGoal(prospectData);
+    const talkTrack = await aiGenerator.generateTalkTrack(prospectData);
+
+    // Create voice agent call with AI-generated data
+    const newCall = await VoiceAgentCall.create(prospectId, callStatus, preGeneratedScript || talkTrack, ttsAudioFileUrl, callTranscript, bento, ipAddress, callGoal);
 
     // Log the flag for debugging purposes
     if (newCall.hasResistanceOrRegulatoryFlag) {
@@ -60,4 +66,14 @@ function isGDPRCompliant(data) {
   // Example GDPR compliance check
   // Ensure that the data contains a valid email and does not contain sensitive data
   return data.email && !data.sensitiveData;
+}
+
+async function getProspectData(prospectId) {
+  // Simulate fetching prospect data
+  // In a real-world scenario, this would involve querying the database
+  return {
+    firstName: 'John',
+    lastName: 'Doe',
+    companyName: 'Example Corp',
+  };
 }
