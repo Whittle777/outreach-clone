@@ -2,13 +2,14 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 class SentimentAnalysis {
-  static async create(prospectId, sentimentScore, sentimentLabel, metadata) {
+  static async create(prospectId, sentimentScore, sentimentLabel, metadata, country) {
     return await prisma.sentimentAnalysis.create({
       data: {
         prospectId,
         sentimentScore,
         sentimentLabel,
         metadata: JSON.stringify(metadata),
+        country,
       },
     });
   }

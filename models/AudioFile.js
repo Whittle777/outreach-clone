@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 class AudioFile {
-  static async create(file, metadata) {
+  static async create(file, metadata, country) {
     return await prisma.audioFile.create({
       data: {
         fileName: file.name,
@@ -10,6 +10,7 @@ class AudioFile {
         fileSize: file.size,
         metadata: JSON.stringify(metadata),
         fileUrl: '', // This will be updated after upload
+        country,
       },
     });
   }
