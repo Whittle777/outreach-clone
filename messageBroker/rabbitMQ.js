@@ -98,6 +98,76 @@ class RabbitMQ {
   async sendMessageToMicrosoftTeams(message) {
     await this.microsoftTeamsApp.sendMessage(message);
   }
+
+  async sendApprovalNotificationToMicrosoftTeams(prospectData, action) {
+    const message = {
+      "@type": "MessageCard",
+      "@context": "http://schema.org/extensions",
+      "themeColor": "0078D7",
+      "summary": "Approval Required",
+      "sections": [{
+        "activityTitle": "Approval Required",
+        "activitySubtitle": `Action: ${action} on prospect ${prospectData.firstName} ${prospectData.lastName}`,
+        "facts": [
+          {
+            "name": "Prospect Name",
+            "value": `${prospectData.firstName} ${prospectData.lastName}`
+          },
+          {
+            "name": "Company",
+            "value": prospectData.companyName
+          }
+        ],
+        "potentialAction": [{
+          "@type": "ActionCard",
+          "name": "Approve",
+          "inputs": [{
+            "@type": "TextInput",
+            "id": "approvalReason",
+            "title": "Reason for Approval",
+            "isMultiline": true
+          }],
+          "actions": [{
+            "@type": "HttpPOST",
+            "name": "Approve",
+            "target": `${config.serverUrl}/api/approve`,
+            "body": `{"prospectId": "${prospectData.id}", "action": "${action}", "reason": "{{approvalReason}}"}`,
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": `Bearer ${this.botToken}`
+              }
+            ]
+          }]
+        },
+        {
+          "@type": "ActionCard",
+          "name": "Reject",
+          "inputs": [{
+            "@type": "TextInput",
+            "id": "rejectionReason",
+            "title": "Reason for Rejection",
+            "isMultiline": true
+          }],
+          "actions": [{
+            "@type": "HttpPOST",
+            "name": "Reject",
+            "target": `${config.serverUrl}/api/reject`,
+            "body": `{"prospectId": "${prospectData.id}", "action": "${action}", "reason": "{{rejectionReason}}"}`,
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": `Bearer ${this.botToken}`
+              }
+            ]
+          }]
+        }]
+      }]
+    };
+
+    await this.microsoftTeamsApp.sendMessage(JSON.stringify(message));
+    realTimeReasoningLogs.addLog('sendApprovalNotificationToMicrosoftTeams', `Sent approval notification to Microsoft Teams: ${JSON.stringify(message)}`);
+  }
 }
 
 module.exports = RabbitMQ;
