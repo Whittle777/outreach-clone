@@ -40,6 +40,19 @@ class AzureAcs {
       throw new Error(`Failed to create call: ${error.message}`);
     }
   }
+
+  async startTranscription(callId) {
+    const payload = {
+      operation: 'startTranscription'
+    };
+
+    try {
+      const response = await axios.post(`${this.baseURL}/calls/${callId}/operations`, payload, { headers: this.headers });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to start transcription: ${error.message}`);
+    }
+  }
 }
 
 module.exports = AzureAcs;

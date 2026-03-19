@@ -68,6 +68,23 @@ class VoiceAgentIntegration {
       throw new Error(`Failed to handle failed state: ${error.message}`);
     }
   }
+
+  async startTranscription(callId) {
+    try {
+      const response = await axios.post(`${this.apiUrl}/calls/${callId}/transcription/start`, {
+        callId,
+      }, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to start transcription: ${error.message}`);
+    }
+  }
 }
 
 module.exports = VoiceAgentIntegration;
