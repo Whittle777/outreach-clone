@@ -6,6 +6,8 @@ const usersRoutes = require('./routes/users');
 const prospectsRoutes = require('./routes/prospects');
 const sequencesRouter = require('./routes/sequences');
 const sequenceStepsRouter = require('./routes/sequenceSteps');
+const consumeMessages = require('./awsSqsConsumer');
+const wss = require('./websocketServer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,6 +30,14 @@ app.get('/', (req, res) => {
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Start consuming messages from SQS
+consumeMessages();
+
+// Start the WebSocket server
+wss.on('listening', () => {
+  console.log('WebSocket server is running on ws://localhost:8080');
 });
 
 // Graceful shutdown
