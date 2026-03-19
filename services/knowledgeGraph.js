@@ -1,5 +1,6 @@
 const neo4j = require('neo4j-driver');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
+const DealHealthScore = require('../models/dealHealthScore');
 
 class KnowledgeGraph {
   constructor(uri, user, password) {
@@ -27,6 +28,21 @@ class KnowledgeGraph {
         `MATCH (a:${startNodeLabel} {id: $startNodeId}), (b:${endNodeLabel} {id: $endNodeId}) ` +
         `CREATE (a)-[:${relationshipType} {${Object.keys(properties).map(key => `${key}: $${key}`).join(', ')}}]->(b) RETURN a, b`,
         { startNodeId, endNodeId, ...properties }
+      );
+      await doubleWriteStrategy.write(result.records[0].get(0).properties);
+      return result.records[0].get(0).properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  async createDealHealthScore(prospectId, score, status, metadata) {
+    const session = this.driver.session();
+    try {
+      const dealHealthScore = await DealHealthScore.create(prospectId, score, status, metadata);
+      const result = await session.run(
+        `CREATE (d:DealHealthScore {prospectId: $prospectId, score: $score, status: $status, metadata: $metadata}) RETURN d`,
+        dealHealthScore
       );
       await doubleWriteStrategy.write(result.records[0].get(0).properties);
       return result.records[0].get(0).properties;
