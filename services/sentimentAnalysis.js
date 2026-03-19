@@ -3,8 +3,9 @@
 const { SentimentAnalyzer, PorterStemmer } = require('natural');
 
 class SentimentAnalysis {
-  constructor() {
+  constructor(apiKey) {
     this.analyzer = new SentimentAnalyzer('English', PorterStemmer, 'afinn');
+    this.apiKey = apiKey;
   }
 
   analyze(text) {
@@ -12,4 +13,4 @@ class SentimentAnalysis {
   }
 }
 
-module.exports = new SentimentAnalysis();
+module.exports = SentimentAnalysis;

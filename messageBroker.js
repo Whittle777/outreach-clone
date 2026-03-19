@@ -12,6 +12,8 @@ const AIGenerator = require('../services/aiGenerator');
 const NGOE = require('../services/ngoeTaskExecutor');
 const MCPGateway = require('./messageBroker/mcpGateway');
 const crypto = require('crypto');
+const express = require('express');
+const bodyParser = require('body-parser');
 
 class MessageBroker {
   constructor(config) {
@@ -186,3 +188,29 @@ class MessageBroker {
 }
 
 module.exports = MessageBroker;
+
+// Create an Express app
+const app = express();
+app.use(bodyParser.json());
+
+// Define a route to classify buyer sentiment
+app.post('/api/classify-sentiment', async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: 'Text is required' });
+    }
+
+    const sentimentData = await this.sentimentAnalysisService.analyze(text);
+    res.json(sentimentData);
+  } catch (error) {
+    logger.error('Error classifying sentiment:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  logger.log(`Sentiment classification API listening on port ${PORT}`);
+});
