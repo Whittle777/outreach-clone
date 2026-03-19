@@ -125,6 +125,18 @@ class VoiceAgentIntegration {
   async handleIntent(intent, data) {
     return await this.intentDrivenShortcutsService.handleIntent(intent, data);
   }
+
+  // Predictive search functionality
+  async predictIntent(query) {
+    const intents = Object.keys(this.intentDrivenShortcutsService.shortcuts);
+    const scores = intents.map(intent => {
+      const score = this.nlpModule.calculateSimilarity(intent, query);
+      return { intent, score };
+    });
+
+    scores.sort((a, b) => b.score - a.score);
+    return scores[0].intent;
+  }
 }
 
 module.exports = VoiceAgentIntegration;
