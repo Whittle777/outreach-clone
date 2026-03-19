@@ -1,6 +1,7 @@
 const Redis = require('ioredis');
 const redis = new Redis();
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
+const logger = require('../services/logger');
 
 class RateLimiter {
   constructor(limit, duration) {
@@ -10,7 +11,11 @@ class RateLimiter {
 
   async isRateLimited(key) {
     const count = await redis.get(key);
-    return count >= this.limit;
+    if (count >= this.limit) {
+      logger.warn('Rate limit hit', { key, count, limit: this.limit });
+      return true;
+    }
+    return false;
   }
 
   async incrementRequestCount(key) {
@@ -19,6 +24,7 @@ class RateLimiter {
       await redis.expire(key, this.duration);
     }
     await this.write({ key, count });
+    logger.info('Request count incremented', { key, count });
     return count;
   }
 
