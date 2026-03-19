@@ -1,9 +1,12 @@
+// app.js
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const voiceAgentRoutes = require('./routes/voiceAgent');
 const awsSqsConsumer = require('./services/awsSqsConsumer');
 const prospectRoutes = require('./routes/prospect'); // New route for prospects
 const sentimentAnalysisRoutes = require('./routes/sentimentAnalysis'); // New route for sentiment analysis
+const conversationalFilteringRoutes = require('./routes/conversationalFiltering'); // New route for conversational filtering
 
 const app = express();
 
@@ -17,6 +20,9 @@ app.use('/api/prospect', prospectRoutes);
 
 // Include sentiment analysis routes
 app.use('/api', sentimentAnalysisRoutes);
+
+// Include conversational filtering routes
+app.use('/api/conversational-filtering', conversationalFilteringRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
