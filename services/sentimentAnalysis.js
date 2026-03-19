@@ -1,38 +1,15 @@
-const axios = require('axios');
-const SentimentAnalysisModel = require('../models/SentimentAnalysis');
+// services/sentimentAnalysis.js
+
+const { SentimentAnalyzer, PorterStemmer } = require('natural');
 
 class SentimentAnalysis {
-  constructor(apiKey) {
-    this.apiKey = apiKey;
-    this.apiUrl = 'https://api.sentimentanalysis.io/analyze';
+  constructor() {
+    this.analyzer = new SentimentAnalyzer('English', PorterStemmer, 'afinn');
   }
 
-  async analyze(transcript) {
-    try {
-      const response = await axios.post(this.apiUrl, {
-        text: transcript,
-        apiKey: this.apiKey,
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error(`Error analyzing sentiment: ${error.message}`);
-    }
-  }
-
-  async storeSentimentAnalysis(prospectId, sentimentScore, sentimentLabel, metadata, country, region) {
-    try {
-      await SentimentAnalysisModel.create({
-        prospectId,
-        sentimentScore,
-        sentimentLabel,
-        metadata,
-        country,
-        region,
-      });
-    } catch (error) {
-      throw new Error(`Error storing sentiment analysis: ${error.message}`);
-    }
+  analyze(text) {
+    return this.analyzer.getSentiment(text);
   }
 }
 
-module.exports = SentimentAnalysis;
+module.exports = new SentimentAnalysis();
