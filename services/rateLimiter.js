@@ -30,7 +30,7 @@ class RateLimiter {
 }
 
 module.exports = {
-  voiceCallLimiter: new RateLimiter(10, 60), // 10 voice calls per minute
-  emailLimiter: new RateLimiter(20, 60), // 20 emails per minute
-  audioFileLimiter: new RateLimiter(5, 60), // 5 audio file uploads per minute
+  voiceCallLimiter: new RateLimiter(process.env.VOICE_CALL_LIMIT, process.env.VOICE_CALL_DURATION),
+  emailLimiter: new RateLimiter(process.env.EMAIL_LIMIT, process.env.EMAIL_DURATION),
+  audioFileLimiter: new RateLimiter(process.env.AUDIO_FILE_LIMIT, process.env.AUDIO_FILE_DURATION),
 };
