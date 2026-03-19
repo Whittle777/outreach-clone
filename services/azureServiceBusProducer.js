@@ -1,10 +1,8 @@
 const { ServiceBusClient } = require('@azure/service-bus');
+const config = require('../config');
 
-const connectionString = process.env.AZURE_SERVICE_BUS_CONNECTION_STRING;
-const topicName = process.env.AZURE_SERVICE_BUS_TOPIC_NAME;
-
-const serviceBusClient = new ServiceBusClient(connectionString);
-const sender = serviceBusClient.createSender(topicName);
+const serviceBusClient = new ServiceBusClient(config.azureServiceBus.connectionString);
+const sender = serviceBusClient.createSender(config.azureServiceBus.topicName);
 
 async function sendMessage(message) {
   await sender.sendMessages(message);
