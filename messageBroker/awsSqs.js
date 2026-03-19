@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const { voiceCallLimiter } = require('../services/rateLimiter');
 
 class AwsSqs {
   constructor(config) {
@@ -29,6 +30,17 @@ class AwsSqs {
       return message.Body;
     }
     return null;
+  }
+
+  async sendMessageWithRateLimit(message, prospectId) {
+    const key = `voiceCall:${prospectId}`;
+    if (await voiceCallLimiter.isRateLimited(key)) {
+      console.log(`Rate limit exceeded for prospectId: ${prospectId}`);
+      return;
+    }
+
+    await voiceCallLimiter.incrementRequestCount(key);
+    await this.sendMessage(message);
   }
 }
 

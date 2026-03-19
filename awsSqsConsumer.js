@@ -4,6 +4,7 @@ const { processMessage } = require('./messageProcessor');
 const { storeSentimentAnalysis } = require('./services/sentimentAnalysis');
 const { initiateCall } = require('./services/azureCommunicationService');
 const GeolocationService = require('./services/geolocationService');
+const { voiceCallLimiter } = require('./services/rateLimiter');
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -37,32 +38,29 @@ async function consumeMessages() {
         }
 
         // Check rate limit
-        const response = await axios.get(`${rateLimiterUrl}/${messageBody.prospectId}`);
-        if (response.data.allowed) {
-          // Determine the user's country based on IP address
-          const country = await geolocationService.getCountryByIp(messageBody.ipAddress);
-
-          // Route data based on country
-          const region = getRegionByCountry(country);
-
-          // Simulate sentiment analysis
-          const sentimentScore = 0.8; // Example score
-          const sentimentLabel = 'Positive'; // Example label
-          const metadata = { source: 'example-source' }; // Example metadata
-
-          await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata, country, region);
-
-          // Initiate call using Azure Communication Services
-          await initiateCall(messageBody.prospectId, messageBody.bento, country, region);
-        } else {
+        const key = `voiceCall:${messageBody.prospectId}`;
+        if (await voiceCallLimiter.isRateLimited(key)) {
           console.log(`Rate limit exceeded for prospectId: ${messageBody.prospectId}`);
+          return;
         }
 
-        const deleteParams = {
-          QueueUrl: queueUrl,
-          ReceiptHandle: message.ReceiptHandle,
-        };
-        await sqs.deleteMessage(deleteParams).promise();
+        await voiceCallLimiter.incrementRequestCount(key);
+
+        // Determine the user's country based on IP address
+        const country = await geolocationService.getCountryByIp(messageBody.ipAddress);
+
+        // Route data based on country
+        const region = getRegionByCountry(country);
+
+        // Simulate sentiment analysis
+        const sentimentScore = 0.8; // Example score
+        const sentimentLabel = 'Positive'; // Example label
+        const metadata = { source: 'example-source' }; // Example metadata
+
+        await storeSentimentAnalysis(messageBody.prospectId, sentimentScore, sentimentLabel, metadata, country, region);
+
+        // Initiate call using Azure Communication Services
+        await initiateCall(messageBody.prospectId, messageBody.bento, country, region);
       });
     }
   } catch (error) {

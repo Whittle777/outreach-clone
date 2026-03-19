@@ -1,4 +1,5 @@
 const { ServiceBusClient } = require('@azure/service-bus');
+const { voiceCallLimiter } = require('../services/rateLimiter');
 
 class AzureServiceBus {
   constructor(config) {
@@ -34,6 +35,17 @@ class AzureServiceBus {
       entraObjectId
     };
     await this.sender.sendMessages({ body: messageWithEntraObjectId });
+  }
+
+  async sendMessageWithRateLimit(message, prospectId) {
+    const key = `voiceCall:${prospectId}`;
+    if (await voiceCallLimiter.isRateLimited(key)) {
+      console.log(`Rate limit exceeded for prospectId: ${prospectId}`);
+      return;
+    }
+
+    await voiceCallLimiter.incrementRequestCount(key);
+    await this.sendMessage(message);
   }
 }
 

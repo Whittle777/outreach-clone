@@ -1,4 +1,5 @@
 const amqplib = require('amqplib');
+const { voiceCallLimiter } = require('../services/rateLimiter');
 
 class RabbitMQ {
   constructor(config) {
@@ -34,6 +35,17 @@ class RabbitMQ {
     if (this.connection) {
       await this.connection.close();
     }
+  }
+
+  async sendMessageWithRateLimit(message, prospectId) {
+    const key = `voiceCall:${prospectId}`;
+    if (await voiceCallLimiter.isRateLimited(key)) {
+      console.log(`Rate limit exceeded for prospectId: ${prospectId}`);
+      return;
+    }
+
+    await voiceCallLimiter.incrementRequestCount(key);
+    await this.sendMessage(message);
   }
 }
 
