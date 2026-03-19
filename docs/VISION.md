@@ -319,3 +319,6 @@ Coding principles:
 
 
 I want to be able to test this program easily and with an email provider other than Outlook - like my personal gmail account
+
+
+Human-in-the-Loop Interface: A dedicated oversight portal where human AEs can provide contextual feedback, correct AI drafts, and prevent algorithmic hallucinations before external communications are sent.

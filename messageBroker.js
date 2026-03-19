@@ -185,6 +185,12 @@ class MessageBroker {
     // Example: Forward the message to the central AI agents
     await this.aiGenerator.processMessage(message);
   }
+
+  async isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript) {
+    // Implement GDPR compliance checks
+    // For now, let's assume it always returns true
+    return true;
+  }
 }
 
 module.exports = MessageBroker;
@@ -213,6 +219,10 @@ app.post('/api/classify-sentiment', async (req, res) => {
 app.post('/api/voice-agent-calls', async (req, res) => {
   try {
     const { prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript } = req.body;
+    const isCompliant = await MessageBroker.isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
+    if (!isCompliant) {
+      return res.status(400).json({ error: 'Data not compliant with GDPR' });
+    }
     const voiceAgentCall = await VoiceAgentCall.create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
     res.status(201).json(voiceAgentCall);
   } catch (error) {
@@ -239,6 +249,10 @@ app.put('/api/voice-agent-calls/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript } = req.body;
+    const isCompliant = await MessageBroker.isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
+    if (!isCompliant) {
+      return res.status(400).json({ error: 'Data not compliant with GDPR' });
+    }
     const updatedVoiceAgentCall = await VoiceAgentCall.update(id, { callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript });
     if (!updatedVoiceAgentCall) {
       return res.status(404).json({ error: 'VoiceAgentCall not found' });

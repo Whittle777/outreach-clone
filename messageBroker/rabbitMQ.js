@@ -190,6 +190,12 @@ class RabbitMQ {
   async executeNGOETask(task) {
     return this.ngoe.executeTask(task);
   }
+
+  async isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript) {
+    // Implement GDPR compliance checks
+    // For now, let's assume it always returns true
+    return true;
+  }
 }
 
 module.exports = RabbitMQ;

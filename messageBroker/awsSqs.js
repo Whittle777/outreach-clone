@@ -109,6 +109,12 @@ class AwsSqs {
     // Example: Forward the message to the central AI agents
     await this.aiGenerator.processMessage(message);
   }
+
+  async isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript) {
+    // Implement GDPR compliance checks
+    // For now, let's assume it always returns true
+    return true;
+  }
 }
 
 module.exports = AwsSqs;
