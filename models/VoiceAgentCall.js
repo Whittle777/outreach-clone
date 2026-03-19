@@ -1,4 +1,7 @@
 const prisma = require('../prismaClient');
+const AudioFile = require('./AudioFile');
+const SentimentAnalysis = require('./SentimentAnalysis');
+const logger = require('../services/logger');
 
 class VoiceAgentCall {
   static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress) {
@@ -10,6 +13,13 @@ class VoiceAgentCall {
     // Detect resistance or regulatory edge cases
     const hasResistanceOrRegulatoryFlag = await VoiceAgentCall.detectResistanceOrRegulatoryEdgeCases({ callTranscript });
 
+    // Personalization Waterfall
+    const audioFiles = await AudioFile.getAudioFilesByProspectId(prospectId);
+    const sentimentAnalyses = await SentimentAnalysis.findByProspectId(prospectId);
+
+    const personalizedScript = VoiceAgentCall.generatePersonalizedScript(preGeneratedScript, audioFiles, sentimentAnalyses);
+    logger.log(`Personalized script generated for prospect ${prospectId}: ${personalizedScript}`);
+
     return await prisma.voiceAgentCall.create({
       data: {
         prospectId,
@@ -20,6 +30,7 @@ class VoiceAgentCall {
         bento,
         ipAddress,
         hasResistanceOrRegulatoryFlag,
+        personalizedScript,
       },
     });
   }
@@ -54,6 +65,24 @@ class VoiceAgentCall {
       }
     }
     return false;
+  }
+
+  static generatePersonalizedScript(preGeneratedScript, audioFiles, sentimentAnalyses) {
+    // Example personalization logic
+    // This is a placeholder for actual personalization logic
+    let personalizedScript = preGeneratedScript;
+
+    // Add audio file information to the script
+    audioFiles.forEach((audioFile) => {
+      personalizedScript += `\nAudio File: ${audioFile.fileName}, Type: ${audioFile.fileType}, Size: ${audioFile.fileSize}`;
+    });
+
+    // Add sentiment analysis information to the script
+    sentimentAnalyses.forEach((sentimentAnalysis) => {
+      personalizedScript += `\nSentiment Analysis: ${sentimentAnalysis.sentimentLabel}, Score: ${sentimentAnalysis.sentimentScore}`;
+    });
+
+    return personalizedScript;
   }
 }
 

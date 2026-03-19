@@ -34,6 +34,16 @@ class AudioFile {
       },
     });
   }
+
+  static async getAudioFilesByProspectId(prospectId) {
+    return await prisma.audioFile.findMany({
+      where: {
+        metadata: {
+          prospectId,
+        },
+      },
+    });
+  }
 }
 
 function isGDPRCompliant(metadata) {
