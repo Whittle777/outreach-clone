@@ -1,11 +1,15 @@
-const DealHealthScore = require('../models/dealHealthScore');
+const DealHealthCalculator = require('../services/dealHealthCalculator');
 const logger = require('../services/logger');
 const prospectService = require('../services/prospectService');
 
 class DealHealthService {
+  constructor() {
+    this.dealHealthCalculator = new DealHealthCalculator();
+  }
+
   async calculateDealHealthScore(prospectId, metadata) {
     try {
-      const score = DealHealthScore.calculateScore(metadata);
+      const score = this.dealHealthCalculator.calculateDealHealthScore(metadata);
       const status = DealHealthScore.determineStatus(score);
       const dealHealthScore = { prospectId, score, status, metadata };
       logger.log('Deal Health Score Calculated', dealHealthScore);
@@ -45,6 +49,17 @@ class DealHealthService {
       return conversionRate;
     } catch (error) {
       logger.error('Failed to get conversion rate by sales stage', { salesStage, error });
+      throw error;
+    }
+  }
+
+  async getConversionRateByForecastCategory(forecastCategory) {
+    try {
+      const prospects = await prospectService.getAllProspects();
+      const conversionRate = this.dealHealthCalculator.calculateConversionRateByForecastCategory(prospects, forecastCategory);
+      return conversionRate;
+    } catch (error) {
+      logger.error('Failed to get conversion rate by forecast category', { forecastCategory, error });
       throw error;
     }
   }

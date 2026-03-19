@@ -21,6 +21,17 @@ class DealHealthCalculator {
 
     return score;
   }
+
+  calculateConversionRateByForecastCategory(prospects, forecastCategory) {
+    const filteredProspects = prospects.filter(prospect => prospect.forecastCategory === forecastCategory);
+    if (filteredProspects.length === 0) {
+      return 0;
+    }
+
+    const convertedProspects = filteredProspects.filter(prospect => prospect.status === 'Converted');
+    const conversionRate = (convertedProspects.length / filteredProspects.length) * 100;
+    return conversionRate;
+  }
 }
 
 module.exports = DealHealthCalculator;

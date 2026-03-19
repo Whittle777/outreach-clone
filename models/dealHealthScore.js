@@ -1,53 +1,32 @@
-const DealHealthScore = require('../models/dealHealthScore');
-const logger = require('../services/logger');
-const prospectService = require('../services/prospectService');
+class DealHealthScore {
+  static calculateScore(metadata) {
+    // Implement the logic to calculate the deal health score
+    // This is a placeholder implementation
+    let score = 0;
 
-class DealHealthService {
-  async calculateDealHealthScore(prospectId, metadata) {
-    try {
-      const score = DealHealthScore.calculateScore(metadata);
-      const status = DealHealthScore.determineStatus(score);
-      const dealHealthScore = { prospectId, score, status, metadata };
-      logger.log('Deal Health Score Calculated', dealHealthScore);
-      return dealHealthScore;
-    } catch (error) {
-      logger.error('Failed to calculate deal health score', { prospectId, metadata, error });
-      throw error;
+    // Example factors for deal health score calculation
+    if (metadata.status === 'Engaged') {
+      score += 20;
     }
+    if (metadata.recentActivity) {
+      score += 30;
+    }
+    if (metadata.momentum > 0.5) {
+      score += 50;
+    }
+
+    return score;
   }
 
-  async getTopOpportunities() {
-    try {
-      const prospects = await prospectService.getAllProspects();
-      const dealHealthScores = await Promise.all(
-        prospects.map(prospect => this.calculateDealHealthScore(prospect.id, prospect.metadata))
-      );
-
-      dealHealthScores.sort((a, b) => b.score - a.score);
-
-      const topOpportunities = dealHealthScores.slice(0, 10); // Fetch top 10 opportunities
-      return topOpportunities;
-    } catch (error) {
-      logger.error('Failed to get top opportunities', { error });
-      throw error;
-    }
-  }
-
-  async getConversionRateBySalesStage(salesStage) {
-    try {
-      const prospects = await prospectService.getProspectsBySalesStage(salesStage);
-      if (propects.length === 0) {
-        return 0;
-      }
-
-      const convertedProspects = prospects.filter(prospect => prospect.status === 'Converted');
-      const conversionRate = (convertedProspects.length / prospects.length) * 100;
-      return conversionRate;
-    } catch (error) {
-      logger.error('Failed to get conversion rate by sales stage', { salesStage, error });
-      throw error;
+  static determineStatus(score) {
+    if (score >= 80) {
+      return 'High';
+    } else if (score >= 50) {
+      return 'Medium';
+    } else {
+      return 'Low';
     }
   }
 }
 
-module.exports = new DealHealthService();
+module.exports = DealHealthScore;
