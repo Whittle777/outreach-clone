@@ -9,8 +9,9 @@ const rabbitMQ = new RabbitMQ(config.rabbitMQ);
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const Scheduler = require('../services/scheduler');
 const scheduler = new Scheduler();
-
-const knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
+const TtsService = require('../services/ttsService');
+const ttsService = new TtsService(config.elevenLabs.apiKey);
+const VoiceAgentCall = require('../models/VoiceAgentCall');
 
 async function consumeMessages() {
   const params = {
@@ -42,6 +43,22 @@ async function consumeMessages() {
         // Check for migration message
         if (messageBody.type === 'migration' && messageBody.action === 'schedule') {
           scheduler.scheduleMigration(messageBody.maintenanceWindow);
+        }
+
+        // Generate TTS audio file
+        if (messageBody.preGeneratedScript) {
+          const ttsAudioFilePath = path.join(__dirname, `tts_audio_${messageBody.prospectId}.wav`);
+          await ttsService.generateTtsAudio(messageBody.preGeneratedScript, config.elevenLabs.voiceId, ttsAudioFilePath);
+          messageBody.ttsAudioFileUrl = `file://${ttsAudioFilePath}`;
+
+          // Create VoiceAgentCall record
+          await VoiceAgentCall.create(
+            messageBody.prospectId,
+            'Queued',
+            messageBody.preGeneratedScript,
+            messageBody.ttsAudioFileUrl,
+            ''
+          );
         }
 
         // Delete the message from the queue
