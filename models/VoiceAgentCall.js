@@ -28,6 +28,20 @@ class VoiceAgentCall {
     return await prisma.voiceAgentCall.findMany();
   }
 
+  static async getFilterChips() {
+    const voiceAgentCalls = await prisma.voiceAgentCall.findMany();
+    const filterChips = {};
+
+    voiceAgentCalls.forEach((call) => {
+      if (!filterChips[call.callStatus]) {
+        filterChips[call.callStatus] = 0;
+      }
+      filterChips[call.callStatus]++;
+    });
+
+    return filterChips;
+  }
+
   static async detectResistanceOrRegulatoryEdgeCases(call) {
     // Example detection logic
     // This is a placeholder for actual detection logic

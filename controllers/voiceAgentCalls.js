@@ -46,6 +46,16 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.getFilterChips = async (req, res) => {
+  try {
+    const filterChips = await VoiceAgentCall.getFilterChips();
+    res.status(200).json(filterChips);
+  } catch (error) {
+    logger.error(`Error retrieving filter chips: ${error.message}`);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 function isGDPRCompliant(data) {
   // Example GDPR compliance check
   // Ensure that the data contains a valid email and does not contain sensitive data
