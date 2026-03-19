@@ -58,7 +58,7 @@ Master list of all planned features.
 - [x] Text-to-Speech (TTS): ElevenLabs or Azure AI Speech for hyper-realistic audio generation
 - [x] Audio Storage: Cloud Blob Storage (Azure Blob or AWS S3) for .wav/.mp3 voicemail files
 - [x] Message Queues: Azure Service Bus, AWS SQS, or RabbitMQ as alternatives to Kafka
-- [ ] Next-Gen Orchestration Engine (NGOE): Async scheduling and execution of complex AI agent tasks without blocking standard paths
+- [x] Next-Gen Orchestration Engine (NGOE): Async scheduling and execution of complex AI agent tasks without blocking standard paths
 - [ ] Model Context Protocol (MCP): MCP Gateway for secure, standardized communication between central AI agents and distributed enterprise data silos
 - [ ] AI Classification: Buyer sentiment analysis (positive, objection, referral, unsubscribe) via LLM
 - [ ] Voice Agent Calls: Tracks autonomous voice agent interactions

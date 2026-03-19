@@ -76592,3 +76592,35 @@
 +            Use your repository map to find the correct files to edit. 
 +            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
 +            
+
+# 2026-03-18 23:06:00.875526
++
++            Act as a Senior Tech Lead. We are building the following feature: "Next-Gen Orchestration Engine (NGOE): Async scheduling and execution of complex AI agent tasks without blocking standard paths"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 23:06:00.875723
++
++            Act as a Senior Tech Lead. We are building the following feature: "Next-Gen Orchestration Engine (NGOE): Async scheduling and execution of complex AI agent tasks without blocking standard paths"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-18 23:06:57.800355
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-18 23:06:57.800475
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
