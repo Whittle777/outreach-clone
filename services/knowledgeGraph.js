@@ -1,4 +1,5 @@
 const neo4j = require('neo4j-driver');
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 class KnowledgeGraph {
   constructor(uri, user, password) {
@@ -12,6 +13,7 @@ class KnowledgeGraph {
         `CREATE (n:${label} {${Object.keys(properties).map(key => `${key}: $${key}`).join(', ')}}) RETURN n`,
         properties
       );
+      await doubleWriteStrategy.write(result.records[0].get(0).properties);
       return result.records[0].get(0).properties;
     } finally {
       await session.close();
@@ -26,6 +28,7 @@ class KnowledgeGraph {
         `CREATE (a)-[:${relationshipType} {${Object.keys(properties).map(key => `${key}: $${key}`).join(', ')}}]->(b) RETURN a, b`,
         { startNodeId, endNodeId, ...properties }
       );
+      await doubleWriteStrategy.write(result.records[0].get(0).properties);
       return result.records[0].get(0).properties;
     } finally {
       await session.close();

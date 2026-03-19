@@ -17,6 +17,7 @@ const ngoe = require('./ngoe'); // New import
 const { generateEmailContent } = require('./gpt4'); // New import
 const { analyzeSentiment } = require('./gemini'); // New import
 const azureServiceBusProducer = require('./azureServiceBusProducer'); // New import
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 const producer = kafka.producer();
 const consumer = kafka.consumer();

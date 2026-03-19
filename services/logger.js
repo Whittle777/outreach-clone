@@ -1,5 +1,6 @@
 const winston = require('winston');
 const wss = require('../server').wss;
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 const logger = winston.createLogger({
   level: 'info',
@@ -19,6 +20,7 @@ module.exports = {
         client.send(JSON.stringify({ type: 'log', data: message }));
       }
     });
+    doubleWriteStrategy.write({ type: 'log', data: message });
   },
   error: (message) => {
     logger.error(message);
@@ -27,5 +29,6 @@ module.exports = {
         client.send(JSON.stringify({ type: 'error', data: message }));
       }
     });
+    doubleWriteStrategy.write({ type: 'error', data: message });
   },
 };

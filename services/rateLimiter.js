@@ -1,5 +1,6 @@
 const Redis = require('ioredis');
 const redis = new Redis();
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 class RateLimiter {
   constructor(limit, duration) {
@@ -23,7 +24,7 @@ class RateLimiter {
   async write(data) {
     // Implement double-write logic for legacy datastore
     // For now, let's assume it's a no-op
-    return;
+    await doubleWriteStrategy.write(data);
   }
 }
 

@@ -2,6 +2,7 @@
 
 const crypto = require('crypto');
 const naturalLanguageGuardrails = require('./naturalLanguageGuardrails');
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 class MCP {
   constructor() {
@@ -64,7 +65,7 @@ class MCP {
   async write(data) {
     // Implement double-write logic for legacy datastore
     // For now, let's assume it's a no-op
-    return;
+    await doubleWriteStrategy.write(data);
   }
 }
 

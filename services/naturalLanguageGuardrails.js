@@ -20,7 +20,7 @@ class NaturalLanguageGuardrails {
   async write(data) {
     // Implement double-write logic for legacy datastore
     // For now, let's assume it's a no-op
-    return;
+    await doubleWriteStrategy.write(data);
   }
 }
 
