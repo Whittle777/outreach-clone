@@ -80,10 +80,25 @@ const updateCallFlags = async (callId, flags) => {
   }
 };
 
+const getCallFlags = async (callId) => {
+  try {
+    const response = await axios.get(`${azureAcsUrl}/calls/${callId}/flags`, {
+      headers: {
+        'Ocp-Apim-Subscription-Key': azureAcsKey,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    logger.error(`Error getting call flags for call ${callId}: ${error.message}`);
+    throw error;
+  }
+};
+
 module.exports = {
   createCall,
   handleVoicemailDrop,
   getTranscriptionResult,
   detectResistanceOrRegulatoryEdgeCases,
   updateCallFlags,
+  getCallFlags,
 };
