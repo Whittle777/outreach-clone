@@ -3,6 +3,7 @@ const { voiceCallLimiter } = require('./rateLimiter');
 const SentimentAnalysisService = require('./sentimentAnalysisService');
 const Transcript = require('../models/transcript');
 const NLPModule = require('./nlpModule');
+const IntentDrivenShortcutsService = require('../services/intentDrivenShortcutsService');
 
 class VoiceAgentIntegration {
   constructor(apiKey, apiUrl) {
@@ -10,6 +11,7 @@ class VoiceAgentIntegration {
     this.apiUrl = apiUrl;
     this.sentimentAnalysisService = new SentimentAnalysisService();
     this.nlpModule = new NLPModule();
+    this.intentDrivenShortcutsService = new IntentDrivenShortcutsService();
   }
 
   async createCall(prospectId, phoneNumber, script, country) {
@@ -118,6 +120,10 @@ class VoiceAgentIntegration {
   async filterProspectsByNLP(prospects, query) {
     const category = this.nlpModule.classify(query);
     return prospects.filter(prospect => prospect.category === category);
+  }
+
+  async handleIntent(intent, data) {
+    return await this.intentDrivenShortcutsService.handleIntent(intent, data);
   }
 }
 

@@ -1,4 +1,5 @@
 const axios = require('axios');
+const IntentDrivenShortcutsService = require('../services/intentDrivenShortcutsService');
 
 class AzureAcs {
   constructor(config) {
@@ -8,6 +9,7 @@ class AzureAcs {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.config.accessToken}`
     };
+    this.intentDrivenShortcutsService = new IntentDrivenShortcutsService();
   }
 
   async createCall(targetPhoneNumber, country, onBehalfOf) {
@@ -61,6 +63,10 @@ class AzureAcs {
     } catch (error) {
       throw new Error(`Failed to get transcription result: ${error.message}`);
     }
+  }
+
+  async handleIntent(intent, data) {
+    return await this.intentDrivenShortcutsService.handleIntent(intent, data);
   }
 }
 
