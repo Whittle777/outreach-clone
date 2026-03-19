@@ -16,6 +16,10 @@ class VoiceAgentCall {
       },
     });
   }
+
+  static async getAll() {
+    return await prisma.voiceAgentCall.findMany();
+  }
 }
 
 module.exports = VoiceAgentCall;
