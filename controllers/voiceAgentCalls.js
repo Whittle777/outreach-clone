@@ -28,7 +28,7 @@ exports.create = async (req, res) => {
     logger.log(logMessage);
     res.status(201).json(newCall);
   } catch (error) {
-    logger.error(error.message);
+    logger.error(`Error creating voice agent call: ${error.message}`);
     res.status(500).json({ error: error.message });
   }
 };
@@ -38,7 +38,7 @@ exports.getAll = async (req, res) => {
     const calls = await VoiceAgentCall.getAll();
     res.status(200).json(calls);
   } catch (error) {
-    logger.error(error.message);
+    logger.error(`Error retrieving voice agent calls: ${error.message}`);
     res.status(500).json({ error: error.message });
   }
 };
@@ -61,7 +61,7 @@ exports.initiateCall = async (req, res) => {
 
     res.status(200).json({ message: 'Call initiation initiated' });
   } catch (error) {
-    logger.error(error.message);
+    logger.error(`Error initiating voice agent call: ${error.message}`);
     res.status(500).json({ error: error.message });
   }
 };
