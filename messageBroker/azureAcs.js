@@ -10,7 +10,7 @@ class AzureAcs {
     };
   }
 
-  async createCall(targetPhoneNumber, country) {
+  async createCall(targetPhoneNumber, country, onBehalfOf) {
     const payload = {
       targetParticipants: [
         {
@@ -26,6 +26,11 @@ class AzureAcs {
       payload.region = 'eu-central';
     } else {
       payload.region = 'global';
+    }
+
+    // onBehalfOf parameter handling
+    if (onBehalfOf) {
+      payload.onBehalfOf = onBehalfOf;
     }
 
     try {
