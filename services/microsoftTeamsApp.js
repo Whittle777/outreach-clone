@@ -4,6 +4,7 @@ const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const config = require('../config/settings');
 const realTimeReasoningLogs = require('../services/realTimeReasoningLogs');
+const slackApp = require('./slackApp');
 
 class MicrosoftTeamsApp {
   constructor() {
@@ -30,6 +31,12 @@ class MicrosoftTeamsApp {
     // This should be replaced with actual logic to process incoming messages
     realTimeReasoningLogs.addLog('handleIncomingMessage', `Received message from Microsoft Teams: ${message}`);
     console.log('Received message from Microsoft Teams:', message);
+  }
+
+  async sendApprovalNotificationToSlack(prospectData, action) {
+    const message = `Approval required for action: ${action} on prospect ${prospectData.firstName} ${prospectData.lastName}`;
+    await slackApp.sendMessage(message);
+    realTimeReasoningLogs.addLog('sendApprovalNotificationToSlack', `Sent approval notification to Slack: ${message}`);
   }
 }
 
