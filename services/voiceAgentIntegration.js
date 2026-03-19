@@ -51,6 +51,23 @@ class VoiceAgentIntegration {
       throw new Error(`Failed to detect hard bounce: ${error.message}`);
     }
   }
+
+  async handleFailedState(prospectId, callId) {
+    try {
+      const response = await axios.post(`${this.apiUrl}/calls/${callId}/fail`, {
+        prospectId,
+      }, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to handle failed state: ${error.message}`);
+    }
+  }
 }
 
 module.exports = VoiceAgentIntegration;

@@ -1,6 +1,7 @@
 // models/VoiceAgentCall.js
 
 const prisma = require('../prismaClient');
+const VoiceAgentIntegration = require('../services/voiceAgentIntegration');
 
 class VoiceAgentCall {
   static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress, teamsResourceAccountObjectId) {
@@ -14,6 +15,12 @@ class VoiceAgentCall {
 
     // Personalization Waterfall
     // ...
+
+    const voiceAgentIntegration = new VoiceAgentIntegration('your-api-key', 'your-api-url');
+
+    if (callStatus === 'Failed') {
+      await voiceAgentIntegration.handleFailedState(prospectId, callId);
+    }
 
     return await prisma.voiceAgentCall.create({
       data: {
