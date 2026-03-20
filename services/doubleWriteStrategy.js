@@ -12,6 +12,8 @@ const TimeBlockConfig = require('../models/TimeBlockConfig'); // Add this line
 const CallRate = require('../models/CallRate'); // Add this line
 const BounceEvent = require('../models/bounceEvent'); // Added for bounce event tracking
 const UnsubscribeEvent = require('../models/unsubscribeEvent'); // Added for unsubscribe event tracking
+const Transcript = require('../models/Transcript'); // Added for transcript tracking
+const SentimentAnalysis = require('../models/SentimentAnalysis'); // Added for sentiment analysis tracking
 
 class DoubleWriteStrategy {
   constructor() {
@@ -280,6 +282,28 @@ class DoubleWriteStrategy {
       return unsubscribeEvent;
     } catch (error) {
       logger.error('Error creating unsubscribe event', error);
+      throw error;
+    }
+  }
+
+  async createTranscript(transcriptData) {
+    try {
+      const transcript = await Transcript.create(transcriptData);
+      logger.log('Transcript created successfully', transcript);
+      return transcript;
+    } catch (error) {
+      logger.error('Error creating transcript', error);
+      throw error;
+    }
+  }
+
+  async createSentimentAnalysis(sentimentData) {
+    try {
+      const sentimentAnalysis = await SentimentAnalysis.create(sentimentData);
+      logger.log('Sentiment analysis created successfully', sentimentAnalysis);
+      return sentimentAnalysis;
+    } catch (error) {
+      logger.error('Error creating sentiment analysis', error);
       throw error;
     }
   }
