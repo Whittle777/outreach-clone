@@ -7,6 +7,7 @@ const IntentDrivenShortcutsService = require('../services/intentDrivenShortcutsS
 const VoiceAgentDashboard = require('./voiceAgentDashboard');
 const ConfidenceScoreRoutingService = require('../services/confidenceScoreRoutingService');
 const logger = require('../services/logger');
+const KnowledgeGraphService = require('../services/knowledgeGraphService');
 
 class VoiceAgentIntegration {
   constructor(apiKey, apiUrl) {
@@ -17,6 +18,7 @@ class VoiceAgentIntegration {
     this.intentDrivenShortcutsService = new IntentDrivenShortcutsService();
     this.dashboard = new VoiceAgentDashboard(apiUrl, apiKey);
     this.confidenceScoreRoutingService = new ConfidenceScoreRoutingService();
+    this.knowledgeGraphService = new KnowledgeGraphService(apiKey, apiUrl);
   }
 
   async createCall(prospectId, phoneNumber, script, country) {
@@ -278,6 +280,19 @@ class VoiceAgentIntegration {
     const hitlResult = await this.intentDrivenShortcutsService.simulateHITLWorkflow(prospect);
     logger.log('AI Decision: Simulated HITL Workflow', { prospect, hitlResult });
     return hitlResult;
+  }
+
+  // New method to create and visualize knowledge graph
+  async createAndVisualizeKnowledgeGraph(prospectId) {
+    try {
+      const knowledgeGraph = await this.knowledgeGraphService.createKnowledgeGraph(prospectId);
+      const visualization = await this.knowledgeGraphService.visualizeKnowledgeGraph(knowledgeGraph.id);
+      logger.log('AI Decision: Created and Visualized Knowledge Graph', { prospectId, knowledgeGraphId: knowledgeGraph.id, visualization });
+      return { knowledgeGraph, visualization };
+    } catch (error) {
+      logger.error('AI Decision: Failed to Create and Visualize Knowledge Graph', { prospectId, error: error.message });
+      throw new Error(`Failed to create and visualize knowledge graph: ${error.message}`);
+    }
   }
 }
 
