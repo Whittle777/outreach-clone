@@ -2,6 +2,11 @@ import React from 'react';
 import './SplitPaneReview.css';
 
 const SplitPaneReview = () => {
+  const handleTTSConversion = () => {
+    // Trigger TTS conversion logic here
+    console.log('TTS Conversion Triggered');
+  };
+
   return (
     <div className="split-pane">
       <div className="left-pane">
@@ -15,6 +20,7 @@ const SplitPaneReview = () => {
       <div className="right-pane">
         <h2>Agentic Action Panel</h2>
         <p>AI Summary: Drafted email</p>
+        <button onClick={handleTTSConversion}>Trigger TTS Conversion</button>
         <button>Accept</button>
         <button>Reject</button>
         <button>Inline-Edit</button>

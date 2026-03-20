@@ -63,6 +63,12 @@ class DealService {
       },
     });
   }
+
+  static async triggerTTSConversion(text) {
+    // Placeholder implementation for TTS conversion
+    console.log('Triggering TTS conversion for:', text);
+    // Actual implementation would involve calling a TTS service API
+  }
 }
 
 module.exports = DealService;
