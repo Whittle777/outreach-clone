@@ -165,6 +165,17 @@ class VoiceAgentIntegration {
   async generateCallGoal(prospect) {
     return await this.intentDrivenShortcutsService.generateCallGoal(prospect);
   }
+
+  // New methods for AI-generated call goals and talk tracks
+  async generateCallGoalAndTalkTrack(prospect) {
+    try {
+      const callGoal = await this.intentDrivenShortcutsService.generateCallGoal(prospect);
+      const talkTrack = await this.intentDrivenShortcutsService.generateTalkTrack(prospect);
+      return { callGoal, talkTrack };
+    } catch (error) {
+      throw new Error(`Failed to generate call goal and talk track: ${error.message}`);
+    }
+  }
 }
 
 module.exports = VoiceAgentIntegration;
