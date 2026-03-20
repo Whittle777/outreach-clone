@@ -1,21 +1,23 @@
+const TaskQueue = require('../models/taskQueue');
+
 class NGOETaskQueue {
   constructor(config) {
     this.config = config;
-    this.queue = [];
+    this.queue = new TaskQueue();
   }
 
   async enqueue(task) {
-    this.queue.push(task);
+    await this.queue.create(task);
     console.log(`Task enqueued: ${task.id}`);
   }
 
   async dequeue() {
-    if (this.queue.length === 0) {
+    const task = await this.queue.dequeue();
+    if (task) {
+      console.log(`Task dequeued: ${task.id}`);
+    } else {
       console.log('No tasks in the queue');
-      return null;
     }
-    const task = this.queue.shift();
-    console.log(`Task dequeued: ${task.id}`);
     return task;
   }
 
