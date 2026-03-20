@@ -2,6 +2,7 @@ const winston = require('winston');
 const WebSocket = require('ws');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const config = require('../services/config').getConfig();
+const { wss } = require('../services/websocket');
 
 const logger = winston.createLogger({
   level: 'info',
@@ -12,8 +13,6 @@ const logger = winston.createLogger({
     new winston.transports.File({ filename: 'combined.log' }),
   ],
 });
-
-const wss = new WebSocket.Server({ port: config.webSocket.port });
 
 wss.on('connection', (ws) => {
   logger.log('WebSocket client connected');
