@@ -127,4 +127,4 @@ Master list of all planned features.
 - [x] Deal Health Scores: Automated scoring flagging at-risk deals based on prospect engagement and momentum
 - [x] Top Opportunities: Prioritized list of high-value deals nearing close dates
 - [x] Win/Loss Modeling: Conversion rates analyzed by sales stage or forecast category
-- [ ] AI Projections: Machine learning models predicting quarterly performance based on historical win rates and seasonality
+- [x] AI Projections: Machine learning models predicting quarterly performance based on historical win rates and seasonality
