@@ -1,5 +1,7 @@
 const prisma = require('../services/database');
 const VoiceAgentIntegration = require('../services/voiceAgentIntegration');
+const KnowledgeGraph = require('../services/knowledgeGraph');
+const logger = require('../services/logger');
 
 class VoiceAgentCall {
   static async create(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, bento, ipAddress, teamsResourceAccountObjectId) {
@@ -20,7 +22,7 @@ class VoiceAgentCall {
       await voiceAgentIntegration.handleFailedState(prospectId, callId);
     }
 
-    return await prisma.voiceAgentCall.create({
+    const voiceAgentCall = await prisma.voiceAgentCall.create({
       data: {
         prospectId,
         callStatus,
@@ -33,6 +35,38 @@ class VoiceAgentCall {
         hasResistanceOrRegulatoryFlag,
       },
     });
+
+    // Track voice agent interaction in KnowledgeGraph
+    const knowledgeGraph = new KnowledgeGraph();
+    await knowledgeGraph.write({
+      type: 'voiceAgentCall',
+      data: {
+        prospectId,
+        callStatus,
+        preGeneratedScript,
+        ttsAudioFileUrl,
+        callTranscript,
+        bento,
+        ipAddress,
+        teamsResourceAccountObjectId,
+        hasResistanceOrRegulatoryFlag,
+      },
+    });
+
+    // Log voice agent interaction
+    logger.aiDecision('Voice agent call created', {
+      prospectId,
+      callStatus,
+      preGeneratedScript,
+      ttsAudioFileUrl,
+      callTranscript,
+      bento,
+      ipAddress,
+      teamsResourceAccountObjectId,
+      hasResistanceOrRegulatoryFlag,
+    });
+
+    return voiceAgentCall;
   }
 
   static async getAll() {
@@ -50,10 +84,28 @@ class VoiceAgentCall {
       throw new Error('Invalid call status');
     }
 
-    return await prisma.voiceAgentCall.update({
+    const updatedCall = await prisma.voiceAgentCall.update({
       where: { id },
       data: { callStatus: newStatus },
     });
+
+    // Track updated voice agent interaction in KnowledgeGraph
+    const knowledgeGraph = new KnowledgeGraph();
+    await knowledgeGraph.write({
+      type: 'voiceAgentCallUpdate',
+      data: {
+        id,
+        newStatus,
+      },
+    });
+
+    // Log updated voice agent interaction
+    logger.aiDecision('Voice agent call status updated', {
+      id,
+      newStatus,
+    });
+
+    return updatedCall;
   }
 }
 
