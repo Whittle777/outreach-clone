@@ -1,4 +1,7 @@
 const amqplib = require('amqplib');
+const axios = require('axios');
+const config = require('../services/config');
+const logger = require('../services/logger');
 
 class RabbitMQService {
   constructor(config) {
@@ -6,6 +9,9 @@ class RabbitMQService {
     this.queueName = config.queueName;
     this.connection = null;
     this.channel = null;
+    this.stirShakenEnabled = config.stirShakenEnabled;
+    this.stirShakenApiUrl = config.stirShakenApiUrl;
+    this.stirShakenApiKey = config.stirShakenApiKey;
   }
 
   async connect() {
@@ -21,7 +27,7 @@ class RabbitMQService {
     }
 
     await this.channel.sendToQueue(this.queueName, Buffer.from(JSON.stringify(message)));
-    realTimeReasoningLogs.addLog('sendMessage', `Message sent to RabbitMQ: ${JSON.stringify(message)}`);
+    logger.log('sendMessage', `Message sent to RabbitMQ: ${JSON.stringify(message)}`);
   }
 
   async receiveMessage(token) {
@@ -32,7 +38,7 @@ class RabbitMQService {
 
     const message = await this.channel.get(this.queueName, { noAck: true });
     if (message) {
-      realTimeReasoningLogs.addLog('receiveMessage', `Message received from RabbitMQ: ${JSON.stringify(message.content.toString())}`);
+      logger.log('receiveMessage', `Message received from RabbitMQ: ${JSON.stringify(message.content.toString())}`);
       return JSON.parse(message.content.toString());
     }
     return null;
@@ -51,7 +57,7 @@ class RabbitMQService {
 
     if (await rateLimiter.isRateLimited(key)) {
       console.log(`Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
-      realTimeReasoningLogs.addLog('sendMessageWithRateLimit', `Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
+      logger.log('sendMessageWithRateLimit', `Rate limit exceeded for prospectId: ${prospectId} with phone number: ${phoneNumber}`);
       return;
     }
 
@@ -67,7 +73,7 @@ class RabbitMQService {
 
     // Placeholder for fetching active constraints
     // This should be replaced with actual logic to fetch constraints from RabbitMQ
-    realTimeReasoningLogs.addLog('fetchActiveConstraints', 'Fetching active constraints');
+    logger.log('fetchActiveConstraints', 'Fetching active constraints');
     return {
       constraints: [
         { id: 1, name: 'Constraint 1' },
@@ -78,7 +84,7 @@ class RabbitMQService {
 
   async createKnowledgeGraphNodes(prospectData) {
     await this.knowledgeGraph.createNode('Prospect', prospectData);
-    realTimeReasoningLogs.addLog('createKnowledgeGraphNodes', `Created knowledge graph nodes for prospect: ${prospectData.firstName}`);
+    logger.log('createKnowledgeGraphNodes', `Created knowledge graph nodes for prospect: ${prospectData.firstName}`);
   }
 
   async close() {
@@ -122,7 +128,32 @@ class RabbitMQService {
     };
 
     await doubleWriteStrategy.write(voiceAgentCallData);
-    realTimeReasoningLogs.addLog('createVoiceAgentCall', `Created VoiceAgentCall: ${JSON.stringify(voiceAgentCallData)}`);
+    logger.log('createVoiceAgentCall', `Created VoiceAgentCall: ${JSON.stringify(voiceAgentCallData)}`);
+  }
+
+  async checkSTIRSHAKENCompliance(phoneNumber) {
+    if (!this.stirShakenEnabled) {
+      logger.log('STIR/SHAKEN compliance check is disabled');
+      return true;
+    }
+
+    try {
+      const response = await axios.post(this.stirShakenApiUrl, {
+        phoneNumber,
+        apiKey: this.stirShakenApiKey
+      });
+
+      if (response.data.isCompliant) {
+        logger.log('STIR/SHAKEN compliance check passed', { phoneNumber });
+        return true;
+      } else {
+        logger.error('STIR/SHAKEN compliance check failed', { phoneNumber });
+        return false;
+      }
+    } catch (error) {
+      logger.error('Error checking STIR/SHAKEN compliance', { phoneNumber, error });
+      return false;
+    }
   }
 }
 

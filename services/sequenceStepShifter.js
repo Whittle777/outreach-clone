@@ -33,6 +33,13 @@ class SequenceStepShifter {
                 logger.error('Caller ID display validation failed', { prospectData, onBehalfOf });
               }
             }
+
+            // Check STIR/SHAKEN compliance
+            const phoneNumber = prospectData.phoneNumber;
+            const isSTIRSHAKENCompliant = await this.rabbitmqService.checkSTIRSHAKENCompliance(phoneNumber);
+            if (!isSTIRSHAKENCompliant) {
+              logger.error('STIR/SHAKEN compliance check failed', { phoneNumber });
+            }
           }
         }
       }

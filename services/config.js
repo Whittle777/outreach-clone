@@ -24,7 +24,10 @@ const defaultConfig = {
     clientId: process.env.MICROSOFT_ENTRA_CLIENT_ID || 'your-client-id',
     clientSecret: process.env.MICROSOFT_ENTRA_CLIENT_SECRET || 'your-client-secret',
     tenantId: process.env.MICROSOFT_ENTRA_TENANT_ID || 'your-tenant-id'
-  }
+  },
+  stirShakenEnabled: process.env.STIR_SHAKEN_ENABLED === 'true' || false,
+  stirShakenApiUrl: process.env.STIR_SHAKEN_API_URL || 'https://stirshakenapi.com/check',
+  stirShakenApiKey: process.env.STIR_SHAKEN_API_KEY || 'your-stir-shaken-api-key'
 };
 
 module.exports = {
