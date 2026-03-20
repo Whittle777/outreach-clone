@@ -1,91 +1,91 @@
-const AwsSqs = require('../messageBroker/awsSqs');
-const config = require('../config/settings');
+const RabbitMQService = require('../rabbitmq/rabbitmqService');
+const config = require('../services/config').getConfig();
 const logger = require('../services/logger');
 
 class VoiceAgent {
   constructor() {
-    this.awsSqs = config.getConfig().messageQueueType === 'sqs' ? new AwsSqs(config.getConfig()) : null;
+    this.rabbitmqService = config.messageQueueType === 'rabbitmq' ? new RabbitMQService(config.rabbitmq) : null;
   }
 
   async sendMessage(message, token) {
-    if (this.awsSqs) {
-      await this.awsSqs.sendMessage(message, token);
+    if (this.rabbitmqService) {
+      await this.rabbitmqService.sendMessage(message);
     } else {
-      logger.error('AWS SQS is not initialized');
+      logger.error('RabbitMQ is not initialized');
     }
   }
 
   async receiveMessage(token) {
-    if (this.awsSqs) {
-      return await this.awsSqs.receiveMessage(token);
+    if (this.rabbitmqService) {
+      return await this.rabbitmqService.receiveMessage(token);
     } else {
-      logger.error('AWS SQS is not initialized');
+      logger.error('RabbitMQ is not initialized');
       return null;
     }
   }
 
   async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
-    if (this.awsSqs) {
-      await this.awsSqs.sendMessageWithRateLimit(message, prospectId, phoneNumber, token);
+    if (this.rabbitmqService) {
+      await this.rabbitmqService.sendMessageWithRateLimit(message, prospectId, phoneNumber, token);
     } else {
-      logger.error('AWS SQS is not initialized');
+      logger.error('RabbitMQ is not initialized');
     }
   }
 
   async fetchActiveConstraints(token) {
-    if (this.awsSqs) {
-      return await this.awsSqs.fetchActiveConstraints(token);
+    if (this.rabbitmqService) {
+      return await this.rabbitmqService.fetchActiveConstraints(token);
     } else {
-      logger.error('AWS SQS is not initialized');
+      logger.error('RabbitMQ is not initialized');
       return null;
     }
   }
 
   async createKnowledgeGraphNodes(prospectData) {
-    if (this.awsSqs) {
-      await this.awsSqs.createKnowledgeGraphNodes(prospectData);
+    if (this.rabbitmqService) {
+      await this.rabbitmqService.createKnowledgeGraphNodes(prospectData);
     } else {
-      logger.error('AWS SQS is not initialized');
+      logger.error('RabbitMQ is not initialized');
     }
   }
 
   async close() {
-    if (this.awsSqs) {
-      await this.awsSqs.close();
+    if (this.rabbitmqService) {
+      await this.rabbitmqService.close();
     }
   }
 
   async executeNGOETask(task) {
-    if (this.awsSqs) {
-      return await this.awsSqs.executeNGOETask(task);
+    if (this.rabbitmqService) {
+      return await this.rabbitmqService.executeNGOETask(task);
     } else {
-      logger.error('AWS SQS is not initialized');
+      logger.error('RabbitMQ is not initialized');
       return null;
     }
   }
 
   async handleMCPMessage(message) {
-    if (this.awsSqs) {
-      await this.awsSqs.handleMCPMessage(message);
+    if (this.rabbitmqService) {
+      await this.rabbitmqService.handleMCPMessage(message);
     } else {
-      logger.error('AWS SQS is not initialized');
+      logger.error('RabbitMQ is not initialized');
     }
   }
 
   async isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript) {
-    if (this.awsSqs) {
-      return await this.awsSqs.isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
+    if (this.rabbitmqService) {
+      return await this.rabbitmqService.isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
     } else {
-      logger.error('AWS SQS is not initialized');
+      logger.error('RabbitMQ is not initialized');
       return false;
     }
   }
 
   async createVoiceAgentCall(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, token) {
-    if (this.awsSqs) {
-      await this.awsSqs.createVoiceAgentCall(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, token);
+    if (this.rabbitmqService) {
+      await this.rabbitmqService.createVoiceAgentCall(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, token);
     } else {
-      logger.error('AWS SQS is not initialized');
+      logger.error('RabbitMQ is not initialized');
     }
   }
 }
