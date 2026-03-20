@@ -77,6 +77,16 @@ class MCP {
       throw error;
     }
   }
+
+  async initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl) {
+    try {
+      await doubleWriteStrategy.initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl);
+      logger.azureAcsVoicemailDropInitiated(prospectData, audioFileUrl);
+    } catch (error) {
+      logger.error('Error initiating Azure ACS voicemail drop', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = MCP;

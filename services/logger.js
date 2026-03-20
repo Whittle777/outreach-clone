@@ -110,4 +110,13 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'sentimentAnalysis', data: { message, data } });
   },
+  azureAcsVoicemailDropInitiated: (prospectData, audioFileUrl) => {
+    logger.info('Azure ACS voicemail drop initiated', { prospectData, audioFileUrl });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'azureAcsVoicemailDropInitiated', data: { prospectData, audioFileUrl } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'azureAcsVoicemailDropInitiated', data: { prospectData, audioFileUrl } });
+  },
 };

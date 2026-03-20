@@ -24,6 +24,22 @@ class AzureAcsCallAutomation {
     }
   }
 
+  async initiateVoicemailDrop(prospectData, audioFileUrl) {
+    try {
+      const voicemailData = {
+        prospectId: prospectData.id,
+        phoneNumber: prospectData.phoneNumber,
+        audioFileUrl: audioFileUrl,
+      };
+
+      await this.serviceBusSender.sendMessages({ body: JSON.stringify(voicemailData) });
+      logger.log('Voicemail drop message sent to Service Bus', voicemailData);
+    } catch (error) {
+      logger.error('Error initiating voicemail drop', error);
+      throw error;
+    }
+  }
+
   async close() {
     await this.serviceBusClient.close();
     logger.log('Service Bus client closed');

@@ -178,6 +178,16 @@ class DoubleWriteStrategy {
       throw error;
     }
   }
+
+  async initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl) {
+    try {
+      await this.azureAcsCallAutomation.initiateVoicemailDrop(prospectData, audioFileUrl);
+      logger.log('Azure ACS voicemail drop initiation successful', { prospectData, audioFileUrl });
+    } catch (error) {
+      logger.error('Error initiating Azure ACS voicemail drop', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new DoubleWriteStrategy();
