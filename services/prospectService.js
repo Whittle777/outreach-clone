@@ -19,6 +19,14 @@ class ProspectService {
       data: prospectData,
     });
   }
+
+  static async markProspectAsFailed(email, bento) {
+    // Update the prospect status to 'failed' in the database
+    await prisma.prospect.update({
+      where: { email },
+      data: { status: 'failed' },
+    });
+  }
 }
 
 module.exports = ProspectService;

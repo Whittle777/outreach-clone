@@ -53,12 +53,7 @@ async function sendScheduledEmails() {
           await new Promise(resolve => setTimeout(resolve, backoffTime));
         } else if (error.response && error.response.status === 550) { // Hard bounce
           console.log(`Hard bounce detected for ${prospect.email}.`);
-          // Update the email status to 'bounced' in the database
-          await EmailActivities.updateStatus(prospect.email, 'bounced');
-          // Mark the prospect as failed
-          await Prospect.markProspectAsFailed(prospect.email, prospect.bento);
-          // Create a bounce event
-          await BounceEvent.create({ email: prospect.email, bento: prospect.bento, timestamp: new Date() });
+          await handleHardBounce(prospect.email, prospect.bento);
           break;
         } else {
           console.error(`Error sending email to ${prospect.email}:`, error);
@@ -106,12 +101,7 @@ async function retrySoftBouncedEmails() {
           await new Promise(resolve => setTimeout(resolve, backoffTime));
         } else if (error.response && error.response.status === 550) { // Hard bounce
           console.log(`Hard bounce detected for ${email.to}.`);
-          // Update the email status to 'bounced' in the database
-          await EmailActivities.updateStatus(email.to, 'bounced');
-          // Mark the prospect as failed
-          await Prospect.markProspectAsFailed(email.to, email.bento);
-          // Create a bounce event
-          await BounceEvent.create({ email: email.to, bento: email.bento, timestamp: new Date() });
+          await handleHardBounce(email.to, email.bento);
           break;
         } else {
           console.error(`Error retrying email to ${email.to}:`, error);
@@ -128,6 +118,15 @@ async function retrySoftBouncedEmails() {
       await Email.update(email.to, { status: 'bounced' });
     }
   }
+}
+
+async function handleHardBounce(email, bento) {
+  // Update the email status to 'bounced' in the database
+  await Email.update(email, { status: 'bounced' });
+  // Mark the prospect as failed
+  await Prospect.markProspectAsFailed(email, bento);
+  // Create a bounce event
+  await BounceEvent.create({ email, bento, timestamp: new Date() });
 }
 
 module.exports = {
