@@ -5,6 +5,7 @@ const Transcript = require('../models/transcript');
 const NLPModule = require('./nlpModule');
 const IntentDrivenShortcutsService = require('../services/intentDrivenShortcutsService');
 const VoiceAgentDashboard = require('./voiceAgentDashboard');
+const ConfidenceScoreRoutingService = require('../services/confidenceScoreRoutingService');
 
 class VoiceAgentIntegration {
   constructor(apiKey, apiUrl) {
@@ -14,6 +15,7 @@ class VoiceAgentIntegration {
     this.nlpModule = new NLPModule();
     this.intentDrivenShortcutsService = new IntentDrivenShortcutsService();
     this.dashboard = new VoiceAgentDashboard(apiUrl, apiKey);
+    this.confidenceScoreRoutingService = new ConfidenceScoreRoutingService();
   }
 
   async createCall(prospectId, phoneNumber, script, country) {
@@ -230,6 +232,11 @@ class VoiceAgentIntegration {
     } catch (error) {
       throw new Error(`Failed to fetch call status: ${error.message}`);
     }
+  }
+
+  // New method to route message based on confidence score
+  async routeMessageBasedOnConfidence(confidenceScore) {
+    return this.confidenceScoreRoutingService.routeMessage(confidenceScore);
   }
 }
 
