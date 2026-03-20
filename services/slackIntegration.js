@@ -1,0 +1,26 @@
+const axios = require('axios');
+const config = require('../services/config').getConfig();
+
+class SlackIntegration {
+  constructor() {
+    this.webhookUrl = config.slack.webhookUrl;
+  }
+
+  async sendNotification(message) {
+    if (!this.webhookUrl) {
+      console.error('Slack webhook URL is not configured');
+      return;
+    }
+
+    try {
+      await axios.post(this.webhookUrl, {
+        text: message,
+      });
+      console.log('Slack notification sent successfully');
+    } catch (error) {
+      console.error('Failed to send Slack notification:', error);
+    }
+  }
+}
+
+module.exports = new SlackIntegration();

@@ -24,6 +24,9 @@ const config = {
   naturalLanguageGuardrails: {
     policyDirectives: JSON.parse(process.env.NATURAL_LANGUAGE_GUARDRAILS_POLICY_DIRECTIVES || '[]'),
   },
+  slack: {
+    webhookUrl: process.env.SLACK_WEBHOOK_URL,
+  },
 };
 
 module.exports = config;

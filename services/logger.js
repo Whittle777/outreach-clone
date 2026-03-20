@@ -4,6 +4,7 @@ const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const config = require('../services/config').getConfig();
 const { wss } = require('../services/websocket');
 const temporalStateManager = require('../services/temporalStateManager');
+const slackIntegration = require('../services/slackIntegration');
 
 const logger = winston.createLogger({
   level: 'info',
@@ -32,6 +33,7 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'log', data: { message, data } });
     temporalStateManager.saveState('log', { message, data });
+    slackIntegration.sendNotification(`Log: ${message}`);
   },
   error: (message, data) => {
     logger.error(message, data);
@@ -42,6 +44,7 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'error', data: { message, data } });
     temporalStateManager.saveState('error', { message, data });
+    slackIntegration.sendNotification(`Error: ${message}`);
   },
   info: (message, data) => {
     logger.info(message, data);
@@ -52,6 +55,7 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'info', data: { message, data } });
     temporalStateManager.saveState('info', { message, data });
+    slackIntegration.sendNotification(`Info: ${message}`);
   },
   sentiment: (message, data) => {
     logger.info(message, data);
@@ -62,6 +66,7 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'sentiment', data: { message, data } });
     temporalStateManager.saveState('sentiment', { message, data });
+    slackIntegration.sendNotification(`Sentiment: ${message}`);
   },
   aiDecision: (message, data) => {
     logger.info(message, data);
@@ -72,6 +77,7 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'aiDecision', data: { message, data } });
     temporalStateManager.saveState('aiDecision', { message, data });
+    slackIntegration.sendNotification(`AI Decision: ${message}`);
   },
   microsoftTeamsNotification: (message) => {
     logger.info('Microsoft Teams Notification', { message });
@@ -271,6 +277,7 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'confidenceScoreRouting', data: { confidenceScore, task } });
     temporalStateManager.saveState('confidenceScoreRouting', { confidenceScore, task });
+    slackIntegration.sendNotification(`Confidence Score Routing: ${confidenceScore}, Task: ${task}`);
   },
   aiDecisionLog: (message, data) => {
     logger.info(message, data);
