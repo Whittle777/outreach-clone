@@ -101,4 +101,13 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'rabbitmqMessageSent', data: { data } });
   },
+  sentimentAnalysis: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'sentimentAnalysis', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'sentimentAnalysis', data: { message, data } });
+  },
 };
