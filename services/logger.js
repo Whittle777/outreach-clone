@@ -133,4 +133,7 @@ module.exports = {
       logger.error('STIR/SHAKEN validation failed', { phoneNumber });
     }
   },
+  rateLimitHit: (carrier, phoneNumber, count, limit) => {
+    logger.warn('Rate limit hit', { carrier, phoneNumber, count, limit });
+  },
 };

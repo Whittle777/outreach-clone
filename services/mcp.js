@@ -2,16 +2,17 @@ const crypto = require('crypto');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const logger = require('../services/logger');
 const AIGenerator = require('../services/aiGenerator');
-const Encryption = require('../services/encryption'); // Add this line
-const AzureServiceBus = require('../services/azureServiceBus'); // Add this line
+const Encryption = require('../services/encryption');
+const AzureServiceBus = require('../services/azureServiceBus');
+const RateLimiter = require('../services/rateLimiter');
 
 class MCP {
   constructor() {
     this.protocolVersion = '1.0';
-    this.secretKey = process.env.MCP_SECRET_KEY || 'your-secret-key'; // Use environment variable for secret key
-    this.aiGenerator = new AIGenerator(); // Add this line
-    this.encryption = new Encryption(this.secretKey); // Add this line
-    this.azureServiceBus = services.config.initializeAzureServiceBus(); // Add this line
+    this.secretKey = process.env.MCP_SECRET_KEY || 'your-secret-key';
+    this.aiGenerator = new AIGenerator();
+    this.encryption = new Encryption(this.secretKey);
+    this.azureServiceBus = services.config.initializeAzureServiceBus();
   }
 
   encrypt(data) {
@@ -104,6 +105,15 @@ class MCP {
       logger.error('Error sending message to Azure Service Bus', error);
       throw error;
     }
+  }
+
+  async checkAndIncrementCarrierRateLimit(carrier, phoneNumber) {
+    const isRateLimited = await RateLimiter.isCarrierRateLimited(carrier, phoneNumber);
+    if (isRateLimited) {
+      logger.warn('Carrier rate limit hit', { carrier, phoneNumber });
+      throw new Error('Carrier rate limit hit');
+    }
+    await RateLimiter.incrementCarrierRateLimit(carrier, phoneNumber);
   }
 }
 
