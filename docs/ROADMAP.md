@@ -107,7 +107,7 @@ Master list of all planned features.
 - [x] Alternative brokers: Azure Service Bus, AWS SQS, RabbitMQ for voice agent call queues
 - [x] Teams Phone Integration: Use onBehalfOf parameter with Microsoft Entra Object ID for Teams Resource Account caller ID
 - [x] Native STIR/SHAKEN compliance handled by Microsoft backend
-- [ ] Implement strict dialing rate limits to prevent "Spam Risk" flags from carriers
+- [x] Implement strict dialing rate limits to prevent "Spam Risk" flags from carriers
 - [ ] Voice agent call rate limits per Teams phone number
 - [ ] Unsubscribe & Bounce Handling: Exponential backoff retries for soft bounces
 - [ ] Permanent 'Failed' state mutation for hard bounces

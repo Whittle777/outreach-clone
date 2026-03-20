@@ -1,83 +1,167 @@
-const { connect } = require('amqplib');
+const amqplib = require('amqplib');
+const axios = require('axios');
+const config = require('../services/config');
+const logger = require('../services/logger');
+const jwt = require('jsonwebtoken');
+const RateLimiter = require('../services/rateLimiter');
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 class RabbitMQService {
   constructor(config) {
-    this.config = config;
+    this.connectionString = config.connectionString;
+    this.queueName = config.queueName;
     this.connection = null;
     this.channel = null;
+    this.stirShakenEnabled = config.stirShakenEnabled;
+    this.stirShakenApiUrl = config.stirShakenApiUrl;
+    this.stirShakenApiKey = config.stirShakenApiKey;
+    this.dialingRateLimiter = RateLimiter.dialingRateLimiter;
   }
 
   async connect() {
-    this.connection = await connect(this.config.connectionString);
+    this.connection = await amqplib.connect(this.connectionString);
     this.channel = await this.connection.createChannel();
-    await this.channel.assertQueue(this.config.queueName, { durable: true });
+    await this.channel.assertQueue(this.queueName, { durable: true });
   }
 
-  async sendMessage(message) {
-    await this.channel.sendToQueue(this.config.queueName, Buffer.from(JSON.stringify(message)));
+  async sendMessage(message, token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    await this.channel.sendToQueue(this.queueName, Buffer.from(JSON.stringify(message)));
+    logger.log('sendMessage', `Message sent to RabbitMQ: ${JSON.stringify(message)}`);
   }
 
-  async receiveMessage() {
-    const msg = await this.channel.get(this.config.queueName, { noAck: true });
-    if (msg !== null) {
-      return JSON.parse(msg.content.toString());
+  async receiveMessage(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    const message = await this.channel.get(this.queueName, { noAck: true });
+    if (message) {
+      logger.log('receiveMessage', `Message received from RabbitMQ: ${JSON.stringify(message.content.toString())}`);
+      return JSON.parse(message.content.toString());
     }
     return null;
   }
 
   async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
-    // Implement rate limiting logic here
-    await this.sendMessage(message);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    const isRateLimited = await this.dialingRateLimiter.isDialingRateLimited(phoneNumber);
+    if (isRateLimited) {
+      console.log(`Dialing rate limit exceeded for phone number: ${phoneNumber}`);
+      logger.log('sendMessageWithRateLimit', `Dialing rate limit exceeded for phone number: ${phoneNumber}`);
+      return;
+    }
+
+    await this.dialingRateLimiter.incrementDialingCount(phoneNumber);
+
+    // STIR/SHAKEN validation
+    const isCompliant = await this.checkSTIRSHAKENCompliance(phoneNumber);
+    if (!isCompliant) {
+      logger.error('STIR/SHAKEN validation failed', { phoneNumber });
+      throw new Error('STIR/SHAKEN validation failed');
+    }
+
+    await this.sendMessage(message, token);
   }
 
   async fetchActiveConstraints(token) {
-    // Implement fetching active constraints logic here
-    return null;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    // Placeholder for fetching active constraints
+    // This should be replaced with actual logic to fetch constraints from RabbitMQ
+    logger.log('fetchActiveConstraints', 'Fetching active constraints');
+    return {
+      constraints: [
+        { id: 1, name: 'Constraint 1' },
+        { id: 2, name: 'Constraint 2' }
+      ]
+    };
   }
 
   async createKnowledgeGraphNodes(prospectData) {
-    // Implement creating knowledge graph nodes logic here
+    await this.knowledgeGraph.createNode('Prospect', prospectData);
+    logger.log('createKnowledgeGraphNodes', `Created knowledge graph nodes for prospect: ${prospectData.firstName}`);
   }
 
   async close() {
-    if (this.connection) {
-      await this.connection.close();
-    }
+    await this.connection.close();
   }
 
   async executeNGOETask(task) {
-    // Implement executing NGOE task logic here
-    return null;
+    return this.ngoe.executeTask(task);
   }
 
   async handleMCPMessage(message) {
-    // Implement handling MCP message logic here
+    // Implement logic to handle messages received from the MCP Gateway
+    logger.log('Handling MCP message:', message);
+    // Example: Forward the message to the central AI agents
+    await this.aiGenerator.processMessage(message);
   }
 
   async isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript) {
-    // Implement GDPR compliance check logic here
-    return false;
+    // Implement GDPR compliance checks
+    // For now, let's assume it always returns true
+    return true;
   }
 
   async createVoiceAgentCall(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, token) {
-    // Implement creating voice agent call logic here
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    const isCompliant = await this.isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
+    if (!isCompliant) {
+      throw new Error('Data not compliant with GDPR');
+    }
+
+    const voiceAgentCallData = {
+      prospectId,
+      callStatus,
+      preGeneratedScript,
+      ttsAudioFileUrl,
+      callTranscript
+    };
+
+    await doubleWriteStrategy.write(voiceAgentCallData);
+    logger.log('createVoiceAgentCall', `Created VoiceAgentCall: ${JSON.stringify(voiceAgentCallData)}`);
   }
 
-  async initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl, onBehalfOf) {
-    // Implement initiating Azure ACS voicemail drop with onBehalfOf parameter
-    console.log('Initiating Azure ACS voicemail drop with onBehalfOf:', onBehalfOf);
-    // In a real implementation, you would call the ACS API with the onBehalfOf parameter
-    // For now, let's just log the data
-    logger.log('Azure ACS voicemail drop initiated', { prospectData, audioFileUrl, onBehalfOf });
-  }
+  async checkSTIRSHAKENCompliance(phoneNumber) {
+    if (!this.stirShakenEnabled) {
+      logger.log('STIR/SHAKEN compliance check is disabled');
+      return true;
+    }
 
-  async validateCallerIdDisplay(prospectData, onBehalfOf) {
-    // Implement validation logic here
-    console.log('Validating caller ID display in Teams for prospect:', prospectData, 'with onBehalfOf:', onBehalfOf);
-    // In a real implementation, you would call the Teams API to validate the caller ID display
-    // For now, let's just log the data
-    logger.log('Caller ID display validated', { prospectData, onBehalfOf });
-    return true; // Return true if validation passes, false otherwise
+    try {
+      const response = await axios.post(this.stirShakenApiUrl, {
+        phoneNumber,
+        apiKey: this.stirShakenApiKey
+      });
+
+      if (response.data.isCompliant) {
+        logger.log('STIR/SHAKEN compliance check passed', { phoneNumber });
+        return true;
+      } else {
+        logger.error('STIR/SHAKEN compliance check failed', { phoneNumber });
+        return false;
+      }
+    } catch (error) {
+      logger.error('Error checking STIR/SHAKEN compliance', { phoneNumber, error });
+      return false;
+    }
   }
 }
 

@@ -27,7 +27,23 @@ const defaultConfig = {
   },
   stirShakenEnabled: process.env.STIR_SHAKEN_ENABLED === 'true' || false,
   stirShakenApiUrl: process.env.STIR_SHAKEN_API_URL || 'https://stirshakenapi.com/check',
-  stirShakenApiKey: process.env.STIR_SHAKEN_API_KEY || 'your-stir-shaken-api-key'
+  stirShakenApiKey: process.env.STIR_SHAKEN_API_KEY || 'your-stir-shaken-api-key',
+  rateLimits: {
+    teamsPhoneNumbers: {
+      '1234567890': {
+        limit: 10,
+        duration: 60
+      },
+      '0987654321': {
+        limit: 15,
+        duration: 60
+      }
+    },
+    dialing: {
+      limit: process.env.DIALING_LIMIT || 20,
+      duration: process.env.DIALING_DURATION || 300
+    }
+  }
 };
 
 module.exports = {

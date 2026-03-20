@@ -34,8 +34,25 @@ class RateLimiter {
   }
 }
 
+class DialingRateLimiter extends RateLimiter {
+  constructor(limit, duration) {
+    super(limit, duration);
+  }
+
+  async isDialingRateLimited(phoneNumber) {
+    const key = `dialingLimit:${phoneNumber}`;
+    return await this.isRateLimited(key);
+  }
+
+  async incrementDialingCount(phoneNumber) {
+    const key = `dialingLimit:${phoneNumber}`;
+    return await this.incrementRequestCount(key);
+  }
+}
+
 module.exports = {
   voiceCallLimiter: new RateLimiter(process.env.VOICE_CALL_LIMIT, process.env.VOICE_CALL_DURATION),
   emailLimiter: new RateLimiter(process.env.EMAIL_LIMIT, process.env.EMAIL_DURATION),
   audioFileLimiter: new RateLimiter(process.env.AUDIO_FILE_LIMIT, process.env.AUDIO_FILE_DURATION),
+  dialingRateLimiter: new DialingRateLimiter(process.env.DIALING_LIMIT, process.env.DIALING_DURATION),
 };
