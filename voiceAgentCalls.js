@@ -1,6 +1,8 @@
 const MessageBroker = require('../messageBroker');
 const config = require('../config'); // Assuming there is a config file with the message broker configuration
 const messageBroker = new MessageBroker(config);
+const SentimentAnalysis = require('../services/sentimentAnalysis');
+const sentimentAnalysis = new SentimentAnalysis(config.sentimentAnalysisApiKey);
 
 async function createVoiceAgentCall(message) {
   try {
@@ -14,8 +16,13 @@ async function createVoiceAgentCall(message) {
     }
 
     await messageBroker.incrementRequestCount(key);
+
+    // Analyze sentiment of the text transcript
+    const sentimentResult = await sentimentAnalysis.analyze(message.transcript);
+    message.sentiment = sentimentResult;
+
     await messageBroker.sendMessage(message);
-    console.log('Voice agent call created successfully');
+    console.log('Voice agent call created successfully with sentiment analysis');
   } catch (error) {
     console.error('Error creating voice agent call:', error.message);
   }
