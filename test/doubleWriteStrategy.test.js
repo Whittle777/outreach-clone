@@ -104,4 +104,47 @@ describe('DoubleWriteStrategy', function() {
     assert.deepStrictEqual(legacyDatastore.data, [{ type: 'sentiment-analysis', data: { prospectId, sentimentData } }]);
     assert.deepStrictEqual(newDatastore.data, [{ type: 'sentiment-analysis', data: { prospectId, sentimentData } }]);
   });
+
+  it('should create call rate', async function() {
+    const callRateData = { phoneNumber: '1234567890', rate: 10 };
+    await doubleWriteStrategy.createCallRate(callRateData);
+    assert.deepStrictEqual(legacyDatastore.data, [{ type: 'call-rate', data: callRateData }]);
+    assert.deepStrictEqual(newDatastore.data, [{ type: 'call-rate', data: callRateData }]);
+  });
+
+  it('should retrieve call rate by id', async function() {
+    const callRateData = { phoneNumber: '1234567890', rate: 10 };
+    await doubleWriteStrategy.createCallRate(callRateData);
+    const callRate = await doubleWriteStrategy.getCallRateById(1);
+    assert.deepStrictEqual(callRate, { type: 'call-rate', data: callRateData });
+  });
+
+  it('should update call rate', async function() {
+    const callRateData = { phoneNumber: '1234567890', rate: 10 };
+    await doubleWriteStrategy.createCallRate(callRateData);
+    const updatedCallRateData = { phoneNumber: '1234567890', rate: 15 };
+    await doubleWriteStrategy.updateCallRate(1, updatedCallRateData);
+    assert.deepStrictEqual(legacyDatastore.data, [{ type: 'call-rate', data: updatedCallRateData }]);
+    assert.deepStrictEqual(newDatastore.data, [{ type: 'call-rate', data: updatedCallRateData }]);
+  });
+
+  it('should delete call rate', async function() {
+    const callRateData = { phoneNumber: '1234567890', rate: 10 };
+    await doubleWriteStrategy.createCallRate(callRateData);
+    await doubleWriteStrategy.deleteCallRate(1);
+    assert.deepStrictEqual(legacyDatastore.data, []);
+    assert.deepStrictEqual(newDatastore.data, []);
+  });
+
+  it('should retrieve all call rates', async function() {
+    const callRateData1 = { phoneNumber: '1234567890', rate: 10 };
+    const callRateData2 = { phoneNumber: '0987654321', rate: 15 };
+    await doubleWriteStrategy.createCallRate(callRateData1);
+    await doubleWriteStrategy.createCallRate(callRateData2);
+    const callRates = await doubleWriteStrategy.getAllCallRates();
+    assert.deepStrictEqual(callRates, [
+      { type: 'call-rate', data: callRateData1 },
+      { type: 'call-rate', data: callRateData2 }
+    ]);
+  });
 });

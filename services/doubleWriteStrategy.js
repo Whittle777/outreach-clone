@@ -9,6 +9,7 @@ const config = require('./config');
 const prisma = require('../services/database');
 const AzureAcsCallAutomation = require('../services/azureAcsCallAutomation');
 const TimeBlockConfig = require('../models/TimeBlockConfig'); // Add this line
+const CallRate = require('../models/CallRate'); // Add this line
 
 class DoubleWriteStrategy {
   constructor() {
@@ -176,7 +177,6 @@ class DoubleWriteStrategy {
       logger.log('Azure ACS call initiation successful', prospectData);
     } catch (error) {
       logger.error('Error initiating Azure ACS call', error);
-      throw error;
     }
   }
 
@@ -186,7 +186,6 @@ class DoubleWriteStrategy {
       logger.log('Azure ACS voicemail drop initiation successful', { prospectData, audioFileUrl });
     } catch (error) {
       logger.error('Error initiating Azure ACS voicemail drop', error);
-      throw error;
     }
   }
 
@@ -206,6 +205,61 @@ class DoubleWriteStrategy {
     }
 
     return false;
+  }
+
+  async createCallRate(callRateData) {
+    try {
+      const callRate = await CallRate.create(callRateData);
+      logger.log('Call rate created successfully', callRate);
+      return callRate;
+    } catch (error) {
+      logger.error('Error creating call rate', error);
+      throw error;
+    }
+  }
+
+  async getCallRateById(id) {
+    try {
+      const callRate = await CallRate.findById(id);
+      logger.log('Call rate retrieved successfully', callRate);
+      return callRate;
+    } catch (error) {
+      logger.error('Error retrieving call rate', error);
+      throw error;
+    }
+  }
+
+  async updateCallRate(id, callRateData) {
+    try {
+      const callRate = await CallRate.update(id, callRateData);
+      logger.log('Call rate updated successfully', callRate);
+      return callRate;
+    } catch (error) {
+      logger.error('Error updating call rate', error);
+      throw error;
+    }
+  }
+
+  async deleteCallRate(id) {
+    try {
+      const callRate = await CallRate.delete(id);
+      logger.log('Call rate deleted successfully', callRate);
+      return callRate;
+    } catch (error) {
+      logger.error('Error deleting call rate', error);
+      throw error;
+    }
+  }
+
+  async getAllCallRates() {
+    try {
+      const callRates = await CallRate.getAll();
+      logger.log('All call rates retrieved successfully', callRates);
+      return callRates;
+    } catch (error) {
+      logger.error('Error retrieving all call rates', error);
+      throw error;
+    }
   }
 }
 

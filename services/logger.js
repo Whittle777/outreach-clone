@@ -136,4 +136,19 @@ module.exports = {
   rateLimitHit: (carrier, phoneNumber, count, limit) => {
     logger.warn('Rate limit hit', { carrier, phoneNumber, count, limit });
   },
+  callRateCreated: (callRateData) => {
+    logger.info('Call rate created', { callRateData });
+  },
+  callRateRetrieved: (callRateData) => {
+    logger.info('Call rate retrieved', { callRateData });
+  },
+  callRateUpdated: (callRateData) => {
+    logger.info('Call rate updated', { callRateData });
+  },
+  callRateDeleted: (callRateData) => {
+    logger.info('Call rate deleted', { callRateData });
+  },
+  allCallRatesRetrieved: (callRates) => {
+    logger.info('All call rates retrieved', { callRates });
+  },
 };

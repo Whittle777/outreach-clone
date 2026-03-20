@@ -87,7 +87,6 @@ class MCP {
       logger.azureAcsVoicemailDropInitiated(prospectData, audioFileUrl, onBehalfOf);
     } catch (error) {
       logger.error('Error initiating Azure ACS voicemail drop', error);
-      throw error;
     }
   }
 
@@ -103,7 +102,6 @@ class MCP {
       logger.log('Message sent to Azure Service Bus', message);
     } catch (error) {
       logger.error('Error sending message to Azure Service Bus', error);
-      throw error;
     }
   }
 
@@ -114,6 +112,58 @@ class MCP {
       throw new Error('Carrier rate limit hit');
     }
     await RateLimiter.incrementCarrierRateLimit(carrier, phoneNumber);
+  }
+
+  async createCallRate(callRateData) {
+    try {
+      await doubleWriteStrategy.createCallRate(callRateData);
+      logger.callRateCreated(callRateData);
+    } catch (error) {
+      logger.error('Error creating call rate', error);
+      throw error;
+    }
+  }
+
+  async getCallRateById(id) {
+    try {
+      const callRate = await doubleWriteStrategy.getCallRateById(id);
+      logger.callRateRetrieved(callRate);
+      return callRate;
+    } catch (error) {
+      logger.error('Error retrieving call rate', error);
+      throw error;
+    }
+  }
+
+  async updateCallRate(id, callRateData) {
+    try {
+      await doubleWriteStrategy.updateCallRate(id, callRateData);
+      logger.callRateUpdated(callRateData);
+    } catch (error) {
+      logger.error('Error updating call rate', error);
+      throw error;
+    }
+  }
+
+  async deleteCallRate(id) {
+    try {
+      await doubleWriteStrategy.deleteCallRate(id);
+      logger.callRateDeleted(callRateData);
+    } catch (error) {
+      logger.error('Error deleting call rate', error);
+      throw error;
+    }
+  }
+
+  async getAllCallRates() {
+    try {
+      const callRates = await doubleWriteStrategy.getAllCallRates();
+      logger.allCallRatesRetrieved(callRates);
+      return callRates;
+    } catch (error) {
+      logger.error('Error retrieving all call rates', error);
+      throw error;
+    }
   }
 }
 
