@@ -1,0 +1,19 @@
+.split-pane {
+  display: flex;
+  height: 100vh;
+}
+
+.left-pane {
+  flex: 1;
+  padding: 20px;
+  border-right: 1px solid #ccc;
+}
+
+.right-pane {
+  flex: 1;
+  padding: 20px;
+}
+
+button {
+  margin-top: 10px;
+}
