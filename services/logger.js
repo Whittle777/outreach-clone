@@ -151,4 +151,31 @@ module.exports = {
   allCallRatesRetrieved: (callRates) => {
     logger.info('All call rates retrieved', { callRates });
   },
+  emailSent: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'emailSent', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'emailSent', data: { message, data } });
+  },
+  emailRetry: (message, data) => {
+    logger.warn(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'emailRetry', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'emailRetry', data: { message, data } });
+  },
+  emailFailed: (message, data) => {
+    logger.error(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'emailFailed', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'emailFailed', data: { message, data } });
+  },
 };

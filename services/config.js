@@ -43,6 +43,17 @@ const defaultConfig = {
       limit: process.env.DIALING_LIMIT || 20,
       duration: process.env.DIALING_DURATION || 300
     }
+  },
+  email: {
+    host: process.env.EMAIL_HOST || 'smtp.example.com',
+    port: process.env.EMAIL_PORT || 587,
+    secure: process.env.EMAIL_SECURE === 'true' || false,
+    auth: {
+      user: process.env.EMAIL_USER || 'your-email-user',
+      pass: process.env.EMAIL_PASS || 'your-email-password',
+    },
+    maxRetries: process.env.EMAIL_MAX_RETRIES || 3,
+    backoffTime: process.env.EMAIL_BACKOFF_TIME || 1000, // 1 second
   }
 };
 
