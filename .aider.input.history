@@ -81346,3 +81346,35 @@
 +            Use your repository map to find the correct files to edit. 
 +            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
 +            
+
+# 2026-03-19 17:47:26.168723
++
++            Act as a Senior Tech Lead. We are building the following feature: "Mass Email Sequencing & Deliverability: Personalization Waterfall, Dynamic Generative Copy, Deliverability Gate Dashboard"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 17:47:26.169075
++
++            Act as a Senior Tech Lead. We are building the following feature: "Mass Email Sequencing & Deliverability: Personalization Waterfall, Dynamic Generative Copy, Deliverability Gate Dashboard"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 17:48:42.635691
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-19 17:48:42.635987
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
