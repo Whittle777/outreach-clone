@@ -8,6 +8,7 @@ const VoiceAgentDashboard = require('./voiceAgentDashboard');
 const ConfidenceScoreRoutingService = require('../services/confidenceScoreRoutingService');
 const logger = require('../services/logger');
 const KnowledgeGraphService = require('../services/knowledgeGraphService');
+const NaturalLanguageGuardrails = require('../services/naturalLanguageGuardrails');
 
 class VoiceAgentIntegration {
   constructor(apiKey, apiUrl) {
@@ -19,6 +20,7 @@ class VoiceAgentIntegration {
     this.dashboard = new VoiceAgentDashboard(apiUrl, apiKey);
     this.confidenceScoreRoutingService = new ConfidenceScoreRoutingService();
     this.knowledgeGraphService = new KnowledgeGraphService(apiKey, apiUrl);
+    this.naturalLanguageGuardrails = new NaturalLanguageGuardrails();
   }
 
   async createCall(prospectId, phoneNumber, script, country) {
@@ -27,6 +29,8 @@ class VoiceAgentIntegration {
       if (await voiceCallLimiter.isRateLimited(key)) {
         throw new Error('Rate limit exceeded');
       }
+
+      this.naturalLanguageGuardrails.enforcePolicyDirectives(script);
 
       const response = await axios.post(`${this.apiUrl}/calls`, {
         prospectId,
