@@ -94,6 +94,15 @@ class VoiceAgent {
       logger.error('RabbitMQ is not initialized');
     }
   }
+
+  async updateCallStatus(callData) {
+    if (this.rabbitmqService) {
+      await this.rabbitmqService.updateCallStatus(callData);
+      logger.callStatusUpdate(callData);
+    } else {
+      logger.error('RabbitMQ is not initialized');
+    }
+  }
 }
 
 module.exports = VoiceAgent;

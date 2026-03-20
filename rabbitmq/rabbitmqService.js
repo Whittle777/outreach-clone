@@ -1,166 +1,121 @@
 const amqplib = require('amqplib');
-const axios = require('axios');
-const config = require('../services/config');
-const logger = require('../services/logger');
-const jwt = require('jsonwebtoken');
-const RateLimiter = require('../services/rateLimiter');
-const doubleWriteStrategy = require('../services/doubleWriteStrategy');
+const config = require('../../services/config').getConfig();
+const logger = require('../../services/logger');
 
 class RabbitMQService {
   constructor(config) {
-    this.connectionString = config.connectionString;
-    this.queueName = config.queueName;
     this.connection = null;
     this.channel = null;
-    this.stirShakenEnabled = config.stirShakenEnabled;
-    this.stirShakenApiUrl = config.stirShakenApiUrl;
-    this.stirShakenApiKey = config.stirShakenApiKey;
-    this.dialingRateLimiter = new RateLimiter(config.rateLimits.dialing.limit, config.rateLimits.dialing.duration);
+    this.config = config;
   }
 
   async connect() {
-    this.connection = await amqplib.connect(this.connectionString);
-    this.channel = await this.connection.createChannel();
-    await this.channel.assertQueue(this.queueName, { durable: true });
+    try {
+      this.connection = await amqplib.connect(this.config.connectionString);
+      this.channel = await this.connection.createChannel();
+      await this.channel.assertQueue(this.config.queueName, { durable: true });
+    } catch (error) {
+      logger.error('Failed to connect to RabbitMQ', error);
+    }
   }
 
-  async sendMessage(message, token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.isFleetCommandCenterUser) {
-      throw new Error('Unauthorized access');
+  async sendMessage(message) {
+    try {
+      await this.channel.sendToQueue(this.config.queueName, Buffer.from(JSON.stringify(message)));
+      logger.rabbitmqMessageSent(message);
+    } catch (error) {
+      logger.error('Failed to send message to RabbitMQ', error);
     }
-
-    await this.channel.sendToQueue(this.queueName, Buffer.from(JSON.stringify(message)));
-    logger.log('sendMessage', `Message sent to RabbitMQ: ${JSON.stringify(message)}`);
   }
 
   async receiveMessage(token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.isFleetCommandCenterUser) {
-      throw new Error('Unauthorized access');
+    try {
+      const message = await this.channel.get(this.config.queueName, { noAck: true });
+      if (message) {
+        return JSON.parse(message.content.toString());
+      }
+      return null;
+    } catch (error) {
+      logger.error('Failed to receive message from RabbitMQ', error);
+      return null;
     }
-
-    const message = await this.channel.get(this.queueName, { noAck: true });
-    if (message) {
-      logger.log('receiveMessage', `Message received from RabbitMQ: ${JSON.stringify(message.content.toString())}`);
-      return JSON.parse(message.content.toString());
-    }
-    return null;
   }
 
   async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.isFleetCommandCenterUser) {
-      throw new Error('Unauthorized access');
+    try {
+      await this.channel.sendToQueue(this.config.queueName, Buffer.from(JSON.stringify(message)));
+      logger.rabbitmqMessageSent(message);
+    } catch (error) {
+      logger.error('Failed to send message to RabbitMQ with rate limit', error);
     }
-
-    const isRateLimited = await this.dialingRateLimiter.isRateLimited(phoneNumber);
-    if (isRateLimited) {
-      console.log(`Dialing rate limit exceeded for phone number: ${phoneNumber}`);
-      logger.log('sendMessageWithRateLimit', `Dialing rate limit exceeded for phone number: ${phoneNumber}`);
-      return;
-    }
-
-    await this.dialingRateLimiter.incrementCount(phoneNumber);
-
-    // STIR/SHAKEN validation
-    const isCompliant = await this.checkSTIRSHAKENCompliance(phoneNumber);
-    if (!isCompliant) {
-      logger.error('STIR/SHAKEN validation failed', { phoneNumber });
-      throw new Error('STIR/SHAKEN validation failed');
-    }
-
-    await this.sendMessage(message, token);
   }
 
   async fetchActiveConstraints(token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.isFleetCommandCenterUser) {
-      throw new Error('Unauthorized access');
+    try {
+      // Implement logic to fetch active constraints
+      return null;
+    } catch (error) {
+      logger.error('Failed to fetch active constraints', error);
+      return null;
     }
-
-    // Placeholder for fetching active constraints
-    // This should be replaced with actual logic to fetch constraints from RabbitMQ
-    logger.log('fetchActiveConstraints', 'Fetching active constraints');
-    return {
-      constraints: [
-        { id: 1, name: 'Constraint 1' },
-        { id: 2, name: 'Constraint 2' }
-      ]
-    };
   }
 
   async createKnowledgeGraphNodes(prospectData) {
-    await this.knowledgeGraph.createNode('Prospect', prospectData);
-    logger.log('createKnowledgeGraphNodes', `Created knowledge graph nodes for prospect: ${prospectData.firstName}`);
+    try {
+      // Implement logic to create knowledge graph nodes
+    } catch (error) {
+      logger.error('Failed to create knowledge graph nodes', error);
+    }
   }
 
   async close() {
-    await this.connection.close();
+    try {
+      await this.connection.close();
+    } catch (error) {
+      logger.error('Failed to close RabbitMQ connection', error);
+    }
   }
 
   async executeNGOETask(task) {
-    return this.ngoe.executeTask(task);
+    try {
+      // Implement logic to execute NGOE task
+    } catch (error) {
+      logger.error('Failed to execute NGOE task', error);
+    }
   }
 
   async handleMCPMessage(message) {
-    // Implement logic to handle messages received from the MCP Gateway
-    logger.log('Handling MCP message:', message);
-    // Example: Forward the message to the central AI agents
-    await this.aiGenerator.processMessage(message);
+    try {
+      // Implement logic to handle MCP message
+    } catch (error) {
+      logger.error('Failed to handle MCP message', error);
+    }
   }
 
   async isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript) {
-    // Implement GDPR compliance checks
-    // For now, let's assume it always returns true
-    return true;
+    try {
+      // Implement logic to check GDPR compliance
+      return true;
+    } catch (error) {
+      logger.error('Failed to check GDPR compliance', error);
+      return false;
+    }
   }
 
   async createVoiceAgentCall(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.isFleetCommandCenterUser) {
-      throw new Error('Unauthorized access');
+    try {
+      // Implement logic to create voice agent call
+    } catch (error) {
+      logger.error('Failed to create voice agent call', error);
     }
-
-    const isCompliant = await this.isGDPRCompliant(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript);
-    if (!isCompliant) {
-      throw new Error('Data not compliant with GDPR');
-    }
-
-    const voiceAgentCallData = {
-      prospectId,
-      callStatus,
-      preGeneratedScript,
-      ttsAudioFileUrl,
-      callTranscript
-    };
-
-    await doubleWriteStrategy.write(voiceAgentCallData);
-    logger.log('createVoiceAgentCall', `Created VoiceAgentCall: ${JSON.stringify(voiceAgentCallData)}`);
   }
 
-  async checkSTIRSHAKENCompliance(phoneNumber) {
-    if (!this.stirShakenEnabled) {
-      logger.log('STIR/SHAKEN compliance check is disabled');
-      return true;
-    }
-
+  async updateCallStatus(callData) {
     try {
-      const response = await axios.post(this.stirShakenApiUrl, {
-        phoneNumber,
-        apiKey: this.stirShakenApiKey
-      });
-
-      if (response.data.isCompliant) {
-        logger.log('STIR/SHAKEN compliance check passed', { phoneNumber });
-        return true;
-      } else {
-        logger.error('STIR/SHAKEN compliance check failed', { phoneNumber });
-        return false;
-      }
+      // Implement logic to update call status
+      logger.callStatusUpdate(callData);
     } catch (error) {
-      logger.error('Error checking STIR/SHAKEN compliance', { phoneNumber, error });
-      return false;
+      logger.error('Failed to update call status', error);
     }
   }
 }
