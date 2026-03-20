@@ -19,7 +19,7 @@ class DoubleWriteStrategy {
   constructor() {
     this.legacyDatastore = null;
     this.newDatastore = null;
-    this.backupPath = path.join(__dirname, 'backup.json');
+    this.backupPath = config.getConfig().rollbackPlan.backupPath;
     this.audioStorage = new AudioStorage();
     this.config = config.getConfig();
     this.azureAcsCallAutomation = new AzureAcsCallAutomation();
@@ -227,7 +227,6 @@ class DoubleWriteStrategy {
       return callRate;
     } catch (error) {
       logger.error('Error retrieving call rate', error);
-      throw error;
     }
   }
 
@@ -238,7 +237,6 @@ class DoubleWriteStrategy {
       return callRate;
     } catch (error) {
       logger.error('Error updating call rate', error);
-      throw error;
     }
   }
 
@@ -249,7 +247,6 @@ class DoubleWriteStrategy {
       return callRate;
     } catch (error) {
       logger.error('Error deleting call rate', error);
-      throw error;
     }
   }
 
@@ -260,7 +257,6 @@ class DoubleWriteStrategy {
       return callRates;
     } catch (error) {
       logger.error('Error retrieving all call rates', error);
-      throw error;
     }
   }
 
@@ -271,7 +267,6 @@ class DoubleWriteStrategy {
       return bounceEvent;
     } catch (error) {
       logger.error('Error creating bounce event', error);
-      throw error;
     }
   }
 
@@ -282,7 +277,6 @@ class DoubleWriteStrategy {
       return unsubscribeEvent;
     } catch (error) {
       logger.error('Error creating unsubscribe event', error);
-      throw error;
     }
   }
 
@@ -293,7 +287,6 @@ class DoubleWriteStrategy {
       return transcript;
     } catch (error) {
       logger.error('Error creating transcript', error);
-      throw error;
     }
   }
 
@@ -304,7 +297,6 @@ class DoubleWriteStrategy {
       return sentimentAnalysis;
     } catch (error) {
       logger.error('Error creating sentiment analysis', error);
-      throw error;
     }
   }
 

@@ -62,7 +62,7 @@ describe('DoubleWriteStrategy', function() {
     const sampleData = [{ id: 1, name: 'Test1' }, { id: 2, name: 'Test2' }];
     await legacyDatastore.writeAll(sampleData);
     await doubleWriteStrategy.backup();
-    const backupPath = path.join(__dirname, '../services/backup.json');
+    const backupPath = path.join(__dirname, '../services/rollback_backup.json');
     const backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
     assert.deepStrictEqual(backupData, sampleData);
   });
@@ -189,7 +189,7 @@ describe('DoubleWriteStrategy', function() {
       assert.strictEqual(error, backupError);
     }
 
-    const backupPath = path.join(__dirname, '../services/backup.json');
+    const backupPath = path.join(__dirname, '../services/rollback_backup.json');
     assert.strictEqual(fs.existsSync(backupPath), false);
   });
 
@@ -205,7 +205,7 @@ describe('DoubleWriteStrategy', function() {
       assert.strictEqual(error, rollbackError);
     }
 
-    const backupPath = path.join(__dirname, '../services/backup.json');
+    const backupPath = path.join(__dirname, '../services/rollback_backup.json');
     assert.strictEqual(fs.existsSync(backupPath), false);
   });
 

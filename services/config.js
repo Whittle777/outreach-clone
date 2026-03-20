@@ -99,6 +99,10 @@ const defaultConfig = {
     // Implement new datastore configuration here
   },
   consistencyCheckInterval: process.env.CONSISTENCY_CHECK_INTERVAL || '0 * * * *', // Default to every hour
+  rollbackPlan: {
+    enabled: process.env.ROLLBACK_PLAN_ENABLED === 'true' || false,
+    backupPath: process.env.ROLLBACK_BACKUP_PATH || path.join(__dirname, 'rollback_backup.json')
+  }
 };
 
 module.exports = {
