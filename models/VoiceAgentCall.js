@@ -1,6 +1,4 @@
-// models/VoiceAgentCall.js
-
-const prisma = require('../prismaClient');
+const prisma = require('../services/database');
 const VoiceAgentIntegration = require('../services/voiceAgentIntegration');
 
 class VoiceAgentCall {

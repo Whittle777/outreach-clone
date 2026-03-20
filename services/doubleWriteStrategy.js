@@ -6,6 +6,7 @@ const { ServiceBusClient } = require('@azure/service-bus');
 const AWS = require('aws-sdk');
 const amqplib = require('amqplib');
 const config = require('./config');
+const prisma = require('../services/database');
 
 class DoubleWriteStrategy {
   constructor() {
