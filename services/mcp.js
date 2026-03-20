@@ -8,6 +8,7 @@ const RateLimiter = require('../services/rateLimiter');
 const config = require('../services/config').getConfig();
 const temporalStateManager = require('../services/temporalStateManager');
 const naturalLanguageGuardrails = require('../services/naturalLanguageGuardrails');
+const slackIntegration = require('../services/slackIntegration');
 
 class MCP {
   constructor() {
@@ -197,6 +198,31 @@ class MCP {
     } catch (error) {
       logger.error('Error enforcing Natural Language Guardrails', error);
       throw error;
+    }
+  }
+
+  async sendApprovalNotification(message, channel) {
+    if (channel === 'slack') {
+      await slackIntegration.sendNotification(message);
+    } else if (channel === 'msteams') {
+      await this.sendMicrosoftTeamsNotification(message);
+    }
+  }
+
+  async sendMicrosoftTeamsNotification(message) {
+    const webhookUrl = process.env.MSTEAMS_WEBHOOK_URL;
+    if (!webhookUrl) {
+      console.error('Microsoft Teams webhook URL is not configured');
+      return;
+    }
+
+    try {
+      await axios.post(webhookUrl, {
+        text: message,
+      });
+      console.log('Microsoft Teams notification sent successfully');
+    } catch (error) {
+      console.error('Failed to send Microsoft Teams notification:', error);
     }
   }
 }
