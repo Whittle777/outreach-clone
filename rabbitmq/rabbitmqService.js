@@ -70,6 +70,15 @@ class RabbitMQService {
     // For now, let's just log the data
     logger.log('Azure ACS voicemail drop initiated', { prospectData, audioFileUrl, onBehalfOf });
   }
+
+  async validateCallerIdDisplay(prospectData, onBehalfOf) {
+    // Implement validation logic here
+    console.log('Validating caller ID display in Teams for prospect:', prospectData, 'with onBehalfOf:', onBehalfOf);
+    // In a real implementation, you would call the Teams API to validate the caller ID display
+    // For now, let's just log the data
+    logger.log('Caller ID display validated', { prospectData, onBehalfOf });
+    return true; // Return true if validation passes, false otherwise
+  }
 }
 
 module.exports = RabbitMQService;

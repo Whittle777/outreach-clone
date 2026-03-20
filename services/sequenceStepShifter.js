@@ -25,7 +25,13 @@ class SequenceStepShifter {
               const audioFileUrl = step.getAudioFileUrl();
               const onBehalfOf = step.getOnBehalfOf(); // Add this line
 
-              await this.rabbitmqService.initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl, onBehalfOf);
+              // Validate caller ID display in Teams
+              const isCallerIdValid = await this.rabbitmqService.validateCallerIdDisplay(prospectData, onBehalfOf);
+              if (isCallerIdValid) {
+                await this.rabbitmqService.initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl, onBehalfOf);
+              } else {
+                logger.error('Caller ID display validation failed', { prospectData, onBehalfOf });
+              }
             }
           }
         }
