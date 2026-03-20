@@ -14,10 +14,17 @@ class MCPGateway {
           'Content-Type': 'application/json'
         }
       });
-      return { success: true, message: 'Data sent successfully', data: response.data };
+      return {
+        success: true,
+        message: 'Data sent successfully',
+        data: response.data
+      };
     } catch (error) {
-      console.error('Error sending data to MCP Gateway:', error);
-      return { success: false, message: 'Failed to send data', error: error.message };
+      return {
+        success: false,
+        message: 'Failed to send data',
+        error: error.message
+      };
     }
   }
 
@@ -29,10 +36,16 @@ class MCPGateway {
           'Content-Type': 'application/json'
         }
       });
-      return { success: true, data: response.data };
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
-      console.error('Error receiving data from MCP Gateway:', error);
-      return { success: false, message: 'Failed to receive data', error: error.message };
+      return {
+        success: false,
+        message: 'Failed to receive data',
+        error: error.message
+      };
     }
   }
 }
