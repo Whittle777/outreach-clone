@@ -2,6 +2,7 @@ const logger = require('./logger');
 const fs = require('fs');
 const path = require('path');
 const AudioStorage = require('../services/audioStorage');
+const { ServiceBusClient } = require('@azure/service-bus');
 
 class DoubleWriteStrategy {
   constructor() {
@@ -9,6 +10,10 @@ class DoubleWriteStrategy {
     this.newDatastore = null;
     this.backupPath = path.join(__dirname, 'backup.json');
     this.audioStorage = new AudioStorage();
+    this.serviceBusConnectionString = process.env.SERVICE_BUS_CONNECTION_STRING || 'your-service-bus-connection-string';
+    this.serviceBusQueueName = process.env.SERVICE_BUS_QUEUE_NAME || 'your-service-bus-queue-name';
+    this.serviceBusClient = new ServiceBusClient(this.serviceBusConnectionString);
+    this.serviceBusSender = this.serviceBusClient.createSender(this.serviceBusQueueName);
   }
 
   setLegacyDatastore(datastore) {
@@ -25,6 +30,7 @@ class DoubleWriteStrategy {
       logger.log('Legacy datastore write successful', data);
       await this.newDatastore.write(data);
       logger.log('New datastore write successful', data);
+      await this.sendToServiceBus(data);
       logger.log('Double-write successful');
     } catch (error) {
       logger.error('Double-write failed:', error);
@@ -96,6 +102,17 @@ class DoubleWriteStrategy {
       logger.log('Audio file stored successfully', fileData);
     } catch (error) {
       logger.error('Failed to store audio file', error);
+      throw error;
+    }
+  }
+
+  async sendToServiceBus(data) {
+    try {
+      const message = { body: JSON.stringify(data) };
+      await this.serviceBusSender.sendMessages(message);
+      logger.log('Message sent to Service Bus', message);
+    } catch (error) {
+      logger.error('Failed to send message to Service Bus', error);
       throw error;
     }
   }
