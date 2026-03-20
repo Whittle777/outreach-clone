@@ -4,6 +4,7 @@ const SentimentAnalysisService = require('./sentimentAnalysisService');
 const Transcript = require('../models/transcript');
 const NLPModule = require('./nlpModule');
 const IntentDrivenShortcutsService = require('../services/intentDrivenShortcutsService');
+const VoiceAgentDashboard = require('./voiceAgentDashboard');
 
 class VoiceAgentIntegration {
   constructor(apiKey, apiUrl) {
@@ -12,6 +13,7 @@ class VoiceAgentIntegration {
     this.sentimentAnalysisService = new SentimentAnalysisService();
     this.nlpModule = new NLPModule();
     this.intentDrivenShortcutsService = new IntentDrivenShortcutsService();
+    this.dashboard = new VoiceAgentDashboard(apiUrl, apiKey);
   }
 
   async createCall(prospectId, phoneNumber, script, country) {
@@ -207,6 +209,11 @@ class VoiceAgentIntegration {
     } catch (error) {
       throw new Error(`Failed to fetch pre-call brief for prospect ${prospectId}: ${error.message}`);
     }
+  }
+
+  // New method to fetch dashboard data
+  async fetchDashboardData() {
+    return await this.dashboard.fetchDashboardData();
   }
 }
 
