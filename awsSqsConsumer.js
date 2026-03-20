@@ -6,8 +6,10 @@ const azureAcsService = require('./services/azureAcsService');
 const wss = require('./websocketServer');
 const doubleWriteStrategy = require('./services/doubleWriteStrategy');
 const { voiceCallLimiter, emailLimiter, audioFileLimiter } = require('./services/rateLimiter');
+const MLModelService = require('./services/mlModelService');
 
 const voiceAgentIntegration = new VoiceAgentIntegration('YOUR_API_KEY', 'https://api.azureacs.com');
+const mlModelService = new MLModelService('https://your-ml-model-url.com/predict');
 
 async function consumeMessages(config) {
   const serviceBusClient = new ServiceBusClient(config.connectionString);
@@ -64,6 +66,21 @@ async function consumeMessages(config) {
           const prospect = messageBody.prospect;
           const result = await voiceAgentIntegration.simulateHITLWorkflow(prospect);
           console.log('HITL Workflow Result:', result);
+        } else if (messageBody.type === 'generatePrediction') {
+          key = `generatePrediction:${messageBody.prospectId}`;
+          if (await voiceCallLimiter.isRateLimited(key)) {
+            logger.warn('Rate limit exceeded for generatePrediction', { prospectId: messageBody.prospectId });
+            return;
+          }
+          await voiceCallLimiter.incrementRequestCount(key);
+          const prediction = await mlModelService.generatePrediction(messageBody.data);
+          console.log('Prediction:', prediction);
+          // Broadcast the prediction to WebSocket clients
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({ type: 'prediction', data: prediction }));
+            }
+          });
         } else {
           await processMessage(messageBody);
         }
