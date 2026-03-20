@@ -1,5 +1,3 @@
-// services/doubleWriteStrategy.js
-
 const logger = require('./logger');
 const fs = require('fs');
 const path = require('path');
@@ -66,6 +64,26 @@ class DoubleWriteStrategy {
     } catch (error) {
       logger.error('Migration failed:', error);
       await this.rollback();
+      throw error;
+    }
+  }
+
+  async checkConsistency() {
+    try {
+      const legacyData = await this.legacyDatastore.readAll();
+      const newData = await this.newDatastore.readAll();
+
+      const isConsistent = JSON.stringify(legacyData) === JSON.stringify(newData);
+
+      if (isConsistent) {
+        logger.log('Data consistency check passed');
+      } else {
+        logger.error('Data consistency check failed');
+      }
+
+      return isConsistent;
+    } catch (error) {
+      logger.error('Consistency check failed:', error);
       throw error;
     }
   }

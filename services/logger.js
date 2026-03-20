@@ -74,4 +74,13 @@ module.exports = {
       logger.error('Data consistency check failed');
     }
   },
+  rollback: (message) => {
+    logger.error('Rollback initiated', { message });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'rollback', data: { message } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'rollback', data: { message } });
+  },
 };
