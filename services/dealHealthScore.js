@@ -27,6 +27,17 @@ class DealHealthScoreService {
       throw error;
     }
   }
+
+  static async getTopOpportunities(limit = 10) {
+    try {
+      const topOpportunities = await DealHealthScore.findTopOpportunities(limit);
+      logger.log('Top opportunities retrieved successfully', topOpportunities);
+      return topOpportunities;
+    } catch (error) {
+      logger.error('Error retrieving top opportunities', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = DealHealthScoreService;
