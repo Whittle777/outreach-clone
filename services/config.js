@@ -97,7 +97,8 @@ const defaultConfig = {
   },
   newDatastore: {
     // Implement new datastore configuration here
-  }
+  },
+  consistencyCheckInterval: process.env.CONSISTENCY_CHECK_INTERVAL || '0 * * * *', // Default to every hour
 };
 
 module.exports = {
@@ -113,6 +114,12 @@ module.exports = {
     const sequenceStepShifter = new SequenceStepShifter();
     cron.schedule(config.sequenceStepShifter.cronSchedule, () => {
       sequenceStepShifter.shiftSequenceSteps();
+    });
+
+    // Schedule consistency check
+    cron.schedule(config.consistencyCheckInterval, () => {
+      const doubleWriteStrategy = require('./doubleWriteStrategy');
+      doubleWriteStrategy.checkConsistency();
     });
   },
   initializeMessageBroker: () => {
