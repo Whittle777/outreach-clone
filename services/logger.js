@@ -126,4 +126,11 @@ module.exports = {
       logger.error('Time is outside approved blocks');
     }
   },
+  stirShakenValidation: (phoneNumber, isCompliant) => {
+    if (isCompliant) {
+      logger.info('STIR/SHAKEN validation passed', { phoneNumber });
+    } else {
+      logger.error('STIR/SHAKEN validation failed', { phoneNumber });
+    }
+  },
 };

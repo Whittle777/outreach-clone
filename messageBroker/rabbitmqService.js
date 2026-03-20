@@ -2,6 +2,9 @@ const amqplib = require('amqplib');
 const axios = require('axios');
 const config = require('../services/config');
 const logger = require('../services/logger');
+const jwt = require('jsonwebtoken');
+const RateLimiter = require('../services/rateLimiter');
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 class RabbitMQService {
   constructor(config) {
@@ -62,6 +65,14 @@ class RabbitMQService {
     }
 
     await rateLimiter.incrementRequestCount(key);
+
+    // STIR/SHAKEN validation
+    const isCompliant = await this.checkSTIRSHAKENCompliance(phoneNumber);
+    if (!isCompliant) {
+      logger.error('STIR/SHAKEN validation failed', { phoneNumber });
+      throw new Error('STIR/SHAKEN validation failed');
+    }
+
     await this.sendMessage(message, token);
   }
 
