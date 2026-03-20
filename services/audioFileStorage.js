@@ -31,7 +31,16 @@ async function getAudioFileUrl(fileName) {
   return `https://${bucketName}.s3.amazonaws.com/${fileName}`;
 }
 
+async function deleteAudioFile(fileName) {
+  const params = {
+    Bucket: bucketName,
+    Key: fileName,
+  };
+  await s3.deleteObject(params).promise();
+}
+
 module.exports = {
   uploadAudioFile,
   getAudioFileUrl,
+  deleteAudioFile,
 };
