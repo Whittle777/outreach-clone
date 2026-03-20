@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips, filterProspects } = require('../controllers/prospectsController');
+const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips, filterProspects, getTopOpportunities } = require('../controllers/prospectsController');
 
 router.get('/', async (req, res) => {
   try {
@@ -72,6 +72,19 @@ router.get('/filter', async (req, res) => {
     const filters = req.query;
     const prospects = await filterProspects(filters);
     res.json(prospects);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// New endpoint to fetch top opportunities
+router.get('/top-opportunities', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const sortBy = req.query.sortBy || 'dealHealthScore';
+    const sortOrder = req.query.sortOrder || 'desc';
+    const topOpportunities = await getTopOpportunities(limit, sortBy, sortOrder);
+    res.json(topOpportunities);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

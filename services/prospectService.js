@@ -61,6 +61,17 @@ class ProspectService {
   static async getKnowledgeGraph() {
     return dynamicKnowledgeGraphs.getGraph();
   }
+
+  static async getTopOpportunities(limit = 10, sortBy = 'dealHealthScore', sortOrder = 'desc') {
+    const orderByClause = {
+      [sortBy]: sortOrder,
+    };
+
+    return await prisma.prospect.findMany({
+      orderBy: orderByClause,
+      take: limit,
+    });
+  }
 }
 
 module.exports = ProspectService;
