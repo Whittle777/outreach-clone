@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const MessageBroker = require('./messageBroker');
 const config = require('./config/settings');
 const logger = require('./services/logger');
+const conversationalFilteringRoutes = require('./routes/conversationalFiltering');
 
 const app = express();
 app.use(bodyParser.json());
@@ -120,6 +121,9 @@ app.post('/api/handle-voicemail-drop', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+// Add Conversational Filtering System routes
+app.use('/api/conversational-filtering', conversationalFilteringRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
