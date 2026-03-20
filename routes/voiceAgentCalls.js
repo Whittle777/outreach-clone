@@ -5,5 +5,8 @@ const voiceAgentCallsController = require('../controllers/voiceAgentCalls');
 router.post('/', voiceAgentCallsController.create);
 router.get('/', voiceAgentCallsController.getAll);
 router.get('/filter-chips', voiceAgentCallsController.getFilterChips);
+router.get('/:id', voiceAgentCallsController.getOne);
+router.put('/:id', voiceAgentCallsController.update);
+router.delete('/:id', voiceAgentCallsController.delete);
 
 module.exports = router;
