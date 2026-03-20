@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips, filterProspects, getTopOpportunities } = require('../controllers/prospectsController');
+const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips, filterProspects, getTopOpportunities, recordWin, recordLoss } = require('../controllers/prospectsController');
 
 router.get('/', async (req, res) => {
   try {
@@ -85,6 +85,32 @@ router.get('/top-opportunities', async (req, res) => {
     const sortOrder = req.query.sortOrder || 'desc';
     const topOpportunities = await getTopOpportunities(limit, sortBy, sortOrder);
     res.json(topOpportunities);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// New endpoint to record a win outcome
+router.post('/:id/win', async (req, res) => {
+  try {
+    const prospect = await recordWin(req.params.id);
+    if (prospect == null) {
+      return res.status(404).json({ message: 'Cannot find prospect' });
+    }
+    res.json(prospect);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// New endpoint to record a loss outcome
+router.post('/:id/loss', async (req, res) => {
+  try {
+    const prospect = await recordLoss(req.params.id);
+    if (prospect == null) {
+      return res.status(404).json({ message: 'Cannot find prospect' });
+    }
+    res.json(prospect);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

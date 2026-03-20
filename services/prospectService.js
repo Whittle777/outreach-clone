@@ -72,6 +72,22 @@ class ProspectService {
       take: limit,
     });
   }
+
+  static async recordWin(id) {
+    const updatedProspect = await prisma.prospect.update({
+      where: { id: parseInt(id) },
+      data: { outcome: 'win' },
+    });
+    return updatedProspect;
+  }
+
+  static async recordLoss(id) {
+    const updatedProspect = await prisma.prospect.update({
+      where: { id: parseInt(id) },
+      data: { outcome: 'loss' },
+    });
+    return updatedProspect;
+  }
 }
 
 module.exports = ProspectService;
