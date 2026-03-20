@@ -1,9 +1,11 @@
 const config = require('./config').getConfig();
 const logger = require('./logger');
+const AICallGoals = require('./aiCallGoals');
 
 class PreCallBriefDashboard {
   constructor() {
     this.enabled = config.preCallBriefDashboard.enabled;
+    this.aiCallGoals = new AICallGoals();
   }
 
   async generatePreCallBrief(prospectId) {
@@ -14,7 +16,7 @@ class PreCallBriefDashboard {
 
     try {
       const prospect = await this.getProspectById(prospectId);
-      const callGoal = await this.generateCallGoal(prospect);
+      const callGoal = await this.aiCallGoals.generateCallGoal(prospect);
       const talkTrack = await this.generateTalkTrack(prospect);
 
       return {
@@ -32,12 +34,6 @@ class PreCallBriefDashboard {
     // Implement logic to fetch prospect data from the database
     // For example, using Prisma:
     // return await prisma.prospect.findUnique({ where: { id: parseInt(prospectId) } });
-  }
-
-  async generateCallGoal(prospect) {
-    // Implement logic to generate a call goal based on prospect data
-    // For example, using NLP or other AI-driven methods:
-    // return 'Discuss the latest product features with the prospect';
   }
 
   async generateTalkTrack(prospect) {
