@@ -45,6 +45,24 @@ class MCP {
       logger.log('Low confidence, workflow halted with supervisor notifications', data);
     }
   }
+
+  async sendToCentralAI(data) {
+    const encryptedData = this.encrypt(JSON.stringify(data));
+    const signature = this.sign(encryptedData);
+
+    // Simulate sending the data to the central AI agent
+    console.log('Sending data to central AI agent:', encryptedData, signature);
+    // In a real implementation, you would send this to the central AI agent via a network call
+
+    // For now, let's just log the data
+    logger.log('Data sent to central AI agent', { encryptedData, signature });
+  }
+
+  sign(data) {
+    return crypto.createHmac('sha256', this.secretKey)
+      .update(data)
+      .digest('hex');
+  }
 }
 
 module.exports = MCP;

@@ -19,6 +19,9 @@ class AIAgent {
 
     // Update task status to SENT
     await taskQueue.updateTask(task.id, 'SENT');
+
+    // Send the task to the central AI agent
+    await this.mcp.sendToCentralAI(task);
   }
 
   async receiveResult(encryptedResult, signature) {
@@ -62,6 +65,13 @@ class AIAgent {
     // Simulate sending the result back to the AI agent
     console.log('Sending result back to AI agent:', encryptedResult, signature);
     // In a real implementation, you would send this back to the AI agent via a network call
+  }
+
+  verify(encryptedData, signature) {
+    const calculatedSignature = crypto.createHmac('sha256', this.mcp.secretKey)
+      .update(encryptedData)
+      .digest('hex');
+    return calculatedSignature === signature;
   }
 }
 
