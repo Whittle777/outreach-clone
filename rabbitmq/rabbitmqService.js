@@ -15,7 +15,7 @@ class RabbitMQService {
     this.stirShakenEnabled = config.stirShakenEnabled;
     this.stirShakenApiUrl = config.stirShakenApiUrl;
     this.stirShakenApiKey = config.stirShakenApiKey;
-    this.dialingRateLimiter = RateLimiter.dialingRateLimiter;
+    this.dialingRateLimiter = new RateLimiter(config.rateLimits.dialing.limit, config.rateLimits.dialing.duration);
   }
 
   async connect() {
@@ -54,14 +54,14 @@ class RabbitMQService {
       throw new Error('Unauthorized access');
     }
 
-    const isRateLimited = await this.dialingRateLimiter.isDialingRateLimited(phoneNumber);
+    const isRateLimited = await this.dialingRateLimiter.isRateLimited(phoneNumber);
     if (isRateLimited) {
       console.log(`Dialing rate limit exceeded for phone number: ${phoneNumber}`);
       logger.log('sendMessageWithRateLimit', `Dialing rate limit exceeded for phone number: ${phoneNumber}`);
       return;
     }
 
-    await this.dialingRateLimiter.incrementDialingCount(phoneNumber);
+    await this.dialingRateLimiter.incrementCount(phoneNumber);
 
     // STIR/SHAKEN validation
     const isCompliant = await this.checkSTIRSHAKENCompliance(phoneNumber);
