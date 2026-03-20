@@ -77,6 +77,15 @@ class AzureAcs {
       throw new Error(`Failed to fetch active constraints: ${error.message}`);
     }
   }
+
+  async fetchPreCallBrief(prospectId) {
+    try {
+      const response = await axios.get(`${this.baseURL}/prospects/${prospectId}/pre-call-brief`, { headers: this.headers });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch pre-call brief for prospect ${prospectId}: ${error.message}`);
+    }
+  }
 }
 
 module.exports = AzureAcs;

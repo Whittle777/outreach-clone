@@ -109,6 +109,21 @@ const fetchActiveConstraints = async () => {
   }
 };
 
+const fetchPreCallBrief = async (prospectId) => {
+  try {
+    const azureAcs = new AzureAcs({
+      connectionString: azureAcsUrl,
+      accessToken: azureAcsKey
+    });
+
+    const response = await azureAcs.fetchPreCallBrief(prospectId);
+    return response.data;
+  } catch (error) {
+    logger.error(`Error fetching pre-call brief for prospect ${prospectId}: ${error.message}`);
+    throw error;
+  }
+};
+
 module.exports = {
   createCall,
   handleVoicemailDrop,
@@ -117,4 +132,5 @@ module.exports = {
   updateCallFlags,
   getCallFlags,
   fetchActiveConstraints,
+  fetchPreCallBrief,
 };

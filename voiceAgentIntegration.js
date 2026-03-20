@@ -192,6 +192,22 @@ class VoiceAgentIntegration {
       throw new Error(`Failed to fetch prospect information: ${error.message}`);
     }
   }
+
+  // New method to fetch pre-call brief content
+  async fetchPreCallBrief(prospectId) {
+    try {
+      const response = await axios.get(`${this.apiUrl}/prospects/${prospectId}/pre-call-brief`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch pre-call brief for prospect ${prospectId}: ${error.message}`);
+    }
+  }
 }
 
 module.exports = VoiceAgentIntegration;
