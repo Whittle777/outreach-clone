@@ -81730,3 +81730,35 @@
 +            Use your repository map to find the correct files to edit. 
 +            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
 +            
+
+# 2026-03-19 19:05:58.439914
++
++            Act as a Senior Tech Lead. We are building the following feature: "System Resilience & Transparency: Temporal State Management, Real-Time Reasoning Logs, Dynamic Knowledge Graphs, Natural Language Guardrails"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 19:05:58.440067
++
++            Act as a Senior Tech Lead. We are building the following feature: "System Resilience & Transparency: Temporal State Management, Real-Time Reasoning Logs, Dynamic Knowledge Graphs, Natural Language Guardrails"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 19:07:16.408363
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-19 19:07:16.408495
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            

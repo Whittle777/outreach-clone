@@ -1,92 +1,34 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../prismaClient');
 
-async function createProspect(firstName, lastName, email, companyName, status, bento, dmarcPolicy = 'none', trackingPixelData = null, country = null, region = null) {
-  const shard = getShard(bento);
-  return await prisma[shard].prospect.create({
-    data: {
-      firstName,
-      lastName,
-      email,
-      companyName,
-      status,
-      bento,
-      dmarcPolicy,
-      trackingPixelData,
-      callHistory: [], // Initialize call history as an empty array
-      country,
-      region,
-    },
-  });
+class Prospect {
+  static async create(prospectData) {
+    return await prisma.prospect.create({
+      data: prospectData,
+    });
+  }
+
+  static async findById(id) {
+    return await prisma.prospect.findUnique({
+      where: { id: parseInt(id) },
+    });
+  }
+
+  static async findAll() {
+    return await prisma.prospect.findMany();
+  }
+
+  static async update(id, prospectData) {
+    return await prisma.prospect.update({
+      where: { id: parseInt(id) },
+      data: prospectData,
+    });
+  }
+
+  static async delete(id) {
+    return await prisma.prospect.delete({
+      where: { id: parseInt(id) },
+    });
+  }
 }
 
-async function getProspectById(id, bento) {
-  const shard = getShard(bento);
-  return await prisma[shard].prospect.findUnique({
-    where: { id },
-  });
-}
-
-async function getAllProspects(bento) {
-  const shard = getShard(bento);
-  return await prisma[shard].prospect.findMany({
-    where: { bento },
-  });
-}
-
-async function updateProspect(id, { firstName, lastName, email, companyName, status, dmarcPolicy, trackingPixelData, callHistory, country, region }, bento) {
-  const shard = getShard(bento);
-  return await prisma[shard].prospect.update({
-    where: { id },
-    data: { firstName, lastName, email, companyName, status, dmarcPolicy, trackingPixelData, callHistory, country, region },
-  });
-}
-
-async function deleteProspect(id, bento) {
-  const shard = getShard(bento);
-  return await prisma[shard].prospect.delete({
-    where: { id },
-  });
-}
-
-async function getProspectUserId(prospectId, bento) {
-  const shard = getShard(bento);
-  const prospect = await prisma[shard].prospect.findUnique({
-    where: { id: prospectId },
-    include: { user: true },
-  });
-  return prospect ? prospect.userId : null;
-}
-
-async function updateProspectStatus(prospectId, bento, newStatus) {
-  const shard = getShard(bento);
-  return await prisma[shard].prospect.update({
-    where: { id: prospectId },
-    data: { status: newStatus },
-  });
-}
-
-async function markProspectAsFailed(prospectId, bento) {
-  const shard = getShard(bento);
-  return await prisma[shard].prospect.update({
-    where: { id: prospectId },
-    data: { status: 'Failed' },
-  });
-}
-
-function getShard(bento) {
-  // Simple sharding logic based on bento value
-  // For example, you can use a hash function or a modulo operation
-  return `shard_${bento % 3}`;
-}
-
-module.exports = {
-  createProspect,
-  getProspectById,
-  getAllProspects,
-  updateProspect,
-  deleteProspect,
-  getProspectUserId,
-  updateProspectStatus,
-  markProspectAsFailed, // New method to mark prospect as failed
-};
+module.exports = Prospect;

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips } = require('../controllers/prospects'); // Updated import
+const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips } = require('../controllers/prospectsController');
 
 router.get('/', async (req, res) => {
   try {
