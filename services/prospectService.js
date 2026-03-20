@@ -27,6 +27,27 @@ class ProspectService {
       data: { status: 'failed' },
     });
   }
+
+  static async filterProspects(filters) {
+    const { countryRegion, status, tags } = filters;
+    const whereClause = {};
+
+    if (countryRegion) {
+      whereClause.countryRegion = countryRegion;
+    }
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    if (tags && tags.length > 0) {
+      whereClause.tags = { hasSome: tags };
+    }
+
+    return await prisma.prospect.findMany({
+      where: whereClause,
+    });
+  }
 }
 
 module.exports = ProspectService;

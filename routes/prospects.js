@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips } = require('../controllers/prospectsController');
+const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips, filterProspects } = require('../controllers/prospectsController');
 
 router.get('/', async (req, res) => {
   try {
@@ -61,6 +61,17 @@ router.get('/filter-chips', async (req, res) => {
   try {
     const filterChips = await getFilterChips();
     res.json(filterChips);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// New endpoint to filter prospects based on constraints
+router.get('/filter', async (req, res) => {
+  try {
+    const filters = req.query;
+    const prospects = await filterProspects(filters);
+    res.json(prospects);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
