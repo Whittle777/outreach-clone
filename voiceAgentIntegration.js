@@ -215,6 +215,22 @@ class VoiceAgentIntegration {
   async fetchDashboardData() {
     return await this.dashboard.fetchDashboardData();
   }
+
+  // New method to fetch call status
+  async fetchCallStatus(callId) {
+    try {
+      const response = await axios.get(`${this.apiUrl}/calls/${callId}/status`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data.status;
+    } catch (error) {
+      throw new Error(`Failed to fetch call status: ${error.message}`);
+    }
+  }
 }
 
 module.exports = VoiceAgentIntegration;

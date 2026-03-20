@@ -23,6 +23,8 @@ async function consumeMessages(config) {
           await voiceAgentIntegration.createCall(messageBody.prospectId, messageBody.phoneNumber, messageBody.script, messageBody.country);
         } else if (messageBody.type === 'updateCallFlags') {
           await azureAcsService.updateCallFlags(messageBody.callId, messageBody.flags);
+        } else if (messageBody.type === 'callStatusUpdate') {
+          await voiceAgentIntegration.fetchCallStatus(messageBody.callId);
         } else {
           await processMessage(messageBody);
         }
