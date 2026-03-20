@@ -37,4 +37,8 @@ module.exports = {
     const config = require('./config').getConfig();
     return new AzureServiceBus(config.serviceBusConnectionString, config.serviceBusQueueName);
   },
+  initializeAwsSqs: () => {
+    const config = require('./config').getConfig();
+    return new AwsSqs(config);
+  },
 };
