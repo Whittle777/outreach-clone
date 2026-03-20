@@ -69,24 +69,6 @@ class DoubleWriteStrategy {
       throw error;
     }
   }
-
-  // Method to handle geographic routing based on country/region
-  async routeData(data) {
-    const { country } = data;
-    if (!country) {
-      throw new Error('Country/Region information is required');
-    }
-
-    // Example routing logic: route data to new datastore for specific countries
-    const countriesForNewDatastore = ['US', 'CA', 'GB'];
-    if (countriesForNewDatastore.includes(country)) {
-      await this.newDatastore.write(data);
-      logger.log('Data routed to new datastore', data);
-    } else {
-      await this.legacyDatastore.write(data);
-      logger.log('Data routed to legacy datastore', data);
-    }
-  }
 }
 
 module.exports = new DoubleWriteStrategy();
