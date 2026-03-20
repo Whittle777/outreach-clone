@@ -158,4 +158,100 @@ describe('DoubleWriteStrategy', function() {
       'socialMedia'
     ]);
   });
+
+  it('should handle errors during double-write', async function() {
+    const sampleData = { id: 1, name: 'Test' };
+    const legacyWriteError = new Error('Legacy datastore write failed');
+    const newDatastoreWriteError = new Error('New datastore write failed');
+
+    legacyDatastore.write = async () => { throw legacyWriteError; };
+    newDatastore.write = async () => { throw newDatastoreWriteError; };
+
+    try {
+      await doubleWriteStrategy.write(sampleData);
+    } catch (error) {
+      assert.strictEqual(error, newDatastoreWriteError);
+    }
+
+    assert.deepStrictEqual(legacyDatastore.data, []);
+    assert.deepStrictEqual(newDatastore.data, []);
+  });
+
+  it('should handle errors during backup', async function() {
+    const sampleData = [{ id: 1, name: 'Test1' }, { id: 2, name: 'Test2' }];
+    const backupError = new Error('Backup failed');
+
+    fs.writeFileSync = () => { throw backupError; };
+
+    try {
+      await doubleWriteStrategy.backup();
+    } catch (error) {
+      assert.strictEqual(error, backupError);
+    }
+
+    const backupPath = path.join(__dirname, '../services/backup.json');
+    assert.strictEqual(fs.existsSync(backupPath), false);
+  });
+
+  it('should handle errors during rollback', async function() {
+    const sampleData = [{ id: 1, name: 'Test1' }, { id: 2, name: 'Test2' }];
+    const rollbackError = new Error('Rollback failed');
+
+    fs.writeFileSync = () => { throw rollbackError; };
+
+    try {
+      await doubleWriteStrategy.rollback();
+    } catch (error) {
+      assert.strictEqual(error, rollbackError);
+    }
+
+    const backupPath = path.join(__dirname, '../services/backup.json');
+    assert.strictEqual(fs.existsSync(backupPath), false);
+  });
+
+  it('should handle errors during migration', async function() {
+    const sampleData = [{ id: 1, name: 'Test1' }, { id: 2, name: 'Test2' }];
+    const migrationError = new Error('Migration failed');
+
+    newDatastore.migrateFrom = async () => { throw migrationError; };
+
+    try {
+      await doubleWriteStrategy.simulateMigration();
+    } catch (error) {
+      assert.strictEqual(error, migrationError);
+    }
+
+    assert.deepStrictEqual(newDatastore.data, []);
+  });
+
+  it('should handle errors during audio file storage', async function() {
+    const fileData = {
+      key: 'test-audio-file.wav',
+      body: Buffer.from('audio data'),
+      contentType: 'audio/wav',
+    };
+    const storageError = new Error('Audio file storage failed');
+
+    doubleWriteStrategy.audioStorage.store = async () => { throw storageError; };
+
+    try {
+      await doubleWriteStrategy.storeAudioFile(fileData);
+    } catch (error) {
+      assert.strictEqual(error, storageError);
+    }
+  });
+
+  it('should handle errors during sentiment analysis processing', async function() {
+    const prospectId = 1;
+    const sentimentData = { score: 0.8, label: 'positive' };
+    const processingError = new Error('Sentiment analysis processing failed');
+
+    doubleWriteStrategy.sentimentAnalysis.process = async () => { throw processingError; };
+
+    try {
+      await doubleWriteStrategy.processSentimentAnalysis(prospectId, sentimentData);
+    } catch (error) {
+      assert.strictEqual(error, processingError);
+    }
+  });
 });
