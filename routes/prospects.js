@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect } = require('../controllers/prospects'); // Updated import
+const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips } = require('../controllers/prospects'); // Updated import
 
 router.get('/', async (req, res) => {
   try {
@@ -51,6 +51,16 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Cannot find prospect' });
     }
     res.json({ message: 'Deleted prospect' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// New endpoint to fetch filter chips data
+router.get('/filter-chips', async (req, res) => {
+  try {
+    const filterChips = await getFilterChips();
+    res.json(filterChips);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
