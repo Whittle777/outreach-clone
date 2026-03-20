@@ -1,9 +1,10 @@
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const logger = require('../services/logger');
+const PredictiveSearch = require('../services/predictiveSearch');
 
 class KnowledgeGraph {
   constructor() {
-    // Initialize any necessary properties here
+    this.predictiveSearch = new PredictiveSearch();
   }
 
   async write(data) {
@@ -64,6 +65,17 @@ class KnowledgeGraph {
       return callRates;
     } catch (error) {
       logger.error('Error retrieving all call rates from KnowledgeGraph', error);
+      throw error;
+    }
+  }
+
+  async search(query, options = {}) {
+    try {
+      const results = await this.predictiveSearch.search(query, options);
+      logger.log('Predictive search results', results);
+      return results;
+    } catch (error) {
+      logger.error('Error in predictive search', error);
       throw error;
     }
   }

@@ -55,6 +55,10 @@ const defaultConfig = {
     },
     maxRetries: process.env.EMAIL_MAX_RETRIES || 3,
     backoffTime: process.env.EMAIL_BACKOFF_TIME || 1000, // 1 second
+  },
+  predictiveSearch: {
+    enabled: process.env.PREDICTIVE_SEARCH_ENABLED === 'true' || false,
+    // Add any additional configuration for predictive search here
   }
 };
 
