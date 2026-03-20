@@ -5,6 +5,8 @@ const rateLimiter = require('../services/rateLimiter');
 const Email = require('../models/email'); // Assuming the email model is in models/email.js
 const EmailActivities = require('../models/emailActivities'); // Assuming the emailActivities model is in models/emailActivities.js
 const Prospect = require('../models/Prospect'); // Assuming the Prospect model is in models/Prospect.js
+const BounceEvent = require('../models/bounceEvent'); // Added for bounce event tracking
+const UnsubscribeEvent = require('../models/unsubscribeEvent'); // Added for unsubscribe event tracking
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport(smtpConfig);
@@ -55,6 +57,8 @@ async function sendScheduledEmails() {
           await EmailActivities.updateStatus(prospect.email, 'bounced');
           // Mark the prospect as failed
           await Prospect.markProspectAsFailed(prospect.email, prospect.bento);
+          // Create a bounce event
+          await BounceEvent.create({ email: prospect.email, bento: prospect.bento, timestamp: new Date() });
           break;
         } else {
           console.error(`Error sending email to ${prospect.email}:`, error);
@@ -106,6 +110,8 @@ async function retrySoftBouncedEmails() {
           await EmailActivities.updateStatus(email.to, 'bounced');
           // Mark the prospect as failed
           await Prospect.markProspectAsFailed(email.to, email.bento);
+          // Create a bounce event
+          await BounceEvent.create({ email: email.to, bento: email.bento, timestamp: new Date() });
           break;
         } else {
           console.error(`Error retrying email to ${email.to}:`, error);

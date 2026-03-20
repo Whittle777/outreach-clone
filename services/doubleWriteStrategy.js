@@ -10,6 +10,8 @@ const prisma = require('../services/database');
 const AzureAcsCallAutomation = require('../services/azureAcsCallAutomation');
 const TimeBlockConfig = require('../models/TimeBlockConfig'); // Add this line
 const CallRate = require('../models/CallRate'); // Add this line
+const BounceEvent = require('../models/bounceEvent'); // Added for bounce event tracking
+const UnsubscribeEvent = require('../models/unsubscribeEvent'); // Added for unsubscribe event tracking
 
 class DoubleWriteStrategy {
   constructor() {
@@ -133,7 +135,6 @@ class DoubleWriteStrategy {
       logger.log('Audio file stored successfully', fileData);
     } catch (error) {
       logger.error('Failed to store audio file', error);
-      throw error;
     }
   }
 
@@ -167,7 +168,6 @@ class DoubleWriteStrategy {
       }
     } catch (error) {
       logger.error('Failed to send message', error);
-      throw error;
     }
   }
 
@@ -258,6 +258,28 @@ class DoubleWriteStrategy {
       return callRates;
     } catch (error) {
       logger.error('Error retrieving all call rates', error);
+      throw error;
+    }
+  }
+
+  async createBounceEvent(bounceData) {
+    try {
+      const bounceEvent = await BounceEvent.create(bounceData);
+      logger.log('Bounce event created successfully', bounceEvent);
+      return bounceEvent;
+    } catch (error) {
+      logger.error('Error creating bounce event', error);
+      throw error;
+    }
+  }
+
+  async createUnsubscribeEvent(unsubscribeData) {
+    try {
+      const unsubscribeEvent = await UnsubscribeEvent.create(unsubscribeData);
+      logger.log('Unsubscribe event created successfully', unsubscribeEvent);
+      return unsubscribeEvent;
+    } catch (error) {
+      logger.error('Error creating unsubscribe event', error);
       throw error;
     }
   }
