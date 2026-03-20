@@ -70,6 +70,10 @@ const defaultConfig = {
       'companyWebsite',
       'socialMedia'
     ]
+  },
+  preCallBriefDashboard: {
+    enabled: process.env.PRE_CALL_BRIEF_DASHBOARD_ENABLED === 'true' || false,
+    // Add any additional configuration for pre-call brief dashboard here
   }
 };
 

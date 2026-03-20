@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>30-Second Pre-Call Brief Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .prospect {
+      margin-bottom: 20px;
+    }
+    .call-goal {
+      margin-bottom: 20px;
+    }
+    .talk-track {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>30-Second Pre-Call Brief Dashboard</h1>
+    <div class="prospect">
+      <h2>Prospect</h2>
+      <p><strong>Name:</strong> <%= prospect.firstName %> <%= prospect.lastName %></p>
+      <p><strong>Email:</strong> <%= prospect.email %></p>
+      <p><strong>Company:</strong> <%= prospect.companyName %></p>
+    </div>
+    <div class="call-goal">
+      <h2>Call Goal</h2>
+      <p><%= callGoal %></p>
+    </div>
+    <div class="talk-track">
+      <h2>Talk Track</h2>
+      <ol>
+        <% talkTrack.forEach((line, index) => { %>
+          <li><%= line %></li>
+        <% }); %>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>
