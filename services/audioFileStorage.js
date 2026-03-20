@@ -16,6 +16,7 @@ async function uploadAudioFile(fileName, filePath) {
     Bucket: bucketName,
     Key: fileName,
     Body: fileContent,
+    ContentType: 'audio/mpeg', // Set the correct content type for audio files
   };
   const uploadResult = await s3.upload(params).promise();
   return uploadResult.Location;
