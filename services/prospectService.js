@@ -1,23 +1,28 @@
 const { isValidCountryRegion } = require('../utils/validation');
+const dynamicKnowledgeGraphs = require('../services/dynamicKnowledgeGraphs');
 
 class ProspectService {
   static async create(prospectData) {
     if (!isValidCountryRegion(prospectData.countryRegion)) {
       throw new Error('Invalid country/region');
     }
-    return await prisma.prospect.create({
+    const prospect = await prisma.prospect.create({
       data: prospectData,
     });
+    dynamicKnowledgeGraphs.addNode(prospect);
+    return prospect;
   }
 
   static async update(id, prospectData) {
     if (!isValidCountryRegion(prospectData.countryRegion)) {
       throw new Error('Invalid country/region');
     }
-    return await prisma.prospect.update({
+    const updatedProspect = await prisma.prospect.update({
       where: { id: parseInt(id) },
       data: prospectData,
     });
+    dynamicKnowledgeGraphs.addNode(updatedProspect);
+    return updatedProspect;
   }
 
   static async markProspectAsFailed(email, bento) {
@@ -47,6 +52,14 @@ class ProspectService {
     return await prisma.prospect.findMany({
       where: whereClause,
     });
+  }
+
+  static async addProspectConnection(prospectId, connectedProspectId) {
+    dynamicKnowledgeGraphs.addConnection(prospectId, connectedProspectId);
+  }
+
+  static async getKnowledgeGraph() {
+    return dynamicKnowledgeGraphs.getGraph();
   }
 }
 
