@@ -3,6 +3,7 @@ const SequenceStepShifter = require('./sequenceStepShifter');
 const AzureServiceBus = require('./azureServiceBus');
 const AwsSqs = require('./awsSqs');
 const RabbitMQService = require('./rabbitmq/rabbitmqService');
+const NLP = require('./nlp');
 
 const defaultConfig = {
   messageQueueType: 'rabbitmq', // Default to RabbitMQ
@@ -83,5 +84,9 @@ module.exports = {
       default:
         throw new Error('Invalid message queue type');
     }
+  },
+  initializeNLP: () => {
+    const config = require('./config').getConfig();
+    return new NLP(config);
   },
 };

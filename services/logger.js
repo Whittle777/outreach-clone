@@ -196,4 +196,13 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'callResistanceDetected', data: { callData } });
   },
+  nlpParsedPrompt: (prompt, parsedData) => {
+    logger.info('NLP parsed prompt', { prompt, parsedData });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'nlpParsedPrompt', data: { prompt, parsedData } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'nlpParsedPrompt', data: { prompt, parsedData } });
+  },
 };
