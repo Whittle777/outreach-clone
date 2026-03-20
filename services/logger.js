@@ -58,4 +58,13 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'aiDecision', data: { message, data } });
   },
+  microsoftTeamsNotification: (message) => {
+    logger.info('Microsoft Teams Notification', { message });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'microsoftTeamsNotification', data: { message } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'microsoftTeamsNotification', data: { message } });
+  },
 };
