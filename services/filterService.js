@@ -3,6 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const { isGDPRCompliant } = require('../utils/gdprUtils');
+const FilterChip = require('../components/FilterChip');
 
 router.get('/active-constraints', async (req, res) => {
   const metadata = req.query.metadata;

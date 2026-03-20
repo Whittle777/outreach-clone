@@ -115,7 +115,7 @@ Master list of all planned features.
 - [x] Visual flags for calls hitting resistance or regulatory edge cases
 - [x] Conversational Filtering System: Dynamic UI generation based on user text prompts
 - [x] Intent-driven shortcuts and predictive search
-- [ ] Visual filter chips for active constraints
+- [x] Visual filter chips for active constraints
 - [ ] Mass Email Sequencing & Deliverability: Personalization Waterfall, Dynamic Generative Copy, Deliverability Gate Dashboard
 - [ ] Prospect Calling & Voice Agents: 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks
 - [ ] Autonomous Voice Agent Fleet Command for real-time monitoring
