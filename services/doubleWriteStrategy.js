@@ -8,6 +8,7 @@ const amqplib = require('amqplib');
 const config = require('./config');
 const prisma = require('../services/database');
 const AzureAcsCallAutomation = require('../services/azureAcsCallAutomation');
+const TimeBlockConfig = require('../models/TimeBlockConfig'); // Add this line
 
 class DoubleWriteStrategy {
   constructor() {
@@ -187,6 +188,24 @@ class DoubleWriteStrategy {
       logger.error('Error initiating Azure ACS voicemail drop', error);
       throw error;
     }
+  }
+
+  async isTimeWithinApprovedBlocks() {
+    const timeBlockConfigs = await TimeBlockConfig.getAll();
+    const now = new Date();
+
+    for (const config of timeBlockConfigs) {
+      const startTime = new Date(config.startTime);
+      const endTime = new Date(config.endTime);
+      const dayOfWeek = now.getDay();
+
+      if (dayOfWeek >= config.startDayOfWeek && dayOfWeek <= config.endDayOfWeek &&
+          now >= startTime && now <= endTime) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
 

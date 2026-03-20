@@ -119,4 +119,11 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'azureAcsVoicemailDropInitiated', data: { prospectData, audioFileUrl } });
   },
+  timeBlockCheck: (isWithinBlocks) => {
+    if (isWithinBlocks) {
+      logger.log('Time is within approved blocks');
+    } else {
+      logger.error('Time is outside approved blocks');
+    }
+  },
 };

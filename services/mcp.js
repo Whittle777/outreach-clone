@@ -87,6 +87,12 @@ class MCP {
       throw error;
     }
   }
+
+  async checkTimeWithinApprovedBlocks() {
+    const isWithinBlocks = await doubleWriteStrategy.isTimeWithinApprovedBlocks();
+    logger.timeBlockCheck(isWithinBlocks);
+    return isWithinBlocks;
+  }
 }
 
 module.exports = MCP;

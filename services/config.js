@@ -11,6 +11,7 @@ const defaultConfig = {
   azureAcsQueueName: process.env.AZURE_ACS_QUEUE_NAME || 'your-azure-acs-queue-name', // Add this line
   geographicRoutingEnabled: process.env.GEOGRAPHIC_ROUTING_ENABLED === 'true' || false, // Add this line
   geographicRoutingRegion: process.env.GEOGRAPHIC_ROUTING_REGION || 'us', // Add this line
+  timeBlockCheckEnabled: process.env.TIME_BLOCK_CHECK_ENABLED === 'true' || false, // Add this line
 };
 
 module.exports = {
