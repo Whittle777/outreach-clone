@@ -5,6 +5,7 @@ const AwsSqs = require('./awsSqs');
 const RabbitMQService = require('./rabbitmq/rabbitmqService');
 const NLP = require('./nlp');
 const IntentDrivenShortcuts = require('./intentDrivenShortcuts');
+const PredictiveSearch = require('./predictiveSearch');
 
 const defaultConfig = {
   messageQueueType: 'rabbitmq', // Default to RabbitMQ
@@ -97,5 +98,9 @@ module.exports = {
   initializeIntentDrivenShortcuts: () => {
     const config = require('./config').getConfig();
     return new IntentDrivenShortcuts(config);
+  },
+  initializePredictiveSearch: () => {
+    const config = require('./config').getConfig();
+    return new PredictiveSearch(config);
   },
 };

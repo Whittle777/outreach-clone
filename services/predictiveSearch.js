@@ -1,6 +1,6 @@
 class PredictiveSearch {
-  constructor() {
-    // Initialize any necessary properties or dependencies
+  constructor(config) {
+    this.config = config;
   }
 
   async search(query) {
