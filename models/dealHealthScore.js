@@ -66,7 +66,6 @@ class DealHealthScore {
       return result;
     } catch (error) {
       logger.error('Error retrieving all DealHealthScores', error);
-      throw error;
     }
   }
 }
