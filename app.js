@@ -7,6 +7,7 @@ const ttsRoutes = require('./routes/ttsRoutes');
 const config = require('./services/config');
 const session = require('express-session');
 const MemoryStore = session.MemoryStore;
+const quarterlyPerformancePrediction = require('./services/quarterlyPerformancePrediction');
 
 const app = express();
 
@@ -23,6 +24,9 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use('/api/tts', ttsRoutes);
+
+// New route for quarterly performance predictions
+app.get('/api/predictions/quarterly', quarterlyPerformancePrediction.getPredictions);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
