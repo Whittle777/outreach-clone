@@ -178,4 +178,13 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'emailFailed', data: { message, data } });
   },
+  realTimeTranscript: (transcriptData) => {
+    logger.info('Real-time transcript', { transcriptData });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'realTimeTranscript', data: { transcriptData } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'realTimeTranscript', data: { transcriptData } });
+  },
 };
