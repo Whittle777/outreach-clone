@@ -17,6 +17,10 @@ const config = {
   },
   timeBlockCheckEnabled: process.env.TIME_BLOCK_CHECK_ENABLED === 'true' || false,
   timeBlocks: JSON.parse(process.env.TIME_BLOCKS || '[]'),
+  intentDrivenShortcuts: {
+    enabled: process.env.INTENT_DRIVEN_SHORTCUTS_ENABLED === 'true' || false,
+    // Add any additional configuration for intent-driven shortcuts here
+  }
 };
 
 module.exports = config;

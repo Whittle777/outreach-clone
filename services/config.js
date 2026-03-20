@@ -4,6 +4,7 @@ const AzureServiceBus = require('./azureServiceBus');
 const AwsSqs = require('./awsSqs');
 const RabbitMQService = require('./rabbitmq/rabbitmqService');
 const NLP = require('./nlp');
+const IntentDrivenShortcuts = require('./intentDrivenShortcuts');
 
 const defaultConfig = {
   messageQueueType: 'rabbitmq', // Default to RabbitMQ
@@ -92,5 +93,9 @@ module.exports = {
   initializeNLP: () => {
     const config = require('./config').getConfig();
     return new NLP(config);
+  },
+  initializeIntentDrivenShortcuts: () => {
+    const config = require('./config').getConfig();
+    return new IntentDrivenShortcuts(config);
   },
 };
