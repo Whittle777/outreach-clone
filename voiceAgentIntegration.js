@@ -176,6 +176,22 @@ class VoiceAgentIntegration {
       throw new Error(`Failed to generate call goal and talk track: ${error.message}`);
     }
   }
+
+  // New method to fetch prospect information
+  async fetchProspectInfo(prospectId) {
+    try {
+      const response = await axios.get(`${this.apiUrl}/prospects/${prospectId}`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch prospect information: ${error.message}`);
+    }
+  }
 }
 
 module.exports = VoiceAgentIntegration;
