@@ -1,3 +1,5 @@
+const axios = require('axios');
+
 class MCPGateway {
   constructor(apiUrl, apiKey) {
     this.apiUrl = apiUrl;
@@ -5,17 +7,33 @@ class MCPGateway {
   }
 
   async sendData(data) {
-    // Simulate sending data to the MCP Gateway
-    // In a real implementation, you would make an HTTP request to the apiUrl
-    console.log('Sending data to MCP Gateway:', data);
-    return { success: true, message: 'Data sent successfully' };
+    try {
+      const response = await axios.post(`${this.apiUrl}/send`, data, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return { success: true, message: 'Data sent successfully', data: response.data };
+    } catch (error) {
+      console.error('Error sending data to MCP Gateway:', error);
+      return { success: false, message: 'Failed to send data', error: error.message };
+    }
   }
 
   async receiveData() {
-    // Simulate receiving data from the MCP Gateway
-    // In a real implementation, you would make an HTTP request to the apiUrl
-    console.log('Receiving data from MCP Gateway');
-    return { success: true, data: { message: 'Data received successfully' } };
+    try {
+      const response = await axios.get(`${this.apiUrl}/receive`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error receiving data from MCP Gateway:', error);
+      return { success: false, message: 'Failed to receive data', error: error.message };
+    }
   }
 }
 
