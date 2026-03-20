@@ -238,6 +238,11 @@ class VoiceAgentIntegration {
   async routeMessageBasedOnConfidence(confidenceScore) {
     return this.confidenceScoreRoutingService.routeMessage(confidenceScore);
   }
+
+  // New method to simulate the HITL Workflow
+  async simulateHITLWorkflow(prospect) {
+    return await this.intentDrivenShortcutsService.simulateHITLWorkflow(prospect);
+  }
 }
 
 module.exports = VoiceAgentIntegration;

@@ -32,6 +32,10 @@ async function consumeMessages(config) {
               client.send(JSON.stringify({ type: 'callStatusUpdate', data: messageBody }));
             }
           });
+        } else if (messageBody.type === 'simulateHITLWorkflow') {
+          const prospect = messageBody.prospect;
+          const result = await voiceAgentIntegration.simulateHITLWorkflow(prospect);
+          console.log('HITL Workflow Result:', result);
         } else {
           await processMessage(messageBody);
         }

@@ -9,6 +9,7 @@ class IntentDrivenShortcutsService {
       'filter prospects': this.filterProspects.bind(this),
       'generate email': this.generateEmail.bind(this),
       'generate call goal': this.generateCallGoal.bind(this),
+      'simulate HITL Workflow': this.simulateHITLWorkflow.bind(this),
     };
   }
 
@@ -97,6 +98,13 @@ class IntentDrivenShortcutsService {
       callGoal = 'Discuss health care solutions';
     }
     return callGoal;
+  }
+
+  async simulateHITLWorkflow(prospect) {
+    // Simulate the HITL Workflow
+    const callGoal = await this.generateCallGoal(prospect);
+    const email = await this.generateEmail({ prospect, tone: 'Professional', intent: callGoal });
+    return { callGoal, email };
   }
 }
 
