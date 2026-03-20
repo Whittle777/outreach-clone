@@ -1,6 +1,5 @@
 const AWS = require('aws-sdk');
-const fs = require('fs');
-const path = require('path');
+const logger = require('../services/logger');
 
 class AudioStorage {
   constructor() {
@@ -12,28 +11,22 @@ class AudioStorage {
     this.bucketName = process.env.AWS_BUCKET_NAME;
   }
 
-  async uploadAudioFile(fileName, filePath) {
-    const fileContent = fs.readFileSync(filePath);
-    const params = {
-      Bucket: this.bucketName,
-      Key: fileName,
-      Body: fileContent,
-      ContentType: 'audio/wav', // or 'audio/mp3'
-    };
-
-    const uploadResult = await this.s3.upload(params).promise();
-    return uploadResult.Location;
-  }
-
-  async retrieveAudioFile(fileId) {
-    const params = {
-      Bucket: this.bucketName,
-      Key: fileId,
-    };
-
-    const fileData = await this.s3.getObject(params).promise();
-    return fileData.Body;
+  async store(fileData) {
+    try {
+      const params = {
+        Bucket: this.bucketName,
+        Key: fileData.key,
+        Body: fileData.body,
+        ContentType: fileData.contentType,
+      };
+      const result = await this.s3.upload(params).promise();
+      logger.audioFileStored(result);
+      return result;
+    } catch (error) {
+      logger.error('Failed to store audio file', error);
+      throw error;
+    }
   }
 }
 
-module.exports = new AudioStorage();
+module.exports = AudioStorage;

@@ -86,4 +86,14 @@ describe('DoubleWriteStrategy', function() {
     await doubleWriteStrategy.simulateMigration();
     assert.deepStrictEqual(legacyDatastore.data, sampleData);
   });
+
+  it('should store audio file', async function() {
+    const fileData = {
+      key: 'test-audio-file.wav',
+      body: Buffer.from('audio data'),
+      contentType: 'audio/wav',
+    };
+    await doubleWriteStrategy.storeAudioFile(fileData);
+    // Add assertions to verify the file was stored correctly
+  });
 });

@@ -1,12 +1,14 @@
 const logger = require('./logger');
 const fs = require('fs');
 const path = require('path');
+const AudioStorage = require('../services/audioStorage');
 
 class DoubleWriteStrategy {
   constructor() {
     this.legacyDatastore = null;
     this.newDatastore = null;
     this.backupPath = path.join(__dirname, 'backup.json');
+    this.audioStorage = new AudioStorage();
   }
 
   setLegacyDatastore(datastore) {
@@ -84,6 +86,16 @@ class DoubleWriteStrategy {
       return isConsistent;
     } catch (error) {
       logger.error('Consistency check failed:', error);
+      throw error;
+    }
+  }
+
+  async storeAudioFile(fileData) {
+    try {
+      await this.audioStorage.store(fileData);
+      logger.log('Audio file stored successfully', fileData);
+    } catch (error) {
+      logger.error('Failed to store audio file', error);
       throw error;
     }
   }
