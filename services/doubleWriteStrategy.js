@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 const amqplib = require('amqplib');
 const config = require('./config');
 const prisma = require('../services/database');
+const AzureAcsCallAutomation = require('../services/azureAcsCallAutomation');
 
 class DoubleWriteStrategy {
   constructor() {
@@ -15,6 +16,7 @@ class DoubleWriteStrategy {
     this.backupPath = path.join(__dirname, 'backup.json');
     this.audioStorage = new AudioStorage();
     this.config = config.getConfig();
+    this.azureAcsCallAutomation = new AzureAcsCallAutomation();
 
     // Initialize message queue based on configuration
     this.initializeMessageQueue();
@@ -163,6 +165,16 @@ class DoubleWriteStrategy {
       }
     } catch (error) {
       logger.error('Failed to send message', error);
+      throw error;
+    }
+  }
+
+  async initiateAzureAcsCall(prospectData) {
+    try {
+      await this.azureAcsCallAutomation.initiateCall(prospectData);
+      logger.log('Azure ACS call initiation successful', prospectData);
+    } catch (error) {
+      logger.error('Error initiating Azure ACS call', error);
       throw error;
     }
   }

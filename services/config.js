@@ -7,6 +7,8 @@ const defaultConfig = {
   rabbitmqQueueName: process.env.RABBITMQ_QUEUE_NAME || 'your-rabbitmq-queue-name',
   isNonBlocking: process.env.IS_NON_BLOCKING === 'true' || false, // Add this line
   openaiApiKey: process.env.OPENAI_API_KEY || 'your-openai-api-key', // Add this line
+  azureAcsConnectionString: process.env.AZURE_ACS_CONNECTION_STRING || 'your-azure-acs-connection-string', // Add this line
+  azureAcsQueueName: process.env.AZURE_ACS_QUEUE_NAME || 'your-azure-acs-queue-name', // Add this line
 };
 
 module.exports = {
