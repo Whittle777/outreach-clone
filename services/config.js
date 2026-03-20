@@ -1,3 +1,6 @@
+const cron = require('node-cron');
+const SequenceStepShifter = require('./sequenceStepShifter');
+
 const defaultConfig = {
   messageQueueType: 'serviceBus', // Default to Service Bus
   serviceBusConnectionString: process.env.SERVICE_BUS_CONNECTION_STRING || 'your-service-bus-connection-string',
@@ -20,5 +23,13 @@ module.exports = {
       ...defaultConfig,
       // Add any additional configuration logic here if needed
     };
+  },
+  initializeCronJobs: () => {
+    const config = require('./config').getConfig();
+    const sequenceStepShifter = new SequenceStepShifter();
+
+    cron.schedule(config.sequenceStepShifter.cronSchedule, () => {
+      sequenceStepShifter.shiftSequenceSteps();
+    });
   },
 };
