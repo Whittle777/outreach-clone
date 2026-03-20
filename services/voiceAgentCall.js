@@ -2,6 +2,7 @@ const config = require('../services/config').getConfig();
 const callRateLimiting = require('../middleware/callRateLimiting');
 const AzureAcsCallAutomation = require('./azureAcsCallAutomation');
 const logger = require('../services/logger');
+const doubleWriteStrategy = require('./doubleWriteStrategy');
 
 class VoiceAgentCall {
   constructor() {
@@ -29,6 +30,17 @@ class VoiceAgentCall {
   async handleRealTimeTranscript(transcriptData) {
     // Log the real-time transcript
     logger.realTimeTranscript(transcriptData);
+  }
+
+  async predictQuarterlyPerformance(data) {
+    try {
+      const prediction = await doubleWriteStrategy.predictQuarterlyPerformance(data);
+      logger.log('Quarterly performance prediction successful', { prediction });
+      return prediction;
+    } catch (error) {
+      logger.error('Error predicting quarterly performance', error);
+      throw error;
+    }
   }
 }
 

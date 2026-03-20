@@ -5,6 +5,7 @@ const logger = require('./logger');
 const config = require('./config');
 const temporalStateManager = require('./temporalStateManager');
 const DealHealthScore = require('../models/dealHealthScore');
+const quarterlyPerformancePredictions = require('./quarterlyPerformancePredictions');
 
 class DoubleWriteStrategy {
   constructor() {
@@ -182,6 +183,17 @@ class DoubleWriteStrategy {
 
   async sendMessage(data) {
     // Implement message sending logic here
+  }
+
+  async predictQuarterlyPerformance(data) {
+    try {
+      const prediction = await quarterlyPerformancePredictions.predictPerformance(data);
+      logger.log('Quarterly performance prediction successful', { prediction });
+      return prediction;
+    } catch (error) {
+      logger.error('Error predicting quarterly performance', error);
+      throw error;
+    }
   }
 }
 
