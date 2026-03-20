@@ -49,4 +49,13 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'sentiment', data: { message, data } });
   },
+  aiDecision: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'aiDecision', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'aiDecision', data: { message, data } });
+  },
 };

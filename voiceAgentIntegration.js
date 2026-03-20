@@ -6,6 +6,7 @@ const NLPModule = require('./nlpModule');
 const IntentDrivenShortcutsService = require('../services/intentDrivenShortcutsService');
 const VoiceAgentDashboard = require('./voiceAgentDashboard');
 const ConfidenceScoreRoutingService = require('../services/confidenceScoreRoutingService');
+const logger = require('../services/logger');
 
 class VoiceAgentIntegration {
   constructor(apiKey, apiUrl) {
@@ -38,8 +39,10 @@ class VoiceAgentIntegration {
       });
 
       await voiceCallLimiter.incrementRequestCount(key);
+      logger.log('AI Decision: Created Call', { prospectId, phoneNumber, script, country });
       return response.data;
     } catch (error) {
+      logger.error('AI Decision: Failed to Create Call', { prospectId, phoneNumber, script, country, error: error.message });
       throw new Error(`Failed to create call: ${error.message}`);
     }
   }
@@ -57,8 +60,10 @@ class VoiceAgentIntegration {
         },
       });
 
+      logger.log('AI Decision: Detected Hard Bounce', { prospectId, phoneNumber, isHardBounce: response.data.isHardBounce });
       return response.data.isHardBounce;
     } catch (error) {
+      logger.error('AI Decision: Failed to Detect Hard Bounce', { prospectId, phoneNumber, error: error.message });
       throw new Error(`Failed to detect hard bounce: ${error.message}`);
     }
   }
@@ -74,8 +79,10 @@ class VoiceAgentIntegration {
         },
       });
 
+      logger.log('AI Decision: Handled Failed State', { prospectId, callId });
       return response.data;
     } catch (error) {
+      logger.error('AI Decision: Failed to Handle Failed State', { prospectId, callId, error: error.message });
       throw new Error(`Failed to handle failed state: ${error.message}`);
     }
   }
@@ -100,8 +107,10 @@ class VoiceAgentIntegration {
       };
 
       await Transcript.create(transcriptData);
+      logger.log('AI Decision: Started Transcription', { callId, transcriptionId, sentimentAnalysisResult });
       return { transcriptionId, sentimentAnalysisResult };
     } catch (error) {
+      logger.error('AI Decision: Failed to Start Transcription', { callId, error: error.message });
       throw new Error(`Failed to start transcription: ${error.message}`);
     }
   }
@@ -115,19 +124,24 @@ class VoiceAgentIntegration {
         },
       });
 
+      logger.log('AI Decision: Detected Resistance or Regulatory Edge Cases', { callId, isResistanceOrRegulatoryEdgeCase: response.data.isResistanceOrRegulatoryEdgeCase });
       return response.data.isResistanceOrRegulatoryEdgeCase;
     } catch (error) {
+      logger.error('AI Decision: Failed to Detect Resistance or Regulatory Edge Cases', { callId, error: error.message });
       throw new Error(`Failed to detect resistance or regulatory edge cases: ${error.message}`);
     }
   }
 
   async filterProspectsByNLP(prospects, query) {
     const category = this.nlpModule.classify(query);
+    logger.log('AI Decision: Filtered Prospects by NLP', { query, category });
     return prospects.filter(prospect => prospect.category === category);
   }
 
   async handleIntent(intent, data) {
-    return await this.intentDrivenShortcutsService.handleIntent(intent, data);
+    const result = await this.intentDrivenShortcutsService.handleIntent(intent, data);
+    logger.log('AI Decision: Handled Intent', { intent, data, result });
+    return result;
   }
 
   // Predictive search functionality
@@ -139,7 +153,9 @@ class VoiceAgentIntegration {
     });
 
     scores.sort((a, b) => b.score - a.score);
-    return scores[0].intent;
+    const predictedIntent = scores[0].intent;
+    logger.log('AI Decision: Predicted Intent', { query, predictedIntent, scores });
+    return predictedIntent;
   }
 
   async fetchActiveConstraints() {
@@ -151,8 +167,10 @@ class VoiceAgentIntegration {
         },
       });
 
+      logger.log('AI Decision: Fetched Active Constraints', { constraints: response.data });
       return response.data;
     } catch (error) {
+      logger.error('AI Decision: Failed to Fetch Active Constraints', { error: error.message });
       throw new Error(`Failed to fetch active constraints: ${error.message}`);
     }
   }
@@ -163,11 +181,15 @@ class VoiceAgentIntegration {
       tone,
       intent,
     };
-    return await this.intentDrivenShortcutsService.generateEmail(emailData);
+    const email = await this.intentDrivenShortcutsService.generateEmail(emailData);
+    logger.log('AI Decision: Generated Email', { prospect, tone, intent, email });
+    return email;
   }
 
   async generateCallGoal(prospect) {
-    return await this.intentDrivenShortcutsService.generateCallGoal(prospect);
+    const callGoal = await this.intentDrivenShortcutsService.generateCallGoal(prospect);
+    logger.log('AI Decision: Generated Call Goal', { prospect, callGoal });
+    return callGoal;
   }
 
   // New methods for AI-generated call goals and talk tracks
@@ -175,8 +197,10 @@ class VoiceAgentIntegration {
     try {
       const callGoal = await this.intentDrivenShortcutsService.generateCallGoal(prospect);
       const talkTrack = await this.intentDrivenShortcutsService.generateTalkTrack(prospect);
+      logger.log('AI Decision: Generated Call Goal and Talk Track', { prospect, callGoal, talkTrack });
       return { callGoal, talkTrack };
     } catch (error) {
+      logger.error('AI Decision: Failed to Generate Call Goal and Talk Track', { prospect, error: error.message });
       throw new Error(`Failed to generate call goal and talk track: ${error.message}`);
     }
   }
@@ -191,8 +215,10 @@ class VoiceAgentIntegration {
         },
       });
 
+      logger.log('AI Decision: Fetched Prospect Info', { prospectId, prospectInfo: response.data });
       return response.data;
     } catch (error) {
+      logger.error('AI Decision: Failed to Fetch Prospect Info', { prospectId, error: error.message });
       throw new Error(`Failed to fetch prospect information: ${error.message}`);
     }
   }
@@ -207,15 +233,19 @@ class VoiceAgentIntegration {
         },
       });
 
+      logger.log('AI Decision: Fetched Pre-Call Brief', { prospectId, preCallBrief: response.data });
       return response.data;
     } catch (error) {
+      logger.error('AI Decision: Failed to Fetch Pre-Call Brief', { prospectId, error: error.message });
       throw new Error(`Failed to fetch pre-call brief for prospect ${prospectId}: ${error.message}`);
     }
   }
 
   // New method to fetch dashboard data
   async fetchDashboardData() {
-    return await this.dashboard.fetchDashboardData();
+    const dashboardData = await this.dashboard.fetchDashboardData();
+    logger.log('AI Decision: Fetched Dashboard Data', { dashboardData });
+    return dashboardData;
   }
 
   // New method to fetch call status
@@ -228,20 +258,26 @@ class VoiceAgentIntegration {
         },
       });
 
+      logger.log('AI Decision: Fetched Call Status', { callId, callStatus: response.data.status });
       return response.data.status;
     } catch (error) {
+      logger.error('AI Decision: Failed to Fetch Call Status', { callId, error: error.message });
       throw new Error(`Failed to fetch call status: ${error.message}`);
     }
   }
 
   // New method to route message based on confidence score
   async routeMessageBasedOnConfidence(confidenceScore) {
-    return this.confidenceScoreRoutingService.routeMessage(confidenceScore);
+    const routingResult = this.confidenceScoreRoutingService.routeMessage(confidenceScore);
+    logger.log('AI Decision: Routed Message Based on Confidence', { confidenceScore, routingResult });
+    return routingResult;
   }
 
   // New method to simulate the HITL Workflow
   async simulateHITLWorkflow(prospect) {
-    return await this.intentDrivenShortcutsService.simulateHITLWorkflow(prospect);
+    const hitlResult = await this.intentDrivenShortcutsService.simulateHITLWorkflow(prospect);
+    logger.log('AI Decision: Simulated HITL Workflow', { prospect, hitlResult });
+    return hitlResult;
   }
 }
 
