@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const SequenceStepShifter = require('./sequenceStepShifter');
+const AzureServiceBus = require('./azureServiceBus'); // Add this line
 
 const defaultConfig = {
   messageQueueType: 'serviceBus', // Default to Service Bus
@@ -31,5 +32,9 @@ module.exports = {
     cron.schedule(config.sequenceStepShifter.cronSchedule, () => {
       sequenceStepShifter.shiftSequenceSteps();
     });
+  },
+  initializeAzureServiceBus: () => {
+    const config = require('./config').getConfig();
+    return new AzureServiceBus(config.serviceBusConnectionString, config.serviceBusQueueName);
   },
 };

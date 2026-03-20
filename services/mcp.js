@@ -3,6 +3,7 @@ const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const logger = require('../services/logger');
 const AIGenerator = require('../services/aiGenerator');
 const Encryption = require('../services/encryption'); // Add this line
+const AzureServiceBus = require('../services/azureServiceBus'); // Add this line
 
 class MCP {
   constructor() {
@@ -10,6 +11,7 @@ class MCP {
     this.secretKey = process.env.MCP_SECRET_KEY || 'your-secret-key'; // Use environment variable for secret key
     this.aiGenerator = new AIGenerator(); // Add this line
     this.encryption = new Encryption(this.secretKey); // Add this line
+    this.azureServiceBus = services.config.initializeAzureServiceBus(); // Add this line
   }
 
   encrypt(data) {
@@ -92,6 +94,16 @@ class MCP {
     const isWithinBlocks = await doubleWriteStrategy.isTimeWithinApprovedBlocks();
     logger.timeBlockCheck(isWithinBlocks);
     return isWithinBlocks;
+  }
+
+  async sendMessageToAzureServiceBus(message) {
+    try {
+      await this.azureServiceBus.sendMessage(message);
+      logger.log('Message sent to Azure Service Bus', message);
+    } catch (error) {
+      logger.error('Error sending message to Azure Service Bus', error);
+      throw error;
+    }
   }
 }
 
