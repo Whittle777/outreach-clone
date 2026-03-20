@@ -20,6 +20,11 @@ const defaultConfig = {
   geographicRoutingEnabled: process.env.GEOGRAPHIC_ROUTING_ENABLED === 'true' || false,
   geographicRoutingRegion: process.env.GEOGRAPHIC_ROUTING_REGION || 'us',
   timeBlockCheckEnabled: process.env.TIME_BLOCK_CHECK_ENABLED === 'true' || false,
+  microsoftEntra: {
+    clientId: process.env.MICROSOFT_ENTRA_CLIENT_ID || 'your-client-id',
+    clientSecret: process.env.MICROSOFT_ENTRA_CLIENT_SECRET || 'your-client-secret',
+    tenantId: process.env.MICROSOFT_ENTRA_TENANT_ID || 'your-tenant-id'
+  }
 };
 
 module.exports = {

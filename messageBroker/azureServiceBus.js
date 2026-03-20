@@ -9,6 +9,7 @@ const NGOE = require('../services/ngoeTaskExecutor');
 const VoiceAgentCall = require('../models/VoiceAgentCall');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const azureAcsClient = require('../messageBroker/azureAcs');
+const msal = require('@azure/msal-node');
 
 class AzureServiceBus {
   constructor(config) {
@@ -17,6 +18,13 @@ class AzureServiceBus {
     this.receiver = this.serviceBusClient.createReceiver(config.serviceBusQueueName);
     this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
     this.ngoe = new NGOE();
+    this.msalClient = new msal.ConfidentialClientApplication({
+      auth: {
+        clientId: config.microsoftEntra.clientId,
+        clientSecret: config.microsoftEntra.clientSecret,
+        authority: `https://login.microsoftonline.com/${config.microsoftEntra.tenantId}`
+      }
+    });
   }
 
   async sendMessage(message, token) {
@@ -152,6 +160,24 @@ class AzureServiceBus {
 
     await this.sendMessage(voicemailMessage, token);
     realTimeReasoningLogs.addLog('handleVoicemailDrop', `Voicemail drop handled for prospectId: ${prospectId}`);
+  }
+
+  async getTeamsCallerId(token) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.isFleetCommandCenterUser) {
+      throw new Error('Unauthorized access');
+    }
+
+    const authResponse = await this.msalClient.acquireTokenByClientCredential({
+      scopes: ['https://graph.microsoft.com/.default']
+    });
+
+    if (!authResponse.accessToken) {
+      throw new Error('Failed to acquire access token');
+    }
+
+    const teamsCallerId = decoded.microsoftEntraObjectId;
+    return teamsCallerId;
   }
 }
 
