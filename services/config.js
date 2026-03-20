@@ -61,6 +61,15 @@ const defaultConfig = {
   predictiveSearch: {
     enabled: process.env.PREDICTIVE_SEARCH_ENABLED === 'true' || false,
     // Add any additional configuration for predictive search here
+  },
+  personalizationWaterfall: {
+    sources: [
+      'fundraisingNews',
+      'linkedinPosts',
+      'technographicData',
+      'companyWebsite',
+      'socialMedia'
+    ]
   }
 };
 

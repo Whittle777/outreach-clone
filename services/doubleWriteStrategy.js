@@ -307,6 +307,10 @@ class DoubleWriteStrategy {
       throw error;
     }
   }
+
+  async getPersonalizationWaterfall() {
+    return this.config.personalizationWaterfall.sources;
+  }
 }
 
 module.exports = new DoubleWriteStrategy();

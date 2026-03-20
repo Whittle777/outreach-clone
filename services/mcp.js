@@ -151,7 +151,6 @@ class MCP {
       logger.callRateDeleted(callRateData);
     } catch (error) {
       logger.error('Error deleting call rate', error);
-      throw error;
     }
   }
 
@@ -164,6 +163,10 @@ class MCP {
       logger.error('Error retrieving all call rates', error);
       throw error;
     }
+  }
+
+  async getPersonalizationWaterfall() {
+    return doubleWriteStrategy.getPersonalizationWaterfall();
   }
 }
 

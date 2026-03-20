@@ -147,4 +147,15 @@ describe('DoubleWriteStrategy', function() {
       { type: 'call-rate', data: callRateData2 }
     ]);
   });
+
+  it('should get personalization waterfall', async function() {
+    const waterfall = await doubleWriteStrategy.getPersonalizationWaterfall();
+    assert.deepStrictEqual(waterfall, [
+      'fundraisingNews',
+      'linkedinPosts',
+      'technographicData',
+      'companyWebsite',
+      'socialMedia'
+    ]);
+  });
 });
