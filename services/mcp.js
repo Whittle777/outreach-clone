@@ -1,9 +1,6 @@
-// services/mcp.js
-
 const crypto = require('crypto');
-const naturalLanguageGuardrails = require('./naturalLanguageGuardrails');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
-const AIGenerator = require('../services/aiGenerator'); // Add this line
+const logger = require('../services/logger');
 
 class MCP {
   constructor() {
@@ -15,66 +12,44 @@ class MCP {
   encrypt(data) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(this.secretKey, 'hex'), iv);
-    let encrypted = cipher.update(data, 'utf8', 'hex');
+    let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    return iv.toString('hex') + encrypted;
+    return { iv: iv.toString('hex'), encryptedData: encrypted };
   }
 
   decrypt(encryptedData) {
-    const iv = Buffer.from(encryptedData.slice(0, 32), 'hex');
+    const iv = Buffer.from(encryptedData.iv, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(this.secretKey, 'hex'), iv);
-    let decrypted = decipher.update(encryptedData.slice(32), 'hex', 'utf8');
+    let decrypted = decipher.update(encryptedData.encryptedData, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    return decrypted;
-  }
-
-  sign(data) {
-    return crypto.createHmac('sha256', this.secretKey).update(data).digest('hex');
-  }
-
-  verify(data, signature) {
-    const hmac = crypto.createHmac('sha256', this.secretKey);
-    hmac.update(data);
-    const calculatedSignature = hmac.digest('hex');
-    return calculatedSignature === signature;
-  }
-
-  // Simulate end-to-end communication
-  async simulateCommunication(data, recipient) {
-    const encryptedData = this.encrypt(data);
-    const signature = this.sign(encryptedData);
-
-    // Simulate sending encrypted data and signature to recipient
-    const response = await this.sendToRecipient(encryptedData, signature, recipient);
-
-    // Simulate receiving response from recipient
-    const decryptedResponse = this.decrypt(response.encryptedData);
-    const isVerified = this.verify(decryptedResponse, response.signature);
-
-    return { decryptedResponse, isVerified };
-  }
-
-  async sendToRecipient(encryptedData, signature, recipient) {
-    // Simulate sending data to recipient
-    // In a real-world scenario, this would involve network communication
-    // For now, we'll just return a mock response
-    return {
-      encryptedData,
-      signature,
-    };
+    return JSON.parse(decrypted);
   }
 
   async write(data) {
-    // Implement double-write logic for legacy datastore
-    // For now, let's assume it's a no-op
-    await doubleWriteStrategy.write(data);
+    try {
+      await doubleWriteStrategy.write(data);
+      logger.log('Data written to MCP successfully', data);
+    } catch (error) {
+      logger.error('Error writing data to MCP', error);
+      throw error;
+    }
   }
 
-  // Add this method to handle real-time predictions
-  async getRealTimePrediction(data) {
-    const prediction = await this.aiGenerator.generateCallGoal(data);
-    return prediction;
+  async routeByConfidenceScore(confidenceScore, data) {
+    if (confidenceScore > 85) {
+      // High confidence: AI executes autonomously
+      await this.write({ type: 'high-confidence', data });
+      logger.log('High confidence, AI executes autonomously', data);
+    } else if (confidenceScore >= 70) {
+      // Moderate confidence: action paused and routed to review queue
+      await this.write({ type: 'moderate-confidence', data });
+      logger.log('Moderate confidence, routed to review queue', data);
+    } else {
+      // Low confidence: workflow halts with high-priority supervisor notifications
+      await this.write({ type: 'low-confidence', data });
+      logger.log('Low confidence, workflow halted with supervisor notifications', data);
+    }
   }
 }
 
-module.exports = new MCP();
+module.exports = MCP;
