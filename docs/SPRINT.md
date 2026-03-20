@@ -3,7 +3,6 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
-3. [ ] Develop AI model to generate call goals based on prospect data
 4. [ ] Develop AI model to generate talk tracks based on call goals
 5. [ ] Integrate AI-generated call goals and talk tracks into the Pre-Call Brief Dashboard
 6. [ ] Implement real-time data fetching for prospect information in the Pre-Call Brief Dashboard

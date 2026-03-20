@@ -161,6 +161,10 @@ class VoiceAgentIntegration {
     };
     return await this.intentDrivenShortcutsService.generateEmail(emailData);
   }
+
+  async generateCallGoal(prospect) {
+    return await this.intentDrivenShortcutsService.generateCallGoal(prospect);
+  }
 }
 
 module.exports = VoiceAgentIntegration;

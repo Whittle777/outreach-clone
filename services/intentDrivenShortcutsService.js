@@ -8,6 +8,7 @@ class IntentDrivenShortcutsService {
       'detect resistance': this.detectResistance.bind(this),
       'filter prospects': this.filterProspects.bind(this),
       'generate email': this.generateEmail.bind(this),
+      'generate call goal': this.generateCallGoal.bind(this),
     };
   }
 
@@ -85,6 +86,17 @@ class IntentDrivenShortcutsService {
     }
 
     return baseEmail;
+  }
+
+  async generateCallGoal(prospect) {
+    // Example logic for generating call goals based on prospect data
+    let callGoal = 'Discuss potential partnership opportunities';
+    if (prospect.companyName.includes('Tech')) {
+      callGoal = 'Explore collaboration on upcoming tech projects';
+    } else if (prospect.companyName.includes('Health')) {
+      callGoal = 'Discuss health care solutions';
+    }
+    return callGoal;
   }
 }
 
