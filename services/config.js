@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const SequenceStepShifter = require('./sequenceStepShifter');
 const AzureServiceBus = require('./azureServiceBus');
+const AwsSqs = require('./awsSqs');
 const RabbitMQService = require('./rabbitmq/rabbitmqService');
 
 const defaultConfig = {
@@ -35,16 +36,17 @@ module.exports = {
       sequenceStepShifter.shiftSequenceSteps();
     });
   },
-  initializeAzureServiceBus: () => {
+  initializeMessageBroker: () => {
     const config = require('./config').getConfig();
-    return new AzureServiceBus(config.serviceBusConnectionString, config.serviceBusQueueName);
-  },
-  initializeAwsSqs: () => {
-    const config = require('./config').getConfig();
-    return new AwsSqs(config);
-  },
-  initializeRabbitMQ: () => {
-    const config = require('./config').getConfig();
-    return new RabbitMQService(config.rabbitmq);
+    switch (config.messageQueueType) {
+      case 'azureServiceBus':
+        return new AzureServiceBus(config);
+      case 'awsSqs':
+        return new AwsSqs(config);
+      case 'rabbitmq':
+        return new RabbitMQService(config.rabbitmq);
+      default:
+        throw new Error('Invalid message queue type');
+    }
   },
 };

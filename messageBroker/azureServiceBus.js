@@ -12,25 +12,11 @@ const azureAcsClient = require('../messageBroker/azureAcs');
 
 class AzureServiceBus {
   constructor(config) {
-    this.serviceBusClient = new ServiceBusClient(config.connectionString);
-    this.sender = this.serviceBusClient.createSender(config.topicName);
-    this.receiver = this.serviceBusClient.createReceiver(config.subscriptionName);
+    this.serviceBusClient = new ServiceBusClient(config.serviceBusConnectionString);
+    this.sender = this.serviceBusClient.createSender(config.serviceBusQueueName);
+    this.receiver = this.serviceBusClient.createReceiver(config.serviceBusQueueName);
     this.knowledgeGraph = new KnowledgeGraph(config.neo4j.uri, config.neo4j.user, config.neo4j.password);
     this.ngoe = new NGOE();
-  }
-
-  encrypt(data) {
-    const cipher = crypto.createCipher('aes-256-cbc', process.env.ENCRYPTION_KEY, process.env.ENCRYPTION_IV);
-    let encrypted = cipher.update(data, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return encrypted;
-  }
-
-  decrypt(encryptedData) {
-    const decipher = crypto.createDecipher('aes-256-cbc', process.env.ENCRYPTION_KEY, process.env.ENCRYPTION_IV);
-    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
   }
 
   async sendMessage(message, token) {
@@ -57,27 +43,6 @@ class AzureServiceBus {
       return message.body;
     }
     return null;
-  }
-
-  async close() {
-    await this.sender.close();
-    await this.receiver.close();
-    await this.serviceBusClient.close();
-  }
-
-  // Method to send message with Microsoft Entra Object ID
-  async sendMessageWithEntraObjectId(message, entraObjectId, token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded || !decoded.isFleetCommandCenterUser) {
-      throw new Error('Unauthorized access');
-    }
-
-    const messageWithEntraObjectId = {
-      ...message,
-      entraObjectId
-    };
-    await this.sender.sendMessages({ body: messageWithEntraObjectId });
-    realTimeReasoningLogs.addLog('sendMessageWithEntraObjectId', `Message sent with Entra Object ID: ${JSON.stringify(messageWithEntraObjectId)}`);
   }
 
   async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
