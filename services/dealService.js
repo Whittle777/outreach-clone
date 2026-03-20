@@ -45,6 +45,24 @@ class DealService {
       },
     });
   }
+
+  static async getTopOpportunities(minValue, maxValue, startDate, endDate) {
+    return await prisma.deal.findMany({
+      where: {
+        value: {
+          gte: minValue,
+          lte: maxValue,
+        },
+        closeDate: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+      },
+      orderBy: {
+        value: 'desc',
+      },
+    });
+  }
 }
 
 module.exports = DealService;
