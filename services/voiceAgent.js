@@ -1,6 +1,7 @@
 const RabbitMQService = require('../rabbitmq/rabbitmqService');
 const config = require('../services/config').getConfig();
 const logger = require('../services/logger');
+const callRateLimiter = require('../services/callRateLimiter');
 
 class VoiceAgent {
   constructor() {
@@ -26,6 +27,11 @@ class VoiceAgent {
 
   async sendMessageWithRateLimit(message, prospectId, phoneNumber, token) {
     if (this.rabbitmqService) {
+      const isAllowed = await callRateLimiter.checkRateLimit(phoneNumber);
+      if (!isAllowed) {
+        logger.error('Rate limit exceeded for phone number:', phoneNumber);
+        return;
+      }
       await this.rabbitmqService.sendMessageWithRateLimit(message, prospectId, phoneNumber, token);
     } else {
       logger.error('RabbitMQ is not initialized');
