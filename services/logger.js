@@ -3,6 +3,7 @@ const WebSocket = require('ws');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const config = require('../services/config').getConfig();
 const { wss } = require('../services/websocket');
+const temporalStateManager = require('../services/temporalStateManager');
 
 const logger = winston.createLogger({
   level: 'info',
@@ -30,6 +31,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'log', data: { message, data } });
+    temporalStateManager.saveState('log', { message, data });
   },
   error: (message, data) => {
     logger.error(message, data);
@@ -39,6 +41,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'error', data: { message, data } });
+    temporalStateManager.saveState('error', { message, data });
   },
   info: (message, data) => {
     logger.info(message, data);
@@ -48,6 +51,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'info', data: { message, data } });
+    temporalStateManager.saveState('info', { message, data });
   },
   sentiment: (message, data) => {
     logger.info(message, data);
@@ -57,6 +61,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'sentiment', data: { message, data } });
+    temporalStateManager.saveState('sentiment', { message, data });
   },
   aiDecision: (message, data) => {
     logger.info(message, data);
@@ -66,6 +71,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'aiDecision', data: { message, data } });
+    temporalStateManager.saveState('aiDecision', { message, data });
   },
   microsoftTeamsNotification: (message) => {
     logger.info('Microsoft Teams Notification', { message });
@@ -75,6 +81,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'microsoftTeamsNotification', data: { message } });
+    temporalStateManager.saveState('microsoftTeamsNotification', { message });
   },
   consistencyCheck: (isConsistent) => {
     if (isConsistent) {
@@ -91,6 +98,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'rollback', data: { message } });
+    temporalStateManager.saveState('rollback', { message });
   },
   audioFileStored: (fileData) => {
     logger.info('Audio file stored', { fileData });
@@ -100,6 +108,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'audioFileStored', data: { fileData } });
+    temporalStateManager.saveState('audioFileStored', { fileData });
   },
   rabbitmqMessageSent: (data) => {
     logger.info('RabbitMQ message sent', { data });
@@ -109,6 +118,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'rabbitmqMessageSent', data: { data } });
+    temporalStateManager.saveState('rabbitmqMessageSent', { data });
   },
   sentimentAnalysis: (message, data) => {
     logger.info(message, data);
@@ -118,6 +128,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'sentimentAnalysis', data: { message, data } });
+    temporalStateManager.saveState('sentimentAnalysis', { message, data });
   },
   azureAcsVoicemailDropInitiated: (prospectData, audioFileUrl) => {
     logger.info('Azure ACS voicemail drop initiated', { prospectData, audioFileUrl });
@@ -127,6 +138,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'azureAcsVoicemailDropInitiated', data: { prospectData, audioFileUrl } });
+    temporalStateManager.saveState('azureAcsVoicemailDropInitiated', { prospectData, audioFileUrl });
   },
   timeBlockCheck: (isWithinBlocks) => {
     if (isWithinBlocks) {
@@ -168,6 +180,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'emailSent', data: { message, data } });
+    temporalStateManager.saveState('emailSent', { message, data });
   },
   emailRetry: (message, data) => {
     logger.warn(message, data);
@@ -177,6 +190,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'emailRetry', data: { message, data } });
+    temporalStateManager.saveState('emailRetry', { message, data });
   },
   emailFailed: (message, data) => {
     logger.error(message, data);
@@ -186,6 +200,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'emailFailed', data: { message, data } });
+    temporalStateManager.saveState('emailFailed', { message, data });
   },
   realTimeTranscript: (transcriptData) => {
     logger.info('Real-time transcript', { transcriptData });
@@ -195,6 +210,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'realTimeTranscript', data: { transcriptData } });
+    temporalStateManager.saveState('realTimeTranscript', { transcriptData });
   },
   callResistanceDetected: (callData) => {
     logger.warn('Call resistance detected', { callData });
@@ -204,6 +220,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'callResistanceDetected', data: { callData } });
+    temporalStateManager.saveState('callResistanceDetected', { callData });
   },
   nlpParsedPrompt: (prompt, parsedData) => {
     logger.info('NLP parsed prompt', { prompt, parsedData });
@@ -213,6 +230,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'nlpParsedPrompt', data: { prompt, parsedData } });
+    temporalStateManager.saveState('nlpParsedPrompt', { prompt, parsedData });
   },
   predictiveSearch: (query, results) => {
     logger.info('Predictive search results', { query, results });
@@ -222,6 +240,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'predictiveSearch', data: { query, results } });
+    temporalStateManager.saveState('predictiveSearch', { query, results });
   },
   prospectUpdated: (prospectData) => {
     logger.info('Prospect updated', { prospectData });
@@ -231,6 +250,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'prospectUpdated', data: { prospectData } });
+    temporalStateManager.saveState('prospectUpdated', { prospectData });
   },
   callStatusUpdate: (callData) => {
     logger.info('Call status update', { callData });
@@ -240,6 +260,7 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'callStatusUpdate', data: { callData } });
+    temporalStateManager.saveState('callStatusUpdate', { callData });
   },
   confidenceScoreRouting: (confidenceScore, task) => {
     logger.info('Confidence score routing', { confidenceScore, task });
@@ -249,5 +270,6 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'confidenceScoreRouting', data: { confidenceScore, task } });
+    temporalStateManager.saveState('confidenceScoreRouting', { confidenceScore, task });
   },
 };

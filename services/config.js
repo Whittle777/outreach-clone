@@ -8,6 +8,7 @@ const IntentDrivenShortcuts = require('./intentDrivenShortcuts');
 const PredictiveSearch = require('./predictiveSearch');
 const ConfidenceScoreRouting = require('./confidenceScoreRouting');
 const SplitPaneReviewInterface = require('./splitPaneReviewInterface');
+const TemporalStateManager = require('./temporalStateManager');
 
 const defaultConfig = {
   messageQueueType: 'rabbitmq', // Default to RabbitMQ
@@ -131,5 +132,8 @@ module.exports = {
   },
   initializeSplitPaneReviewInterface: (logger) => {
     return new SplitPaneReviewInterface(logger);
+  },
+  initializeTemporalStateManager: () => {
+    return new TemporalStateManager();
   },
 };
