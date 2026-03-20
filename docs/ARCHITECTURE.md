@@ -39,6 +39,7 @@ This project is a headless REST API for a sales engagement platform (similar to 
 ### Testing & Development Stack
 - **Email Provider Flexibility:** Support for multiple email providers including Gmail (personal accounts) for testing
 - **Configuration Management:** Environment-based provider switching to enable easy testing with different SMTP/API credentials
+- **Thorough Testing Requirements:** All features must be thoroughly tested before deployment, including voice agent functionality
 
 ## Core Data Models
 
@@ -305,6 +306,7 @@ Configuration for scheduling time blocks and approved calling hours.
 - **Agentic Reasoning:** If data is missing or incomplete, agent autonomously finds alternative filters
   - Example: If Country field is blank, filter by phone number country code (+1)
   - Example: Query third-party enrichment APIs (ZoomInfo, BuiltWith) for missing tech stack data
+  - Example: Filter by tags if direct country/region info unavailable
 - **Fallback Logic:** Deductive proxies when direct data unavailable (e.g., job postings mentioning AI = likely AI adopter)
 - **Task Queue Generation:** Results compiled into ordered, actionable task playlist
 
@@ -514,6 +516,7 @@ Configuration for scheduling time blocks and approved calling hours.
 
 ### Comprehensive Documentation
 - Up-to-date READMEs, architectural decision records (ADRs), and auto-generated API specifications (like Swagger/OpenAPI) to ensure knowledge is shared and persistent
+- **UI Navigation Paths:** All UI navigation paths must be detailed in README with comprehensive user flows
 
 ### Graceful Degradation and Resiliency
 - Fallback mechanisms, retries, and rate limiting that allow the system to remain partially operational even when external services fail
@@ -557,6 +560,7 @@ Configuration for scheduling time blocks and approved calling hours.
 - Support testing with multiple email providers (Gmail, Outlook, etc.)
 - Environment-based configuration for SMTP/API credentials
 - Easy switching between personal Gmail accounts and production providers
+- **Thorough Testing:** All features must be thoroughly tested before deployment, including voice agent functionality
 
 ### GDPR Compliance
 - All data models include country/region fields for data residency compliance

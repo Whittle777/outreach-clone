@@ -85932,3 +85932,29 @@
 +            Use your repository map to find the correct files to edit. 
 +            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
 +            
+
+# 2026-03-20 09:54:29.121055
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-20 09:54:29.121193
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-20 10:24:29.525017
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
+
+# 2026-03-20 10:24:29.525269
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
