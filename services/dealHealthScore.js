@@ -1,30 +1,32 @@
-class DealHealthScoreCalculator {
-  static calculate(prospect) {
-    // Example scoring algorithm
-    let score = 0;
+const DealHealthScoreCalculator = require('./dealHealthScoreCalculator');
+const DealHealthScore = require('../models/dealHealthScore');
+const logger = require('../services/logger');
 
-    // Example factors: recent activity, status, etc.
-    if (prospect.recentActivity) {
-      score += 20;
+class DealHealthScoreService {
+  static async calculateAndSave(prospect) {
+    try {
+      const score = DealHealthScoreCalculator.calculate(prospect);
+      const dealHealthScoreData = {
+        prospectId: prospect.id,
+        score,
+        status: score >= 80 ? 'High' : score >= 50 ? 'Medium' : 'Low',
+      };
+
+      const existingDealHealthScore = await DealHealthScore.findById(prospect.id);
+      if (existingDealHealthScore) {
+        const updatedDealHealthScore = await DealHealthScore.update(existingDealHealthScore.id, dealHealthScoreData);
+        logger.log('DealHealthScore updated successfully', updatedDealHealthScore);
+        return updatedDealHealthScore;
+      } else {
+        const newDealHealthScore = await DealHealthScore.create(dealHealthScoreData);
+        logger.log('DealHealthScore created successfully', newDealHealthScore);
+        return newDealHealthScore;
+      }
+    } catch (error) {
+      logger.error('Error calculating and saving DealHealthScore', error);
+      throw error;
     }
-
-    if (prospect.status === 'Engaged') {
-      score += 20;
-    }
-
-    if (prospect.recentEmailOpens > 0) {
-      score += 10;
-    }
-
-    if (prospect.recentClicks > 0) {
-      score += 10;
-    }
-
-    // Ensure score is within 0-100 range
-    score = Math.min(Math.max(score, 0), 100);
-
-    return score;
   }
 }
 
-module.exports = DealHealthScoreCalculator;
+module.exports = DealHealthScoreService;
