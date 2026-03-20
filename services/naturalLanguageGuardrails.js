@@ -1,8 +1,10 @@
 // services/naturalLanguageGuardrails.js
 
+const config = require('../services/config').getConfig();
+
 class NaturalLanguageGuardrails {
   constructor() {
-    this.policyDirectives = [];
+    this.policyDirectives = config.naturalLanguageGuardrails.policyDirectives;
   }
 
   addPolicyDirective(directive) {

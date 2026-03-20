@@ -20,7 +20,10 @@ const config = {
   intentDrivenShortcuts: {
     enabled: process.env.INTENT_DRIVEN_SHORTCUTS_ENABLED === 'true' || false,
     // Add any additional configuration for intent-driven shortcuts here
-  }
+  },
+  naturalLanguageGuardrails: {
+    policyDirectives: JSON.parse(process.env.NATURAL_LANGUAGE_GUARDRAILS_POLICY_DIRECTIVES || '[]'),
+  },
 };
 
 module.exports = config;

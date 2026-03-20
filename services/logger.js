@@ -282,4 +282,14 @@ module.exports = {
     doubleWriteStrategy.write({ type: 'aiDecisionLog', data: { message, data } });
     temporalStateManager.saveState('aiDecisionLog', { message, data });
   },
+  naturalLanguageGuardrails: (message, data) => {
+    logger.info('Natural Language Guardrails', { message, data });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'naturalLanguageGuardrails', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'naturalLanguageGuardrails', data: { message, data } });
+    temporalStateManager.saveState('naturalLanguageGuardrails', { message, data });
+  },
 };

@@ -7,6 +7,7 @@ const AzureServiceBus = require('../services/azureServiceBus');
 const RateLimiter = require('../services/rateLimiter');
 const config = require('../services/config').getConfig();
 const temporalStateManager = require('../services/temporalStateManager');
+const naturalLanguageGuardrails = require('../services/naturalLanguageGuardrails');
 
 class MCP {
   constructor() {
@@ -186,6 +187,17 @@ class MCP {
 
   async logAIReasoning(message, data) {
     logger.aiDecisionLog(message, data);
+  }
+
+  async enforceNaturalLanguageGuardrails(text) {
+    try {
+      naturalLanguageGuardrails.enforcePolicyDirectives(text);
+      logger.naturalLanguageGuardrails('Natural Language Guardrails enforced', { text });
+      temporalStateManager.saveState('naturalLanguageGuardrails', { text });
+    } catch (error) {
+      logger.error('Error enforcing Natural Language Guardrails', error);
+      throw error;
+    }
   }
 }
 
