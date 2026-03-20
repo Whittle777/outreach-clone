@@ -80,10 +80,10 @@ class MCP {
     }
   }
 
-  async initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl) {
+  async initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl, onBehalfOf) {
     try {
-      await doubleWriteStrategy.initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl);
-      logger.azureAcsVoicemailDropInitiated(prospectData, audioFileUrl);
+      await doubleWriteStrategy.initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl, onBehalfOf);
+      logger.azureAcsVoicemailDropInitiated(prospectData, audioFileUrl, onBehalfOf);
     } catch (error) {
       logger.error('Error initiating Azure ACS voicemail drop', error);
       throw error;

@@ -62,6 +62,14 @@ class RabbitMQService {
   async createVoiceAgentCall(prospectId, callStatus, preGeneratedScript, ttsAudioFileUrl, callTranscript, token) {
     // Implement creating voice agent call logic here
   }
+
+  async initiateAzureAcsVoicemailDrop(prospectData, audioFileUrl, onBehalfOf) {
+    // Implement initiating Azure ACS voicemail drop with onBehalfOf parameter
+    console.log('Initiating Azure ACS voicemail drop with onBehalfOf:', onBehalfOf);
+    // In a real implementation, you would call the ACS API with the onBehalfOf parameter
+    // For now, let's just log the data
+    logger.log('Azure ACS voicemail drop initiated', { prospectData, audioFileUrl, onBehalfOf });
+  }
 }
 
 module.exports = RabbitMQService;
