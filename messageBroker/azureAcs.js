@@ -68,6 +68,15 @@ class AzureAcs {
   async handleIntent(intent, data) {
     return await this.intentDrivenShortcutsService.handleIntent(intent, data);
   }
+
+  async fetchActiveConstraints() {
+    try {
+      const response = await axios.get(`${this.baseURL}/constraints/active`, { headers: this.headers });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch active constraints: ${error.message}`);
+    }
+  }
 }
 
 module.exports = AzureAcs;

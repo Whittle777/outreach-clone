@@ -94,6 +94,21 @@ const getCallFlags = async (callId) => {
   }
 };
 
+const fetchActiveConstraints = async () => {
+  try {
+    const azureAcs = new AzureAcs({
+      connectionString: azureAcsUrl,
+      accessToken: azureAcsKey
+    });
+
+    const response = await azureAcs.fetchActiveConstraints();
+    return response.data;
+  } catch (error) {
+    logger.error(`Error fetching active constraints: ${error.message}`);
+    throw error;
+  }
+};
+
 module.exports = {
   createCall,
   handleVoicemailDrop,
@@ -101,4 +116,5 @@ module.exports = {
   detectResistanceOrRegulatoryEdgeCases,
   updateCallFlags,
   getCallFlags,
+  fetchActiveConstraints,
 };

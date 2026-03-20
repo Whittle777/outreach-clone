@@ -137,6 +137,21 @@ class VoiceAgentIntegration {
     scores.sort((a, b) => b.score - a.score);
     return scores[0].intent;
   }
+
+  async fetchActiveConstraints() {
+    try {
+      const response = await axios.get(`${this.apiUrl}/constraints/active`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch active constraints: ${error.message}`);
+    }
+  }
 }
 
 module.exports = VoiceAgentIntegration;
