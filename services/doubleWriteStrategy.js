@@ -1,5 +1,3 @@
-// services/doubleWriteStrategy.js
-
 const logger = require('./logger');
 const fs = require('fs');
 const path = require('path');

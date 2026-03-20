@@ -1,5 +1,6 @@
 const axios = require('axios');
 const IntentDrivenShortcutsService = require('../services/intentDrivenShortcutsService');
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 class AzureAcs {
   constructor(config) {
@@ -37,6 +38,7 @@ class AzureAcs {
 
     try {
       const response = await axios.post(`${this.baseURL}/calls`, payload, { headers: this.headers });
+      await doubleWriteStrategy.write({ type: 'createCall', data: response.data });
       return response.data;
     } catch (error) {
       throw new Error(`Failed to create call: ${error.message}`);
@@ -50,6 +52,7 @@ class AzureAcs {
 
     try {
       const response = await axios.post(`${this.baseURL}/calls/${callId}/operations`, payload, { headers: this.headers });
+      await doubleWriteStrategy.write({ type: 'startTranscription', data: response.data });
       return response.data;
     } catch (error) {
       throw new Error(`Failed to start transcription: ${error.message}`);
@@ -59,6 +62,7 @@ class AzureAcs {
   async getTranscriptionResult(transcriptionId) {
     try {
       const response = await axios.get(`${this.baseURL}/transcriptions/${transcriptionId}`, { headers: this.headers });
+      await doubleWriteStrategy.write({ type: 'getTranscriptionResult', data: response.data });
       return response.data;
     } catch (error) {
       throw new Error(`Failed to get transcription result: ${error.message}`);
@@ -72,6 +76,7 @@ class AzureAcs {
   async fetchActiveConstraints() {
     try {
       const response = await axios.get(`${this.baseURL}/constraints/active`, { headers: this.headers });
+      await doubleWriteStrategy.write({ type: 'fetchActiveConstraints', data: response.data });
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch active constraints: ${error.message}`);
@@ -81,6 +86,7 @@ class AzureAcs {
   async fetchPreCallBrief(prospectId) {
     try {
       const response = await axios.get(`${this.baseURL}/prospects/${prospectId}/pre-call-brief`, { headers: this.headers });
+      await doubleWriteStrategy.write({ type: 'fetchPreCallBrief', data: response.data });
       return response.data;
     } catch (error) {
       throw new Error(`Failed to fetch pre-call brief for prospect ${prospectId}: ${error.message}`);

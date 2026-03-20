@@ -1,6 +1,7 @@
 const axios = require('axios');
 const logger = require('../services/logger');
 const AzureAcs = require('../messageBroker/azureAcs');
+const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 
 const azureAcsUrl = process.env.AZURE_ACS_URL || 'https://your-azure-acs-url.com';
 const azureAcsKey = process.env.AZURE_ACS_KEY || 'your-azure-acs-key';
@@ -13,6 +14,7 @@ const createCall = async (prospectId, bento, teamsResourceAccountObjectId) => {
     });
 
     const response = await azureAcs.createCall(prospectId, 'US', teamsResourceAccountObjectId);
+    await doubleWriteStrategy.write({ type: 'createCall', data: response.data });
     return response.data;
   } catch (error) {
     logger.error(`Error creating call for prospect ${prospectId}: ${error.message}`);
@@ -29,6 +31,7 @@ const handleVoicemailDrop = async (callId, bento) => {
         'Ocp-Apim-Subscription-Key': azureAcsKey,
       },
     });
+    await doubleWriteStrategy.write({ type: 'handleVoicemailDrop', data: response.data });
     return response.data;
   } catch (error) {
     logger.error(`Error handling voicemail drop for call ${callId}: ${error.message}`);
@@ -43,6 +46,7 @@ const getTranscriptionResult = async (transcriptionId) => {
         'Ocp-Apim-Subscription-Key': azureAcsKey,
       },
     });
+    await doubleWriteStrategy.write({ type: 'getTranscriptionResult', data: response.data });
     return response.data;
   } catch (error) {
     logger.error(`Error getting transcription result for transcription ${transcriptionId}: ${error.message}`);
@@ -57,6 +61,7 @@ const detectResistanceOrRegulatoryEdgeCases = async (callId) => {
         'Ocp-Apim-Subscription-Key': azureAcsKey,
       },
     });
+    await doubleWriteStrategy.write({ type: 'detectResistanceOrRegulatoryEdgeCases', data: response.data });
     return response.data.isResistanceOrRegulatoryEdgeCase;
   } catch (error) {
     logger.error(`Error detecting resistance or regulatory edge cases for call ${callId}: ${error.message}`);
@@ -73,6 +78,7 @@ const updateCallFlags = async (callId, flags) => {
         'Ocp-Apim-Subscription-Key': azureAcsKey,
       },
     });
+    await doubleWriteStrategy.write({ type: 'updateCallFlags', data: response.data });
     return response.data;
   } catch (error) {
     logger.error(`Error updating call flags for call ${callId}: ${error.message}`);
@@ -87,6 +93,7 @@ const getCallFlags = async (callId) => {
         'Ocp-Apim-Subscription-Key': azureAcsKey,
       },
     });
+    await doubleWriteStrategy.write({ type: 'getCallFlags', data: response.data });
     return response.data;
   } catch (error) {
     logger.error(`Error getting call flags for call ${callId}: ${error.message}`);
@@ -102,6 +109,7 @@ const fetchActiveConstraints = async () => {
     });
 
     const response = await azureAcs.fetchActiveConstraints();
+    await doubleWriteStrategy.write({ type: 'fetchActiveConstraints', data: response.data });
     return response.data;
   } catch (error) {
     logger.error(`Error fetching active constraints: ${error.message}`);
@@ -117,6 +125,7 @@ const fetchPreCallBrief = async (prospectId) => {
     });
 
     const response = await azureAcs.fetchPreCallBrief(prospectId);
+    await doubleWriteStrategy.write({ type: 'fetchPreCallBrief', data: response.data });
     return response.data;
   } catch (error) {
     logger.error(`Error fetching pre-call brief for prospect ${prospectId}: ${error.message}`);

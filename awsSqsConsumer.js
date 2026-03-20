@@ -4,6 +4,7 @@ const logger = require('./services/logger');
 const VoiceAgentIntegration = require('./services/voiceAgentIntegration');
 const azureAcsService = require('./services/azureAcsService');
 const wss = require('./websocketServer');
+const doubleWriteStrategy = require('./services/doubleWriteStrategy');
 
 const voiceAgentIntegration = new VoiceAgentIntegration('YOUR_API_KEY', 'https://api.azureacs.com');
 

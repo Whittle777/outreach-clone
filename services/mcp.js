@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const logger = require('../services/logger');
+const AIGenerator = require('../services/aiGenerator');
 
 class MCP {
   constructor() {
