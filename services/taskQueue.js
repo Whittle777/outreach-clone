@@ -22,6 +22,18 @@ class TaskQueue {
       data: { status },
     });
   }
+
+  async executePendingTasks() {
+    const pendingTasks = await this.getPendingTasks();
+    for (const task of pendingTasks) {
+      await this.executeTask(task);
+    }
+  }
+
+  async executeTask(task) {
+    const aiAgent = require('./aiAgent');
+    await aiAgent.executeTask(task);
+  }
 }
 
 module.exports = new TaskQueue();
