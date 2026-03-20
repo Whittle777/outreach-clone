@@ -4,6 +4,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
+const doubleWriteStrategy = require('./doubleWriteStrategy');
 
 class TtsService {
   constructor(apiKey) {
@@ -48,6 +49,7 @@ class TtsService {
     try {
       await this.generateTtsAudio(text, voiceId, outputFilePath);
       logger.log('TTS audio file generated and stored:', outputFilePath);
+      await doubleWriteStrategy.write({ type: 'generateAndStoreTtsAudio', data: { text, voiceId, outputFilePath } });
       return outputFilePath;
     } catch (error) {
       logger.error('Failed to generate and store TTS audio file:', error);
@@ -56,4 +58,4 @@ class TtsService {
   }
 }
 
-module.exports = TtsService;
+module.exports = new TtsService('your-elevenlabs-api-key');
