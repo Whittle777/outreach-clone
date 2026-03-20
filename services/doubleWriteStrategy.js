@@ -4,6 +4,7 @@ const path = require('path');
 const AudioStorage = require('../services/audioStorage');
 const { ServiceBusClient } = require('@azure/service-bus');
 const AWS = require('aws-sdk');
+const amqplib = require('amqplib');
 
 class DoubleWriteStrategy {
   constructor() {
@@ -23,6 +24,10 @@ class DoubleWriteStrategy {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     });
     this.sqsQueueUrl = process.env.SQS_QUEUE_URL || 'your-sqs-queue-url';
+
+    // RabbitMQ configuration
+    this.rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://localhost';
+    this.rabbitmqQueueName = process.env.RABBITMQ_QUEUE_NAME || 'your-rabbitmq-queue-name';
   }
 
   setLegacyDatastore(datastore) {
@@ -41,6 +46,7 @@ class DoubleWriteStrategy {
       logger.log('New datastore write successful', data);
       await this.sendToServiceBus(data);
       await this.sendToSQS(data);
+      await this.sendToRabbitMQ(data);
       logger.log('Double-write successful');
     } catch (error) {
       logger.error('Double-write failed:', error);
@@ -137,6 +143,21 @@ class DoubleWriteStrategy {
       logger.log('Message sent to SQS', params);
     } catch (error) {
       logger.error('Failed to send message to SQS', error);
+      throw error;
+    }
+  }
+
+  async sendToRabbitMQ(data) {
+    try {
+      const connection = await amqplib.connect(this.rabbitmqUrl);
+      const channel = await connection.createChannel();
+      await channel.assertQueue(this.rabbitmqQueueName, { durable: true });
+      channel.sendToQueue(this.rabbitmqQueueName, Buffer.from(JSON.stringify(data)));
+      logger.log('Message sent to RabbitMQ', data);
+      await channel.close();
+      await connection.close();
+    } catch (error) {
+      logger.error('Failed to send message to RabbitMQ', error);
       throw error;
     }
   }

@@ -92,4 +92,13 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'audioFileStored', data: { fileData } });
   },
+  rabbitmqMessageSent: (data) => {
+    logger.info('RabbitMQ message sent', { data });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'rabbitmqMessageSent', data: { data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'rabbitmqMessageSent', data: { data } });
+  },
 };
