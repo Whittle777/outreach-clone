@@ -4,6 +4,7 @@ const AudioStorage = require('./audioStorage');
 const logger = require('./logger');
 const config = require('./config');
 const temporalStateManager = require('./temporalStateManager');
+const DealHealthScore = require('../models/dealHealthScore');
 
 class DoubleWriteStrategy {
   constructor() {
@@ -29,6 +30,9 @@ class DoubleWriteStrategy {
       logger.log('Legacy datastore write successful', data);
       await this.newDatastore.write(data);
       logger.log('New datastore write successful', data);
+      if (data.type === 'deal-health-score') {
+        logger.log('Deal health score calculation logged', data);
+      }
       await this.sendMessage(data);
       logger.log('Double-write successful');
     } catch (error) {
