@@ -187,4 +187,13 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'realTimeTranscript', data: { transcriptData } });
   },
+  callResistanceDetected: (callData) => {
+    logger.warn('Call resistance detected', { callData });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'callResistanceDetected', data: { callData } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'callResistanceDetected', data: { callData } });
+  },
 };
