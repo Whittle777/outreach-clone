@@ -25,7 +25,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const prospect = await createProspect(req.body.firstName, req.body.lastName, req.body.email, req.body.companyName, req.body.status);
+    const prospect = await createProspect(req.body);
     res.status(201).json(prospect);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const prospect = await updateProspect(req.params.id, req.body.firstName, req.body.lastName, req.body.email, req.body.companyName, req.body.status);
+    const prospect = await updateProspect(req.params.id, req.body);
     if (prospect == null) {
       return res.status(404).json({ message: 'Cannot find prospect' });
     }
