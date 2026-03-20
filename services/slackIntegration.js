@@ -2,8 +2,8 @@ const axios = require('axios');
 const config = require('../services/config').getConfig();
 
 class SlackIntegration {
-  constructor() {
-    this.webhookUrl = config.slack.webhookUrl;
+  constructor(webhookUrl) {
+    this.webhookUrl = webhookUrl;
   }
 
   async sendNotification(message) {

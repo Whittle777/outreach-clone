@@ -9,6 +9,7 @@ const PredictiveSearch = require('./predictiveSearch');
 const ConfidenceScoreRouting = require('./confidenceScoreRouting');
 const SplitPaneReviewInterface = require('./splitPaneReviewInterface');
 const TemporalStateManager = require('./temporalStateManager');
+const SlackIntegration = require('./slackIntegration');
 
 const defaultConfig = {
   messageQueueType: 'rabbitmq', // Default to RabbitMQ
@@ -87,6 +88,9 @@ const defaultConfig = {
   },
   microsoftTeams: {
     webhookUrl: process.env.MICROSOFT_TEAMS_WEBHOOK_URL || 'https://outlook.office.com/webhook/your-webhook-url'
+  },
+  slack: {
+    webhookUrl: process.env.SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/your-webhook-url'
   }
 };
 
@@ -94,6 +98,7 @@ module.exports = {
   getConfig: () => {
     return {
       ...defaultConfig,
+      slackIntegration: new SlackIntegration(defaultConfig.slack.webhookUrl),
       // Add any additional configuration logic here if needed
     };
   },
