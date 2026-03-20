@@ -4,6 +4,7 @@ const MessageBroker = require('./messageBroker');
 const config = require('./config/settings');
 const logger = require('./services/logger');
 const conversationalFilteringRoutes = require('./routes/conversationalFiltering');
+const knowledgeGraphRoutes = require('./services/knowledgeGraph');
 
 const app = express();
 app.use(bodyParser.json());
@@ -125,8 +126,10 @@ app.post('/api/handle-voicemail-drop', async (req, res) => {
 // Add Conversational Filtering System routes
 app.use('/api/conversational-filtering', conversationalFilteringRoutes);
 
+// Add Knowledge Graph routes
+app.use('/api/knowledgeGraph', knowledgeGraphRoutes);
+
 // Start the server
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   logger.log(`Sentiment classification API listening on port ${PORT}`);
 });
