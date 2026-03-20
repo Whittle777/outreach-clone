@@ -5,6 +5,7 @@ const AIGenerator = require('../services/aiGenerator');
 const Encryption = require('../services/encryption');
 const AzureServiceBus = require('../services/azureServiceBus');
 const RateLimiter = require('../services/rateLimiter');
+const config = require('../services/config').getConfig();
 
 class MCP {
   constructor() {
@@ -34,11 +35,12 @@ class MCP {
   }
 
   async routeByConfidenceScore(confidenceScore, data) {
-    if (confidenceScore > 85) {
+    const { high, moderate } = config.confidenceScoreRouting;
+    if (confidenceScore > high) {
       // High confidence: AI executes autonomously
       await this.write({ type: 'high-confidence', data });
       logger.log('High confidence, AI executes autonomously', data);
-    } else if (confidenceScore >= 70) {
+    } else if (confidenceScore >= moderate) {
       // Moderate confidence: action paused and routed to review queue
       await this.write({ type: 'moderate-confidence', data });
       logger.log('Moderate confidence, routed to review queue', data);
@@ -131,7 +133,6 @@ class MCP {
       return callRate;
     } catch (error) {
       logger.error('Error retrieving call rate', error);
-      throw error;
     }
   }
 
@@ -141,7 +142,6 @@ class MCP {
       logger.callRateUpdated(callRateData);
     } catch (error) {
       logger.error('Error updating call rate', error);
-      throw error;
     }
   }
 
@@ -161,7 +161,6 @@ class MCP {
       return callRates;
     } catch (error) {
       logger.error('Error retrieving all call rates', error);
-      throw error;
     }
   }
 

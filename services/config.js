@@ -77,6 +77,10 @@ const defaultConfig = {
   },
   webSocket: {
     port: process.env.WEBSOCKET_PORT || 8080
+  },
+  confidenceScoreRouting: {
+    high: process.env.CONFIDENCE_SCORE_HIGH || 85,
+    moderate: process.env.CONFIDENCE_SCORE_MODERATE || 70
   }
 };
 
