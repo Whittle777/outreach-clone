@@ -3,6 +3,7 @@ const messageBroker = require('./messageBroker');
 const logger = require('./services/logger');
 const VoiceAgentIntegration = require('./services/voiceAgentIntegration');
 const azureAcsService = require('./services/azureAcsService');
+const wss = require('./websocketServer');
 
 const voiceAgentIntegration = new VoiceAgentIntegration('YOUR_API_KEY', 'https://api.azureacs.com');
 
@@ -25,6 +26,12 @@ async function consumeMessages(config) {
           await azureAcsService.updateCallFlags(messageBody.callId, messageBody.flags);
         } else if (messageBody.type === 'callStatusUpdate') {
           await voiceAgentIntegration.fetchCallStatus(messageBody.callId);
+          // Broadcast the call status update to WebSocket clients
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({ type: 'callStatusUpdate', data: messageBody }));
+            }
+          });
         } else {
           await processMessage(messageBody);
         }

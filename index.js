@@ -33,7 +33,10 @@ app.listen(PORT, () => {
 });
 
 // Start consuming messages from SQS
-consumeMessages();
+consumeMessages({
+  connectionString: process.env.SERVICE_BUS_CONNECTION_STRING,
+  queueName: process.env.SERVICE_BUS_QUEUE_NAME,
+});
 
 // Start the WebSocket server
 wss.on('listening', () => {

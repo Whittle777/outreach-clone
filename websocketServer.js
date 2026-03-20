@@ -1,11 +1,17 @@
 const WebSocket = require('ws');
+const logger = require('./services/logger');
+
 const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on('connection', (ws) => {
-  console.log('Client connected');
+  logger.log('Client connected');
+
+  ws.on('message', (message) => {
+    logger.log('Received message:', message);
+  });
 
   ws.on('close', () => {
-    console.log('Client disconnected');
+    logger.log('Client disconnected');
   });
 });
 
