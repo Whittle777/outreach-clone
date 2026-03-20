@@ -6,6 +6,8 @@ const RabbitMQService = require('./rabbitmq/rabbitmqService');
 const NLP = require('./nlp');
 const IntentDrivenShortcuts = require('./intentDrivenShortcuts');
 const PredictiveSearch = require('./predictiveSearch');
+const ConfidenceScoreRouting = require('./confidenceScoreRouting');
+const SplitPaneReviewInterface = require('./splitPaneReviewInterface');
 
 const defaultConfig = {
   messageQueueType: 'rabbitmq', // Default to RabbitMQ
@@ -122,5 +124,12 @@ module.exports = {
   initializePredictiveSearch: () => {
     const config = require('./config').getConfig();
     return new PredictiveSearch(config);
+  },
+  initializeConfidenceScoreRouting: () => {
+    const config = require('./config').getConfig();
+    return new ConfidenceScoreRouting(config);
+  },
+  initializeSplitPaneReviewInterface: (logger) => {
+    return new SplitPaneReviewInterface(logger);
   },
 };

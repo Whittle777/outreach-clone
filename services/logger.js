@@ -240,5 +240,14 @@ module.exports = {
       }
     });
     doubleWriteStrategy.write({ type: 'callStatusUpdate', data: { callData } });
-  }
+  },
+  confidenceScoreRouting: (confidenceScore, task) => {
+    logger.info('Confidence score routing', { confidenceScore, task });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'confidenceScoreRouting', data: { confidenceScore, task } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'confidenceScoreRouting', data: { confidenceScore, task } });
+  },
 };
