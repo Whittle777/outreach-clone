@@ -15,6 +15,8 @@ const config = {
     retryLimit: parseInt(process.env.EMAIL_RETRY_LIMIT) || 5,
     backoffInterval: parseInt(process.env.EMAIL_BACKOFF_INTERVAL) || 1000, // in milliseconds
   },
+  timeBlockCheckEnabled: process.env.TIME_BLOCK_CHECK_ENABLED === 'true' || false,
+  timeBlocks: JSON.parse(process.env.TIME_BLOCKS || '[]'),
 };
 
 module.exports = config;

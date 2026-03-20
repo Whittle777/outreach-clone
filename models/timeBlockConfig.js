@@ -1,21 +1,25 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
 class TimeBlockConfig {
-  static async create(timeBlockConfig) {
-    return await prisma.timeBlockConfig.create({
-      data: timeBlockConfig,
-    });
+  constructor(start, end, daysOfWeek, holidayExclusions, userOrTeamAssociation, bentoIdentifier, activeStatus) {
+    this.start = start;
+    this.end = end;
+    this.daysOfWeek = daysOfWeek;
+    this.holidayExclusions = holidayExclusions;
+    this.userOrTeamAssociation = userOrTeamAssociation;
+    this.bentoIdentifier = bentoIdentifier;
+    this.activeStatus = activeStatus;
   }
 
-  static async getAll() {
-    return await prisma.timeBlockConfig.findMany();
+  isActive() {
+    return this.activeStatus;
   }
 
-  static async delete(id) {
-    return await prisma.timeBlockConfig.delete({
-      where: { id },
-    });
+  isWithinTimeBlock(date) {
+    const dayOfWeek = date.getDay();
+    const isWeekday = this.daysOfWeek.includes(dayOfWeek);
+    const isHoliday = this.holidayExclusions.includes(date.toISOString().split('T')[0]);
+    const isWithinTime = date >= this.start && date <= this.end;
+
+    return isWeekday && !isHoliday && isWithinTime;
   }
 }
 
