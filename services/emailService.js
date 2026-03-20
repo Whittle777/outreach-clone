@@ -7,26 +7,25 @@ const EmailActivities = require('../models/emailActivities'); // Assuming the em
 const Prospect = require('../models/Prospect'); // Assuming the Prospect model is in models/Prospect.js
 const BounceEvent = require('../models/bounceEvent'); // Added for bounce event tracking
 const UnsubscribeEvent = require('../models/unsubscribeEvent'); // Added for unsubscribe event tracking
+const AIGenerator = require('../services/aiGenerator'); // Added for AI-generated email content
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport(smtpConfig);
 
+const aiGenerator = new AIGenerator();
+
 async function sendScheduledEmails() {
   // Example: Send an email to a list of prospects
-  const prospects = [
-    { email: 'prospect1@example.com', name: 'Prospect 1' },
-    { email: 'prospect2@example.com', name: 'Prospect 2' },
-  ];
-
-  const emailOptions = {
-    from: smtpConfig.auth.user,
-    subject: 'Scheduled Email',
-    text: 'This is a scheduled email from our system.',
-  };
+  const prospects = await Prospect.findAll();
 
   for (const prospect of prospects) {
-    emailOptions.to = prospect.email;
-    emailOptions.html = `<p>Hello ${prospect.name},</p><p>This is a scheduled email from our system.</p>`;
+    const emailContent = await aiGenerator.generateEmailContent(prospect);
+    const emailOptions = {
+      from: smtpConfig.auth.user,
+      to: prospect.email,
+      subject: 'Follow-up from Your Company',
+      html: emailContent,
+    };
 
     let retryCount = 0;
     let success = false;
