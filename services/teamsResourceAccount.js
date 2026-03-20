@@ -2,12 +2,13 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const azureCommunicationService = require('./azureCommunicationService');
 
-async function createTeamsResourceAccount(userId, bento) {
+async function createTeamsResourceAccount(userId, bento, isMock = false) {
   const shard = getShard(bento);
   return await prisma[shard].teamsResourceAccount.create({
     data: {
       userId,
       bento,
+      isMock,
     },
   });
 }
@@ -42,6 +43,10 @@ async function initiateOutboundCall(userId, bento, phoneNumber) {
 
   if (!teamsResourceAccount) {
     throw new Error('Teams Resource Account not found');
+  }
+
+  if (teamsResourceAccount.isMock) {
+    return { status: 'mock call initiated', phoneNumber };
   }
 
   const callConnection = await azureCommunicationService.initiateOutboundCall(teamsResourceAccount.objectId, phoneNumber);
