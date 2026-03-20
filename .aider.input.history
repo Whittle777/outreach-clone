@@ -83490,3 +83490,109 @@
 +            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
 +            DO NOT write application code.
 +            
+
+# 2026-03-19 22:30:45.750504
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 22:30:45.750658
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 22:31:46.596221
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 22:31:46.596431
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 22:32:52.360410
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 22:32:52.360546
++
++            Act as a Senior Tech Lead. We are building the following feature: ""
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 22:33:57.408165
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-19 22:33:57.408451
++
++            Analyze the VISION.md file. Update ARCHITECTURE.md with any new technical requirements, data models, or stack choices mentioned.
++            Do not remove existing architecture unless it directly contradicts the new vision. DO NOT write app code.
++            
+
+# 2026-03-19 23:03:57.736674
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
+
+# 2026-03-19 23:03:57.737014
++
++            Compare ARCHITECTURE.md with ROADMAP.md. Identify any newly added features.
++            APPEND these new features to the bottom of ROADMAP.md as unchecked tasks '- [ ]'.
++            CRITICAL RULE: DO NOT modify, delete, or uncheck any existing tasks in ROADMAP.md. ROADMAP.md is our permanent historical ledger. DO NOT write app code.
++            
+
+# 2026-03-19 23:09:05.006097
++
++            Act as a Senior Tech Lead. We are building the following feature: "Text-to-Speech (TTS): ElevenLabs or Azure AI Speech for hyper-realistic audio generation"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 23:09:05.006399
++
++            Act as a Senior Tech Lead. We are building the following feature: "Text-to-Speech (TTS): ElevenLabs or Azure AI Speech for hyper-realistic audio generation"
++            1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
++            2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
++            DO NOT write application code.
++            
+
+# 2026-03-19 23:10:48.912316
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            
+
+# 2026-03-19 23:10:48.912460
++
++            Look at the first unchecked task '- [ ]' in SPRINT.md.
++            Write the application code to implement ONLY that specific task.
++            Use your repository map to find the correct files to edit. 
++            DO NOT edit SPRINT.md or any documentation files. Just write the code for the app.
++            

@@ -133,6 +133,25 @@ const fetchPreCallBrief = async (prospectId) => {
   }
 };
 
+const textToSpeech = async (text, voiceName) => {
+  try {
+    const response = await axios.post(`${azureAcsUrl}/text-to-speech`, {
+      text,
+      voiceName,
+    }, {
+      headers: {
+        'Ocp-Apim-Subscription-Key': azureAcsKey,
+        'Content-Type': 'application/json',
+      },
+    });
+    await doubleWriteStrategy.write({ type: 'textToSpeech', data: response.data });
+    return response.data.audioUrl;
+  } catch (error) {
+    logger.error(`Error converting text to speech: ${error.message}`);
+    throw error;
+  }
+};
+
 module.exports = {
   createCall,
   handleVoicemailDrop,
@@ -142,4 +161,5 @@ module.exports = {
   getCallFlags,
   fetchActiveConstraints,
   fetchPreCallBrief,
+  textToSpeech,
 };

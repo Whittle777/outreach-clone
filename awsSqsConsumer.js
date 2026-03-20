@@ -81,6 +81,21 @@ async function consumeMessages(config) {
               client.send(JSON.stringify({ type: 'prediction', data: prediction }));
             }
           });
+        } else if (messageBody.type === 'textToSpeech') {
+          key = `textToSpeech:${messageBody.text}`;
+          if (await audioFileLimiter.isRateLimited(key)) {
+            logger.warn('Rate limit exceeded for textToSpeech', { text: messageBody.text });
+            return;
+          }
+          await audioFileLimiter.incrementRequestCount(key);
+          const audioUrl = await azureAcsService.textToSpeech(messageBody.text, messageBody.voiceName);
+          console.log('Text to Speech Audio URL:', audioUrl);
+          // Broadcast the audio URL to WebSocket clients
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({ type: 'textToSpeech', data: { audioUrl } }));
+            }
+          });
         } else {
           await processMessage(messageBody);
         }

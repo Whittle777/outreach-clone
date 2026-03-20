@@ -145,6 +145,7 @@ Dynamic task playlists generated from natural language queries.
 - Generated From Prompt (NLQ source)
 - AI Confidence Score
 - Human Review Required Flag
+- Sequential Completion Tracking (for auto-advance to next task)
 
 ### NaturalLanguageQueryLog
 Records of natural language prompts and their resolved queries.
@@ -354,28 +355,33 @@ Configuration for scheduling time blocks and approved calling hours.
 - Core algorithm processing real-time metrics: Average Handle Time (AHT), live-connect rates
 - Dynamically calculates optimal number of simultaneous lines per available agent
 - Adjusts dialing speed based on agent availability and call outcomes
+- Real-time calculation of dial-to-agent ratios based on historical performance data
 
 ### Compliance & Abandonment Safeguards
 - TCPA standards compliance with automatic throttling if dropped-call rate approaches 3% threshold
 - Automatic Do Not Call (DNC) list scrubbing before dialing
 - Real-time monitoring of abandonment rates with emergency stop mechanisms
+- Maximum ring time configuration per campaign to prevent excessive wait times
 
 ### Administrative Tuning Dashboard
 - Human-in-the-loop control panel for sales managers
 - Set hard limits on dial-to-agent ratios
 - Customize maximum ring times per campaign
 - Manual override capability for algorithm pacing on high-priority campaigns
+- Real-time metrics display: current CPS, abandonment rate, agent utilization
 
 ### Answering Machine Detection (AMD)
 - AI-driven audio analysis operating in milliseconds
 - Distinguishes between live human voices, voicemails, busy signals, and disconnected numbers
 - Ensures only live connections are routed to sales floor
+- Voicemail tone detection with configurable sensitivity thresholds
 
 ### Bi-Directional CRM Integration
 - Seamless API connectivity via Webhooks or RESTful APIs
 - Automatically pulls lead lists from CRM
 - Pushes call dispositions and recordings back to CRM
 - Instantly triggers "screen pops" displaying prospect profile as call connects
+- Real-time synchronization of call status and outcomes
 
 ## Human-in-the-Loop (HITL) Workflow
 
@@ -383,6 +389,7 @@ Configuration for scheduling time blocks and approved calling hours.
 - **High Confidence (>85%):** Solid green progress bar/checkmark, AI executes autonomously and logs action
 - **Moderate Confidence (70-84%):** Amber/yellow warning tooltip, action paused and routed to review queue
 - **Low Confidence (<70%):** Red alert icon, workflow halts with high-priority supervisor notifications
+- Configurable thresholds per organization or campaign
 
 ### Split-Pane Review Interface
 - **Left Rail (Review Queue):** Paginated list of pending tasks sorted by urgency or pipeline value
@@ -393,6 +400,7 @@ Configuration for scheduling time blocks and approved calling hours.
 - Dedicated interface for human Account Executives to provide contextual feedback
 - Correct AI drafts before external communications are sent
 - Prevent algorithmic hallucinations in customer-facing content
+- Audit trail of all human interventions and corrections
 
 ## System Resilience & Transparency
 
@@ -471,17 +479,27 @@ Configuration for scheduling time blocks and approved calling hours.
 - Hybrid interface merging natural language chat with visual workflow canvases
 - Progressive Disclosure across three interaction layers:
   - **Layer 1 (Discovery & Intent):** Conversational chat console for workflow initiation
+    - Centralized conversational chat console
+    - Processes natural language prompts to initiate workflows
+    - Displays lightweight metadata (intent confirmation, audience size, objective summary)
   - **Layer 2 (Activation & Rule Building):** Dynamically generated UI components for logic rules
+    - On-the-fly sliders, toggle switches, and drop-down menus based on context
+    - Translates chat prompts into structured, editable logic rules
   - **Layer 3 (Execution & Deep Dive):** Infinite drag-and-drop visual workflow canvas
+    - Maps multi-agent routing paths and API integrations
+    - Nodes representing agentic actions and edges representing data flow/conditional logic
 
 ### Conversational Filtering System
 - Dynamic UI generation based on user text prompts
 - Intent-driven shortcuts and predictive search
 - Visual filter chips for active constraints
+- Sticky tags to display active constraints without obscuring data table view
+- Predictive search with context maintenance across multi-turn conversations
 
 ### Omnichannel Integration
 - Embedded Command Centers in Slack and Microsoft Teams
 - Interactive Notifications for approval workflows within chat threads (Approve, Reject, Modify)
+- Allows managers to review low-confidence alerts without logging into separate web portal
 
 ## Coding Principles
 
@@ -584,3 +602,9 @@ Configuration for scheduling time blocks and approved calling hours.
 32. Implement easy task workflow list where completed tasks auto-advance to next item
 33. Add support for filtering prospects by tags, ZoomInfo data, and country code fallbacks
 34. Ensure all voice agent features are robust and production-ready
+35. Implement UI navigation paths documentation in README with detailed user flows
+36. Support Layer 1-3 Agentic Command Center interface specifications
+37. Enable conversational filtering system with dynamic UI generation
+38. Implement split-pane review interface for HITL workflow
+39. Add support for administrative tuning dashboard for predictive dialer
+40. Ensure all features are thoroughly tested before deployment

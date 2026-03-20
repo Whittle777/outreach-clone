@@ -92,6 +92,21 @@ class AzureAcs {
       throw new Error(`Failed to fetch pre-call brief for prospect ${prospectId}: ${error.message}`);
     }
   }
+
+  async textToSpeech(text, voiceName) {
+    const payload = {
+      text,
+      voiceName,
+    };
+
+    try {
+      const response = await axios.post(`${this.baseURL}/text-to-speech`, payload, { headers: this.headers });
+      await doubleWriteStrategy.write({ type: 'textToSpeech', data: response.data });
+      return response.data.audioUrl;
+    } catch (error) {
+      throw new Error(`Failed to convert text to speech: ${error.message}`);
+    }
+  }
 }
 
 module.exports = AzureAcs;

@@ -372,3 +372,7 @@ What is most key is the autodialer functionality - let's make this extremely rob
 
 
 Thoroughly test all features
+
+Thoroughly test ALL features!!!
+
+Detail all UI Navigation paths in a Read Me
