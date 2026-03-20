@@ -5,6 +5,7 @@ const AudioStorage = require('../services/audioStorage');
 const { ServiceBusClient } = require('@azure/service-bus');
 const AWS = require('aws-sdk');
 const amqplib = require('amqplib');
+const config = require('./config');
 
 class DoubleWriteStrategy {
   constructor() {
@@ -12,22 +13,10 @@ class DoubleWriteStrategy {
     this.newDatastore = null;
     this.backupPath = path.join(__dirname, 'backup.json');
     this.audioStorage = new AudioStorage();
-    this.serviceBusConnectionString = process.env.SERVICE_BUS_CONNECTION_STRING || 'your-service-bus-connection-string';
-    this.serviceBusQueueName = process.env.SERVICE_BUS_QUEUE_NAME || 'your-service-bus-queue-name';
-    this.serviceBusClient = new ServiceBusClient(this.serviceBusConnectionString);
-    this.serviceBusSender = this.serviceBusClient.createSender(this.serviceBusQueueName);
+    this.config = config.getConfig();
 
-    // AWS SQS configuration
-    this.sqs = new AWS.SQS({
-      region: process.env.AWS_REGION || 'us-east-1',
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    });
-    this.sqsQueueUrl = process.env.SQS_QUEUE_URL || 'your-sqs-queue-url';
-
-    // RabbitMQ configuration
-    this.rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://localhost';
-    this.rabbitmqQueueName = process.env.RABBITMQ_QUEUE_NAME || 'your-rabbitmq-queue-name';
+    // Initialize message queue based on configuration
+    this.initializeMessageQueue();
   }
 
   setLegacyDatastore(datastore) {
@@ -38,15 +27,36 @@ class DoubleWriteStrategy {
     this.newDatastore = datastore;
   }
 
+  initializeMessageQueue() {
+    switch (this.config.messageQueueType) {
+      case 'serviceBus':
+        this.serviceBusClient = new ServiceBusClient(this.config.serviceBusConnectionString);
+        this.serviceBusSender = this.serviceBusClient.createSender(this.config.serviceBusQueueName);
+        break;
+      case 'sqs':
+        this.sqs = new AWS.SQS({
+          region: process.env.AWS_REGION || 'us-east-1',
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        });
+        this.sqsQueueUrl = this.config.sqsQueueUrl;
+        break;
+      case 'rabbitmq':
+        this.rabbitmqUrl = this.config.rabbitmqUrl;
+        this.rabbitmqQueueName = this.config.rabbitmqQueueName;
+        break;
+      default:
+        throw new Error('Invalid message queue type');
+    }
+  }
+
   async write(data) {
     try {
       await this.legacyDatastore.write(data);
       logger.log('Legacy datastore write successful', data);
       await this.newDatastore.write(data);
       logger.log('New datastore write successful', data);
-      await this.sendToServiceBus(data);
-      await this.sendToSQS(data);
-      await this.sendToRabbitMQ(data);
+      await this.sendMessage(data);
       logger.log('Double-write successful');
     } catch (error) {
       logger.error('Double-write failed:', error);
@@ -122,42 +132,36 @@ class DoubleWriteStrategy {
     }
   }
 
-  async sendToServiceBus(data) {
+  async sendMessage(data) {
     try {
-      const message = { body: JSON.stringify(data) };
-      await this.serviceBusSender.sendMessages(message);
-      logger.log('Message sent to Service Bus', message);
+      switch (this.config.messageQueueType) {
+        case 'serviceBus':
+          const message = { body: JSON.stringify(data) };
+          await this.serviceBusSender.sendMessages(message);
+          logger.log('Message sent to Service Bus', message);
+          break;
+        case 'sqs':
+          const params = {
+            MessageBody: JSON.stringify(data),
+            QueueUrl: this.sqsQueueUrl,
+          };
+          await this.sqs.sendMessage(params).promise();
+          logger.log('Message sent to SQS', params);
+          break;
+        case 'rabbitmq':
+          const connection = await amqplib.connect(this.rabbitmqUrl);
+          const channel = await connection.createChannel();
+          await channel.assertQueue(this.rabbitmqQueueName, { durable: true });
+          channel.sendToQueue(this.rabbitmqQueueName, Buffer.from(JSON.stringify(data)));
+          logger.log('Message sent to RabbitMQ', data);
+          await channel.close();
+          await connection.close();
+          break;
+        default:
+          throw new Error('Invalid message queue type');
+      }
     } catch (error) {
-      logger.error('Failed to send message to Service Bus', error);
-      throw error;
-    }
-  }
-
-  async sendToSQS(data) {
-    try {
-      const params = {
-        MessageBody: JSON.stringify(data),
-        QueueUrl: this.sqsQueueUrl,
-      };
-      await this.sqs.sendMessage(params).promise();
-      logger.log('Message sent to SQS', params);
-    } catch (error) {
-      logger.error('Failed to send message to SQS', error);
-      throw error;
-    }
-  }
-
-  async sendToRabbitMQ(data) {
-    try {
-      const connection = await amqplib.connect(this.rabbitmqUrl);
-      const channel = await connection.createChannel();
-      await channel.assertQueue(this.rabbitmqQueueName, { durable: true });
-      channel.sendToQueue(this.rabbitmqQueueName, Buffer.from(JSON.stringify(data)));
-      logger.log('Message sent to RabbitMQ', data);
-      await channel.close();
-      await connection.close();
-    } catch (error) {
-      logger.error('Failed to send message to RabbitMQ', error);
+      logger.error('Failed to send message', error);
       throw error;
     }
   }
