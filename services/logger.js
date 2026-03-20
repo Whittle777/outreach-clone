@@ -67,4 +67,11 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'microsoftTeamsNotification', data: { message } });
   },
+  consistencyCheck: (isConsistent) => {
+    if (isConsistent) {
+      logger.log('Data consistency check passed');
+    } else {
+      logger.error('Data consistency check failed');
+    }
+  },
 };
