@@ -152,6 +152,15 @@ class VoiceAgentIntegration {
       throw new Error(`Failed to fetch active constraints: ${error.message}`);
     }
   }
+
+  async generateEmail(prospect, tone, intent) {
+    const emailData = {
+      prospect,
+      tone,
+      intent,
+    };
+    return await this.intentDrivenShortcutsService.generateEmail(emailData);
+  }
 }
 
 module.exports = VoiceAgentIntegration;
