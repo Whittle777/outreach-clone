@@ -9,6 +9,8 @@ const defaultConfig = {
   openaiApiKey: process.env.OPENAI_API_KEY || 'your-openai-api-key', // Add this line
   azureAcsConnectionString: process.env.AZURE_ACS_CONNECTION_STRING || 'your-azure-acs-connection-string', // Add this line
   azureAcsQueueName: process.env.AZURE_ACS_QUEUE_NAME || 'your-azure-acs-queue-name', // Add this line
+  geographicRoutingEnabled: process.env.GEOGRAPHIC_ROUTING_ENABLED === 'true' || false, // Add this line
+  geographicRoutingRegion: process.env.GEOGRAPHIC_ROUTING_REGION || 'us', // Add this line
 };
 
 module.exports = {
