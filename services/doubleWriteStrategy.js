@@ -14,6 +14,7 @@ const BounceEvent = require('../models/bounceEvent'); // Added for bounce event 
 const UnsubscribeEvent = require('../models/unsubscribeEvent'); // Added for unsubscribe event tracking
 const Transcript = require('../models/Transcript'); // Added for transcript tracking
 const SentimentAnalysis = require('../models/SentimentAnalysis'); // Added for sentiment analysis tracking
+const DealHealthScore = require('../models/DealHealthScore'); // Added for deal health score tracking
 
 class DoubleWriteStrategy {
   constructor() {
@@ -297,6 +298,57 @@ class DoubleWriteStrategy {
       return sentimentAnalysis;
     } catch (error) {
       logger.error('Error creating sentiment analysis', error);
+    }
+  }
+
+  async createDealHealthScore(dealHealthScoreData) {
+    try {
+      const dealHealthScore = await DealHealthScore.create(dealHealthScoreData);
+      logger.log('Deal health score created successfully', dealHealthScore);
+      return dealHealthScore;
+    } catch (error) {
+      logger.error('Error creating deal health score', error);
+      throw error;
+    }
+  }
+
+  async getDealHealthScoreById(id) {
+    try {
+      const dealHealthScore = await DealHealthScore.findById(id);
+      logger.log('Deal health score retrieved successfully', dealHealthScore);
+      return dealHealthScore;
+    } catch (error) {
+      logger.error('Error retrieving deal health score', error);
+    }
+  }
+
+  async updateDealHealthScore(id, dealHealthScoreData) {
+    try {
+      const dealHealthScore = await DealHealthScore.update(id, dealHealthScoreData);
+      logger.log('Deal health score updated successfully', dealHealthScore);
+      return dealHealthScore;
+    } catch (error) {
+      logger.error('Error updating deal health score', error);
+    }
+  }
+
+  async deleteDealHealthScore(id) {
+    try {
+      const dealHealthScore = await DealHealthScore.delete(id);
+      logger.log('Deal health score deleted successfully', dealHealthScore);
+      return dealHealthScore;
+    } catch (error) {
+      logger.error('Error deleting deal health score', error);
+    }
+  }
+
+  async getAllDealHealthScores() {
+    try {
+      const dealHealthScores = await DealHealthScore.getAll();
+      logger.log('All deal health scores retrieved successfully', dealHealthScores);
+      return dealHealthScores;
+    } catch (error) {
+      logger.error('Error retrieving all deal health scores', error);
     }
   }
 

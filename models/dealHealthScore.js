@@ -1,31 +1,33 @@
+const prisma = require('../services/database');
+
 class DealHealthScore {
-  static calculateScore(metadata) {
-    // Implement the logic to calculate the deal health score
-    // This is a placeholder implementation
-    let score = 0;
-
-    // Example factors for deal health score calculation
-    if (metadata.status === 'Engaged') {
-      score += 20;
-    }
-    if (metadata.recentActivity) {
-      score += 30;
-    }
-    if (metadata.momentum > 0.5) {
-      score += 50;
-    }
-
-    return score;
+  static async create(dealHealthScoreData) {
+    return await prisma.dealHealthScore.create({
+      data: dealHealthScoreData,
+    });
   }
 
-  static determineStatus(score) {
-    if (score >= 80) {
-      return 'High';
-    } else if (score >= 50) {
-      return 'Medium';
-    } else {
-      return 'Low';
-    }
+  static async findById(id) {
+    return await prisma.dealHealthScore.findUnique({
+      where: { id: parseInt(id) },
+    });
+  }
+
+  static async update(id, dealHealthScoreData) {
+    return await prisma.dealHealthScore.update({
+      where: { id: parseInt(id) },
+      data: dealHealthScoreData,
+    });
+  }
+
+  static async delete(id) {
+    return await prisma.dealHealthScore.delete({
+      where: { id: parseInt(id) },
+    });
+  }
+
+  static async getAll() {
+    return await prisma.dealHealthScore.findMany();
   }
 }
 
