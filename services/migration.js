@@ -1,15 +1,25 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const DoubleWriteStrategy = require('../doubleWriteStrategy');
+const config = require('../config');
 
 class Migration {
+  constructor() {
+    this.doubleWriteStrategy = new DoubleWriteStrategy();
+    this.config = config.getConfig();
+    this.doubleWriteStrategy.setLegacyDatastore(this.config.legacyDatastore);
+    this.doubleWriteStrategy.setNewDatastore(this.config.newDatastore);
+  }
+
   async migrateProspects() {
     try {
       // Fetch all prospects from the legacy datastore
       const legacyProspects = await this.fetchLegacyProspects();
 
-      // Migrate each prospect to the new datastore
+      // Migrate each prospect to the new datastore using double-write strategy
       for (const prospect of legacyProspects) {
-        await prisma.prospect.create({
+        await this.doubleWriteStrategy.write({
+          type: 'prospect',
           data: {
             firstName: prospect.firstName,
             lastName: prospect.lastName,

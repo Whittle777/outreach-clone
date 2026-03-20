@@ -91,6 +91,12 @@ const defaultConfig = {
   },
   slack: {
     webhookUrl: process.env.SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/your-webhook-url'
+  },
+  legacyDatastore: {
+    // Implement legacy datastore configuration here
+  },
+  newDatastore: {
+    // Implement new datastore configuration here
   }
 };
 
