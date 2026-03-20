@@ -74,6 +74,9 @@ const defaultConfig = {
   preCallBriefDashboard: {
     enabled: process.env.PRE_CALL_BRIEF_DASHBOARD_ENABLED === 'true' || false,
     // Add any additional configuration for pre-call brief dashboard here
+  },
+  webSocket: {
+    port: process.env.WEBSOCKET_PORT || 8080
   }
 };
 

@@ -2,12 +2,33 @@ const config = require('./config').getConfig();
 const logger = require('./logger');
 const AICallGoals = require('./aiCallGoals');
 const NaturalLanguageGenerator = require('./naturalLanguageGenerator');
+const WebSocket = require('ws');
 
 class PreCallBriefDashboard {
   constructor() {
     this.enabled = config.preCallBriefDashboard.enabled;
     this.aiCallGoals = new AICallGoals();
     this.naturalLanguageGenerator = new NaturalLanguageGenerator();
+    this.ws = new WebSocket(`ws://localhost:${config.webSocket.port}`);
+
+    this.ws.on('open', () => {
+      logger.log('Connected to WebSocket server');
+    });
+
+    this.ws.on('message', async (message) => {
+      const data = JSON.parse(message);
+      if (data.type === 'prospectUpdated') {
+        await this.handleProspectUpdate(data.data.prospectData);
+      }
+    });
+
+    this.ws.on('error', (error) => {
+      logger.error('WebSocket error', error);
+    });
+
+    this.ws.on('close', () => {
+      logger.log('Disconnected from WebSocket server');
+    });
   }
 
   async generatePreCallBrief(prospectId) {
@@ -35,7 +56,14 @@ class PreCallBriefDashboard {
   async getProspectById(prospectId) {
     // Implement logic to fetch prospect data from the database
     // For example, using Prisma:
-    // return await prisma.prospect.findUnique({ where: { id: parseInt(prospectId) } });
+    return await prisma.prospect.findUnique({ where: { id: parseInt(prospectId) } });
+  }
+
+  async handleProspectUpdate(prospectData) {
+    // Implement logic to update the Pre-Call Brief Dashboard with the new prospect data
+    // For example, you can regenerate the pre-call brief or update specific fields
+    logger.log('Handling prospect update', { prospectData });
+    // Add your logic here
   }
 }
 

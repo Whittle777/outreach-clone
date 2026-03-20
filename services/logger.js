@@ -1,6 +1,7 @@
 const winston = require('winston');
-const wss = require('../server').wss;
+const WebSocket = require('ws');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
+const config = require('../services/config').getConfig();
 
 const logger = winston.createLogger({
   level: 'info',
@@ -10,6 +11,15 @@ const logger = winston.createLogger({
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
     new winston.transports.File({ filename: 'combined.log' }),
   ],
+});
+
+const wss = new WebSocket.Server({ port: config.webSocket.port });
+
+wss.on('connection', (ws) => {
+  logger.log('WebSocket client connected');
+  ws.on('close', () => {
+    logger.log('WebSocket client disconnected');
+  });
 });
 
 module.exports = {
@@ -214,4 +224,13 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'predictiveSearch', data: { query, results } });
   },
+  prospectUpdated: (prospectData) => {
+    logger.info('Prospect updated', { prospectData });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'prospectUpdated', data: { prospectData } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'prospectUpdated', data: { prospectData } });
+  }
 };

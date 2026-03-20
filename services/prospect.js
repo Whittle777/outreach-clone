@@ -26,6 +26,9 @@ class Prospect {
 
     await this.analyzeSentiment(id, prospectData.description);
 
+    // Emit WebSocket event for prospect update
+    logger.prospectUpdated(prospectData);
+
     return prospect;
   }
 
