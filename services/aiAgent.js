@@ -1,6 +1,8 @@
 // services/aiAgent.js
 
 const mcp = require('./mcp');
+const TaskQueue = require('./taskQueue');
+const taskQueue = new TaskQueue();
 
 class AIAgent {
   constructor() {
@@ -14,6 +16,9 @@ class AIAgent {
     // Simulate sending the task to the AI agent
     console.log('Sending task to AI agent:', encryptedTask, signature);
     // In a real implementation, you would send this to the AI agent via a network call
+
+    // Update task status to SENT
+    await taskQueue.updateTask(task.id, 'SENT');
   }
 
   async receiveResult(encryptedResult, signature) {
@@ -23,6 +28,10 @@ class AIAgent {
 
     const result = JSON.parse(this.mcp.decrypt(encryptedResult));
     console.log('Received result from AI agent:', result);
+
+    // Update task status to COMPLETED
+    await taskQueue.updateTask(result.taskId, 'COMPLETED');
+
     return result;
   }
 }
