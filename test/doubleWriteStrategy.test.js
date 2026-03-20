@@ -96,4 +96,12 @@ describe('DoubleWriteStrategy', function() {
     await doubleWriteStrategy.storeAudioFile(fileData);
     // Add assertions to verify the file was stored correctly
   });
+
+  it('should process sentiment analysis', async function() {
+    const prospectId = 1;
+    const sentimentData = { score: 0.8, label: 'positive' };
+    await doubleWriteStrategy.processSentimentAnalysis(prospectId, sentimentData);
+    assert.deepStrictEqual(legacyDatastore.data, [{ type: 'sentiment-analysis', data: { prospectId, sentimentData } }]);
+    assert.deepStrictEqual(newDatastore.data, [{ type: 'sentiment-analysis', data: { prospectId, sentimentData } }]);
+  });
 });

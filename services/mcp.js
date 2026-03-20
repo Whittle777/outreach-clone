@@ -63,6 +63,20 @@ class MCP {
       .update(data)
       .digest('hex');
   }
+
+  async processSentimentAnalysis(prospectId, sentimentData) {
+    try {
+      const data = {
+        prospectId,
+        sentimentData,
+      };
+      await this.write({ type: 'sentiment-analysis', data });
+      logger.sentiment('Sentiment analysis processed', data);
+    } catch (error) {
+      logger.error('Error processing sentiment analysis', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = MCP;
