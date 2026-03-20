@@ -272,4 +272,14 @@ module.exports = {
     doubleWriteStrategy.write({ type: 'confidenceScoreRouting', data: { confidenceScore, task } });
     temporalStateManager.saveState('confidenceScoreRouting', { confidenceScore, task });
   },
+  aiDecisionLog: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'aiDecisionLog', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'aiDecisionLog', data: { message, data } });
+    temporalStateManager.saveState('aiDecisionLog', { message, data });
+  },
 };

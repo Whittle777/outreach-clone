@@ -183,6 +183,10 @@ class MCP {
   async getPersonalizationWaterfall() {
     return doubleWriteStrategy.getPersonalizationWaterfall();
   }
+
+  async logAIReasoning(message, data) {
+    logger.aiDecisionLog(message, data);
+  }
 }
 
 module.exports = MCP;
