@@ -84,6 +84,9 @@ const defaultConfig = {
   confidenceScoreRouting: {
     high: process.env.CONFIDENCE_SCORE_HIGH || 85,
     moderate: process.env.CONFIDENCE_SCORE_MODERATE || 70
+  },
+  microsoftTeams: {
+    webhookUrl: process.env.MICROSOFT_TEAMS_WEBHOOK_URL || 'https://outlook.office.com/webhook/your-webhook-url'
   }
 };
 
