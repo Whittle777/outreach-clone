@@ -44,6 +44,8 @@ model Prospect {
   bento        String
   dmarcPolicy  String    @default("none")
   trackingPixelData Json? // New field for tracking pixel data
+  country      String?   // New field for country
+  region       String?   // New field for region
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
