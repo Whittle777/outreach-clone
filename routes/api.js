@@ -1,10 +1,12 @@
 const express = require('express');
 const AIGenerator = require('../services/aiGenerator');
 const ConversionRateService = require('../services/conversionRateService');
+const TtsService = require('../services/ttsService');
 
 const router = express.Router();
 const aiGenerator = new AIGenerator();
 const conversionRateService = new ConversionRateService();
+const ttsService = new TtsService();
 
 router.post('/generate-call-goal', async (req, res) => {
   try {
@@ -30,6 +32,16 @@ router.get('/conversion-rates-by-sales-stage', async (req, res) => {
   try {
     const conversionRates = await conversionRateService.analyzeConversionRatesBySalesStage();
     res.json({ conversionRates });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/tts/generate-audio', async (req, res) => {
+  try {
+    const { text, voiceName, outputFilePath } = req.body;
+    const audioFilePath = await ttsService.generateAndStoreTtsAudio(text, voiceName, outputFilePath);
+    res.json({ audioFilePath });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
