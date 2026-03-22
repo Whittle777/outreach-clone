@@ -2,6 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const DoubleWriteStrategy = require('../doubleWriteStrategy');
 const config = require('../config');
+const BackupService = require('../services/backup');
 
 class Migration {
   constructor() {
@@ -9,10 +10,14 @@ class Migration {
     this.config = config.getConfig();
     this.doubleWriteStrategy.setLegacyDatastore(this.config.legacyDatastore);
     this.doubleWriteStrategy.setNewDatastore(this.config.newDatastore);
+    this.backupService = new BackupService();
   }
 
   async migrateProspects() {
     try {
+      // Create a backup before starting the migration
+      await this.backupService.createBackup();
+
       // Fetch all prospects from the legacy datastore
       const legacyProspects = await this.fetchLegacyProspects();
 
@@ -34,6 +39,9 @@ class Migration {
       console.log('Prospect migration completed successfully.');
     } catch (error) {
       console.error('Error during prospect migration:', error);
+      // In case of error, revert to the backup
+      await this.backupService.restoreBackup();
+      console.error('Rollback to backup completed.');
     }
   }
 
