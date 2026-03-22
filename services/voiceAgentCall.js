@@ -118,6 +118,27 @@ class VoiceAgentCall {
     }
   }
 
+  async updateSentimentAnalysisResult(transcriptionId, sentimentResult) {
+    try {
+      const sentimentData = {
+        sentimentScore: sentimentResult.sentimentScore,
+        sentimentLabel: sentimentResult.sentimentLabel,
+        metadata: sentimentResult.metadata,
+        country: sentimentResult.country,
+      };
+
+      await VoiceAgentCallModel.VoiceAgentCall.update({
+        where: { transcriptionId },
+        data: sentimentData,
+      });
+
+      logger.info('Sentiment analysis result updated in the database', { transcriptionId, sentimentData });
+    } catch (error) {
+      logger.error('Error updating sentiment analysis result', { error, transcriptionId, sentimentResult });
+      throw error;
+    }
+  }
+
   async predictQuarterlyPerformance(data) {
     try {
       const prediction = await doubleWriteStrategy.predictQuarterlyPerformance(data);
@@ -125,7 +146,6 @@ class VoiceAgentCall {
       return prediction;
     } catch (error) {
       logger.error('Error predicting quarterly performance', error);
-      throw error;
     }
   }
 
