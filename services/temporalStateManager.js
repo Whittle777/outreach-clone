@@ -20,6 +20,21 @@ class TemporalStateManager {
       console.log(`State cleared: ${key}`);
     }
   }
+
+  saveAudioFileStorageState(prospectId, audioFileUrl) {
+    const key = `audioFileStorage_${prospectId}`;
+    this.saveState(key, audioFileUrl);
+  }
+
+  loadAudioFileStorageState(prospectId) {
+    const key = `audioFileStorage_${prospectId}`;
+    return this.loadState(key);
+  }
+
+  clearAudioFileStorageState(prospectId) {
+    const key = `audioFileStorage_${prospectId}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;
