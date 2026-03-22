@@ -13,6 +13,8 @@ module.exports = {
       awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       awsRegion: process.env.AWS_REGION,
       messageBrokerType: process.env.MESSAGE_BROKER_TYPE || 'azureServiceBus', // Default to Azure Service Bus
+      microsoftBackendUrl: process.env.MICROSOFT_BACKEND_URL,
+      microsoftBackendApiKey: process.env.MICROSOFT_BACKEND_API_KEY,
     };
   },
 };

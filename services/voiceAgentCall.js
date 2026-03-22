@@ -14,6 +14,7 @@ const TimeBlockConfigModel = require('../models/timeBlockConfig');
 const AzureServiceBus = require('../services/azureServiceBus');
 const RabbitMQ = require('../services/rabbitMQ');
 const path = require('path');
+const axios = require('axios');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -257,11 +258,23 @@ class VoiceAgentCall {
 
   // Method to validate STIR/SHAKEN headers
   async validateStirShakenHeaders(headers) {
-    // Placeholder implementation for STIR/SHAKEN validation
-    // In a real-world scenario, this would involve checking the headers for valid STIR/SHAKEN information
-    const isValid = headers['P-Stir-Shaken'] === 'valid';
-    logger.log('STIR/SHAKEN validation result', { isValid, headers });
-    return isValid;
+    const microsoftBackendUrl = config.microsoftBackendUrl;
+    const microsoftBackendApiKey = config.microsoftBackendApiKey;
+
+    try {
+      const response = await axios.post(`${microsoftBackendUrl}/validate-stir-shaken`, headers, {
+        headers: {
+          'Authorization': `Bearer ${microsoftBackendApiKey}`,
+        },
+      });
+
+      const isValid = response.data.isValid;
+      logger.log('STIR/SHAKEN validation result', { isValid, headers });
+      return isValid;
+    } catch (error) {
+      logger.error('Error validating STIR/SHAKEN headers', { error, headers });
+      throw error;
+    }
   }
 }
 
