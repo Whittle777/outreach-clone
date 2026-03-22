@@ -11,6 +11,7 @@ const VoiceAgentCallModel = require('../models/voiceAgentCall');
 const temporalStateManager = require('../services/temporalStateManager');
 const VoicemailScriptGenerator = require('./voicemailScriptGenerator');
 const TimeBlockConfigModel = require('../models/timeBlockConfig');
+const AzureServiceBus = require('../services/azureServiceBus');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -19,6 +20,7 @@ class VoiceAgentCall {
     this.ngoe = new NGOE();
     this.sentimentAnalysisService = new SentimentAnalysisService(apiKey);
     this.voicemailScriptGenerator = new VoicemailScriptGenerator();
+    this.azureServiceBus = new AzureServiceBus(config.azureServiceBusConnectionString, config.azureServiceBusQueueName);
   }
 
   async initiateCall(callData) {
@@ -226,6 +228,17 @@ class VoiceAgentCall {
     const endMinutes = timeBlockConfig.endTime.split(':').map(Number).reduce((a, b) => a * 60 + b, 0);
 
     return currentTime >= startMinutes && currentTime <= endMinutes;
+  }
+
+  // Method to send a message to the Azure Service Bus queue
+  async sendMessageToQueue(message) {
+    try {
+      await this.azureServiceBus.sendMessage(message);
+      logger.info('Message sent to Azure Service Bus queue', { message });
+    } catch (error) {
+      logger.error('Error sending message to Azure Service Bus queue', { error, message });
+      throw error;
+    }
   }
 }
 
