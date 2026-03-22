@@ -101,5 +101,26 @@ module.exports = {
     temporalStateManager.saveState('userPromptParsed', { message, data });
     slackIntegration.sendNotification(`User Prompt Parsed: ${message}`);
   },
-  // Other methods remain unchanged...
+  intentHandled: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'intentHandled', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'intentHandled', data: { message, data } });
+    temporalStateManager.saveState('intentHandled', { message, data });
+    slackIntegration.sendNotification(`Intent Handled: ${message}`);
+  },
+  predictiveSearchResult: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'predictiveSearchResult', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'predictiveSearchResult', data: { message, data } });
+    temporalStateManager.saveState('predictiveSearchResult', { message, data });
+    slackIntegration.sendNotification(`Predictive Search Result: ${message}`);
+  },
 };

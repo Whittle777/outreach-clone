@@ -80,6 +80,36 @@ class TemporalStateManager {
     const key = `detectionResult_${transcriptionId}`;
     this.clearState(key);
   }
+
+  saveIntentHandlingState(intent, result) {
+    const key = `intentHandling_${intent}`;
+    this.saveState(key, result);
+  }
+
+  loadIntentHandlingState(intent) {
+    const key = `intentHandling_${intent}`;
+    return this.loadState(key);
+  }
+
+  clearIntentHandlingState(intent) {
+    const key = `intentHandling_${intent}`;
+    this.clearState(key);
+  }
+
+  savePredictiveSearchState(query, result) {
+    const key = `predictiveSearch_${query}`;
+    this.saveState(key, result);
+  }
+
+  loadPredictiveSearchState(query) {
+    const key = `predictiveSearch_${query}`;
+    return this.loadState(key);
+  }
+
+  clearPredictiveSearchState(query) {
+    const key = `predictiveSearch_${query}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;

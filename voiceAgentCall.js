@@ -15,6 +15,7 @@ const RabbitMQ = require('../services/rabbitMQ');
 const path = require('path');
 const axios = require('axios');
 const NLP = require('../services/nlp');
+const IntentDrivenShortcuts = require('../services/intentDrivenShortcuts');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -26,6 +27,7 @@ class VoiceAgentCall {
     this.azureServiceBus = new AzureServiceBus(config.azureServiceBusConnectionString, config.azureServiceBusQueueName);
     this.rabbitMQ = new RabbitMQ(config.rabbitmqUrl, config.rabbitmqQueueName);
     this.nlp = new NLP(config);
+    this.intentDrivenShortcuts = new IntentDrivenShortcuts(config);
   }
 
   async initiateCall(callData) {
@@ -97,6 +99,28 @@ class VoiceAgentCall {
   emitSentimentAnalysisResult(sentimentResult) {
     const { message, data } = sentimentResult;
     logger.log('sentimentAnalysisResult', { message, data });
+  }
+
+  async handleIntent(intent, data) {
+    try {
+      const result = await this.intentDrivenShortcuts.handleIntent(intent, data);
+      logger.intentHandled('Intent handled successfully', { intent, result });
+      return result;
+    } catch (error) {
+      logger.error('Error handling intent', { intent, error });
+      throw error;
+    }
+  }
+
+  async performPredictiveSearch(query) {
+    try {
+      const result = await this.intentDrivenShortcuts.predictSearch(query);
+      logger.predictiveSearchResult('Predictive search successful', { query, result });
+      return result;
+    } catch (error) {
+      logger.error('Error performing predictive search', { query, error });
+      throw error;
+    }
   }
 
   // Other methods remain unchanged...
