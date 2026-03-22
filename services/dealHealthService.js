@@ -63,6 +63,20 @@ class DealHealthService {
       throw error;
     }
   }
+
+  async getAtRiskDeals() {
+    try {
+      const prospects = await prospectService.getAllProspects();
+      const atRiskDeals = prospects.filter(prospect => {
+        const score = this.dealHealthCalculator.calculateDealHealthScore(prospect.id, prospect.metadata);
+        return score < 50; // Assuming a score below 50 is considered at-risk
+      });
+      return atRiskDeals;
+    } catch (error) {
+      logger.error('Failed to get at-risk deals', { error });
+      throw error;
+    }
+  }
 }
 
 module.exports = new DealHealthService();
