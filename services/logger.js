@@ -300,4 +300,24 @@ module.exports = {
     doubleWriteStrategy.write({ type: 'naturalLanguageGuardrails', data: { message, data } });
     temporalStateManager.saveState('naturalLanguageGuardrails', { message, data });
   },
+  mcpTokenAuthenticated: (userId, bento) => {
+    logger.info('MCP token authenticated', { userId, bento });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'mcpTokenAuthenticated', data: { userId, bento } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'mcpTokenAuthenticated', data: { userId, bento } });
+    temporalStateManager.saveState('mcpTokenAuthenticated', { userId, bento });
+  },
+  mcpWebhookAuthenticated: () => {
+    logger.info('MCP webhook authenticated');
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'mcpWebhookAuthenticated', data: {} }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'mcpWebhookAuthenticated', data: {} });
+    temporalStateManager.saveState('mcpWebhookAuthenticated', {});
+  },
 };

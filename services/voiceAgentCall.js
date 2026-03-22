@@ -5,6 +5,7 @@ const TtsService = require('./ttsService');
 const logger = require('../services/logger');
 const doubleWriteStrategy = require('./doubleWriteStrategy');
 const NGOE = require('./ngoe');
+const { authenticateMcpToken } = require('../middleware/mcpAuth');
 
 class VoiceAgentCall {
   constructor() {
@@ -58,6 +59,19 @@ class VoiceAgentCall {
     } catch (error) {
       logger.error('Error integrating task with NGOE', error);
       throw error;
+    }
+  }
+
+  async handleMcpRequest(req, res) {
+    try {
+      await authenticateMcpToken(req, res, async () => {
+        // Handle the MCP request
+        const { data } = req.body;
+        // Process the data as needed
+        res.status(200).json({ message: 'MCP request processed successfully' });
+      });
+    } catch (error) {
+      res.status(403).json({ message: error.message });
     }
   }
 }

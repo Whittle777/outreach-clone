@@ -3,7 +3,6 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
-3. [ ] Develop secure authentication and authorization for MCP Gateway
 4. [ ] Implement message encryption and decryption for MCP Gateway
 5. [ ] Set up communication protocols between central AI agents and MCP Gateway
 6. [ ] Integrate MCP Gateway with distributed enterprise data silos
