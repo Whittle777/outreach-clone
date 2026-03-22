@@ -17,7 +17,7 @@ class TtsService {
     try {
       const response = await axios.post(
         this.apiUrl,
-        text,
+        `<speak version='1.0' xml:lang='en-US'><voice xml:lang='en-US' xml:gender='Female' name='${voiceName}'><prosody rate='1.00x'>${text}</prosody></voice></speak>`,
         {
           headers: {
             'Ocp-Apim-Subscription-Key': this.apiKey,
