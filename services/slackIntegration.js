@@ -21,6 +21,11 @@ class SlackIntegration {
       console.error('Failed to send Slack notification:', error);
     }
   }
+
+  async sendAudioFileStorageNotification(audioFile) {
+    const message = `New audio file stored: ${audioFile.name} (${audioFile.type}) - URL: ${audioFile.url}`;
+    await this.sendNotification(message);
+  }
 }
 
 module.exports = new SlackIntegration();
