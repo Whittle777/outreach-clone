@@ -335,6 +335,7 @@ class VoiceAgentCall {
         timestamp: new Date(),
         retryCount: bounceData.retryCount,
         permanentFailure: true,
+        state: 'Failed', // Set the state to 'Failed' for hard bounces
       });
       return bounceEvent;
     } catch (error) {
