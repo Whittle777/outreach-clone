@@ -61,6 +61,14 @@ class DealService {
     console.log('Triggering TTS conversion for:', text);
     // Actual implementation would involve calling a TTS service API
   }
+
+  static async scoreDeals(deals) {
+    return deals.map(deal => {
+      const daysUntilClose = (new Date(deal.closeDate) - new Date()) / (1000 * 60 * 60 * 24);
+      const score = deal.value / daysUntilClose;
+      return { ...deal, score };
+    });
+  }
 }
 
 module.exports = DealService;

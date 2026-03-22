@@ -3,7 +3,6 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
-4. [ ] Develop a scoring algorithm to prioritize deals based on value and proximity to close date
 5. [ ] Create an endpoint to fetch the top prioritized deals
 6. [ ] Implement UI components to display the top opportunities list
 7. [ ] Add unit tests for the scoring algorithm and deal service methods
