@@ -1,11 +1,12 @@
-const { ServiceBusClient } = require('@azure/service-bus');
+const { CallAutomationClient } = require('@azure/communication-callingserver');
 const logger = require('../services/logger');
 const config = require('../services/config');
 
 class AzureAcsCallAutomation {
   constructor() {
-    this.serviceBusClient = new ServiceBusClient(config.getConfig().serviceBusConnectionString);
-    this.serviceBusSender = this.serviceBusClient.createSender(config.getConfig().serviceBusQueueName);
+    const connectionString = config.getConfig().azureAcsConnectionString;
+    this.callAutomationClient = new CallAutomationClient(connectionString);
+    logger.log('Azure ACS Call Automation client initialized', { connectionString });
   }
 
   async initiateCall(prospectData, script, audioFileUrl) {
