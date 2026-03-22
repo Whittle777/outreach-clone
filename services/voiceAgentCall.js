@@ -9,6 +9,7 @@ const { authenticateMcpToken } = require('../middleware/mcpAuth');
 const SentimentAnalysisService = require('./sentimentAnalysis');
 const VoiceAgentCallModel = require('../models/voiceAgentCall');
 const temporalStateManager = require('../services/temporalStateManager');
+const VoicemailScriptGenerator = require('./voicemailScriptGenerator');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -16,10 +17,11 @@ class VoiceAgentCall {
     this.ttsService = new TtsService(config.azureSpeechApiKey, config.azureSpeechRegion);
     this.ngoe = new NGOE();
     this.sentimentAnalysisService = new SentimentAnalysisService(apiKey);
+    this.voicemailScriptGenerator = new VoicemailScriptGenerator();
   }
 
   async initiateCall(callData) {
-    const { phoneNumber, script, voiceName } = callData;
+    const { phoneNumber, prospectData, voiceName } = callData;
 
     // Apply call rate limiting middleware
     const req = { body: { phoneNumber } };
@@ -32,6 +34,10 @@ class VoiceAgentCall {
       logger.error('Call rate limit exceeded', { error, phoneNumber });
       throw error;
     }
+
+    // Generate voicemail script
+    const script = this.voicemailScriptGenerator.generateScript(prospectData);
+    logger.info('Voicemail script generated', { script, phoneNumber });
 
     // Generate TTS audio file
     const outputFilePath = path.join(__dirname, `../temp/${phoneNumber}_tts.wav`);
@@ -83,7 +89,6 @@ class VoiceAgentCall {
       logger.log('Task integrated with NGOE successfully', { task });
     } catch (error) {
       logger.error('Error integrating task with NGOE', error);
-      throw error;
     }
   }
 
