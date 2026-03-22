@@ -2,7 +2,7 @@ const winston = require('winston');
 const WebSocket = require('ws');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const config = require('../services/config').getConfig();
-const { wss } = require('../services/websocket');
+const { wss } = require('../services/websocketServer');
 const temporalStateManager = require('../services/temporalStateManager');
 const slackIntegration = require('../services/slackIntegration');
 
