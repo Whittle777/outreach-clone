@@ -15,11 +15,13 @@ const UnsubscribeEvent = require('../models/unsubscribeEvent'); // Added for uns
 const Transcript = require('../models/Transcript'); // Added for transcript tracking
 const SentimentAnalysis = require('../models/SentimentAnalysis'); // Added for sentiment analysis tracking
 const DealHealthScore = require('../models/DealHealthScore'); // Added for deal health score tracking
+const LegacyDatastore = require('../services/legacyDatastore');
+const NewDatastore = require('../services/newDatastore');
 
 class DoubleWriteStrategy {
   constructor() {
-    this.legacyDatastore = null;
-    this.newDatastore = null;
+    this.legacyDatastore = new LegacyDatastore();
+    this.newDatastore = new NewDatastore();
     this.backupPath = config.getConfig().rollbackPlan.backupPath;
     this.audioStorage = new AudioStorage();
     this.config = config.getConfig();
@@ -27,14 +29,6 @@ class DoubleWriteStrategy {
 
     // Initialize message queue based on configuration
     this.initializeMessageQueue();
-  }
-
-  setLegacyDatastore(datastore) {
-    this.legacyDatastore = datastore;
-  }
-
-  setNewDatastore(datastore) {
-    this.newDatastore = datastore;
   }
 
   initializeMessageQueue() {
