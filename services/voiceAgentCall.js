@@ -4,11 +4,13 @@ const AzureAcsCallAutomation = require('./azureAcsCallAutomation');
 const TtsService = require('./ttsService');
 const logger = require('../services/logger');
 const doubleWriteStrategy = require('./doubleWriteStrategy');
+const NGOE = require('./ngoe');
 
 class VoiceAgentCall {
   constructor() {
     this.azureAcsCallAutomation = new AzureAcsCallAutomation(config.azureAcsConnectionString, config.azureAcsQueueName);
     this.ttsService = new TtsService(config.azureSpeechApiKey, config.azureSpeechRegion);
+    this.ngoe = new NGOE();
   }
 
   async initiateCall(callData) {
@@ -45,6 +47,16 @@ class VoiceAgentCall {
       return prediction;
     } catch (error) {
       logger.error('Error predicting quarterly performance', error);
+      throw error;
+    }
+  }
+
+  async integrateWithNGOE(task) {
+    try {
+      await this.ngoe.executeTask(task);
+      logger.log('Task integrated with NGOE successfully', { task });
+    } catch (error) {
+      logger.error('Error integrating task with NGOE', error);
       throw error;
     }
   }
