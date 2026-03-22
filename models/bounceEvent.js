@@ -1,6 +1,3 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
 module.exports = {
   BounceEvent: {
     async create(data) {
@@ -11,6 +8,9 @@ module.exports = {
     },
     async findUnique(where) {
       return await prisma.bounceEvent.findUnique({ where });
+    },
+    async update(where, data) {
+      return await prisma.bounceEvent.update({ where, data });
     },
   },
 };
