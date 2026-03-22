@@ -16,6 +16,7 @@ const RabbitMQ = require('../services/rabbitMQ');
 const hitlWorkflow = require('../services/hitlWorkflow');
 const NaturalLanguageGuardrails = require('../services/naturalLanguageGuardrails');
 const DynamicKnowledgeGraphs = require('../services/dynamicKnowledgeGraphs');
+const MicrosoftTeamsIntegration = require('../services/microsoftTeamsIntegration');
 
 jest.mock('../services/azureAcsCallAutomation');
 jest.mock('../services/ttsService');
@@ -33,6 +34,7 @@ jest.mock('../services/rabbitMQ');
 jest.mock('../services/hitlWorkflow');
 jest.mock('../services/dynamicKnowledgeGraphs');
 jest.mock('../services/naturalLanguageGuardrails');
+jest.mock('../services/microsoftTeamsIntegration');
 
 describe('VoiceAgentCall', () => {
   let voiceAgentCall;
@@ -105,6 +107,30 @@ describe('VoiceAgentCall', () => {
       });
 
       await expect(voiceAgentCall.initiateCall(callData)).rejects.toThrow('Policy directive violation: No discounts');
+    });
+
+    it('should initiate a call with Microsoft Teams', async () => {
+      const callData = {
+        phoneNumber: '1234567890',
+        prospectData: { userId: 1 },
+        voiceName: 'en-US-JennyNeural',
+        onBehalfOf: 'user@example.com',
+        callType: 'microsoftTeams'
+      };
+
+      AzureAcsCallAutomation.prototype.initiateCall.mockResolvedValue();
+      TtsService.prototype.generateAndStoreTtsAudio.mockResolvedValue();
+      TimeBlockConfigModel.TimeBlockConfig.findUnique.mockResolvedValue({ daysOfWeek: [0], startTime: '09:00', endTime: '17:00' });
+      NaturalLanguageGuardrails.prototype.enforcePolicyDirectives.mockResolvedValue();
+      MicrosoftTeamsIntegration.prototype.sendInteractiveNotification.mockResolvedValue();
+
+      await voiceAgentCall.initiateCall(callData);
+
+      expect(AzureAcsCallAutomation.prototype.initiateCall).toHaveBeenCalledWith('1234567890', expect.any(String), expect.any(String), 'user@example.com');
+      expect(TtsService.prototype.generateAndStoreTtsAudio).toHaveBeenCalledWith(expect.any(String), 'en-US-JennyNeural', expect.any(String));
+      expect(DynamicKnowledgeGraphs.addNode).toHaveBeenCalledWith(callData.prospectData);
+      expect(NaturalLanguageGuardrails.prototype.enforcePolicyDirectives).toHaveBeenCalledWith(expect.any(String));
+      expect(MicrosoftTeamsIntegration.prototype.sendInteractiveNotification).toHaveBeenCalledWith(expect.any(String), expect.any(String), expect.any(Array));
     });
   });
 

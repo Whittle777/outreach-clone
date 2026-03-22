@@ -15,6 +15,34 @@ class MicrosoftTeamsIntegration {
       console.error('Failed to send Microsoft Teams notification:', error);
     }
   }
+
+  async sendInteractiveNotification(channel, message, actions) {
+    try {
+      const response = await axios.post(this.webhookUrl, {
+        channel: channel,
+        text: message,
+        attachments: [{
+          contentType: 'application/vnd.microsoft.card.adaptive',
+          content: {
+            type: 'AdaptiveCard',
+            $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+            version: '1.0',
+            body: [
+              {
+                type: 'TextBlock',
+                text: message,
+                wrap: true
+              }
+            ],
+            actions: actions
+          }
+        }]
+      });
+      console.log('Microsoft Teams interactive notification sent successfully:', response.data);
+    } catch (error) {
+      console.error('Failed to send Microsoft Teams interactive notification:', error);
+    }
+  }
 }
 
 module.exports = MicrosoftTeamsIntegration;

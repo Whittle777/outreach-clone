@@ -18,6 +18,7 @@ const NLP = require('../services/nlp');
 const IntentDrivenShortcuts = require('../services/intentDrivenShortcuts');
 const AzureSpeechService = require('./azureSpeechService'); // New service for transcription
 const DynamicKnowledgeGraphs = require('../services/dynamicKnowledgeGraphs');
+const MicrosoftTeamsIntegration = require('../services/microsoftTeamsIntegration');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -32,6 +33,7 @@ class VoiceAgentCall {
     this.intentDrivenShortcuts = new IntentDrivenShortcuts(config);
     this.azureSpeechService = new AzureSpeechService(config.azureSpeechApiKey, config.azureSpeechRegion); // Initialize transcription service
     this.dynamicKnowledgeGraphs = new DynamicKnowledgeGraphs();
+    this.microsoftTeamsIntegration = new MicrosoftTeamsIntegration(config);
   }
 
   async initiateCall(callData) {
@@ -119,6 +121,23 @@ class VoiceAgentCall {
 
     // Add prospect to dynamic knowledge graph
     this.dynamicKnowledgeGraphs.addNode(prospectData);
+
+    // Send interactive notification to Microsoft Teams
+    if (callType === 'microsoftTeams') {
+      const actions = [
+        {
+          type: 'Action.OpenUrl',
+          title: 'Approve',
+          url: 'https://example.com/approve'
+        },
+        {
+          type: 'Action.OpenUrl',
+          title: 'Reject',
+          url: 'https://example.com/reject'
+        }
+      ];
+      await this.microsoftTeamsIntegration.sendInteractiveNotification('general', 'New call initiated', actions);
+    }
   }
 
   async parseUserPrompt(prompt) {

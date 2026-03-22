@@ -73,12 +73,12 @@ class TemporalStateManager {
 
   loadDetectionResult(transcriptionId) {
     const key = `detectionResult_${transcriptionId}`;
-    return this.loadState(key);
+    return this.loadState(transcriptionId);
   }
 
   clearDetectionResult(transcriptionId) {
     const key = `detectionResult_${transcriptionId}`;
-    this.clearState(key);
+    this.clearState(transcriptionId);
   }
 
   saveIntentHandlingState(intent, result) {
@@ -88,12 +88,12 @@ class TemporalStateManager {
 
   loadIntentHandlingState(intent) {
     const key = `intentHandling_${intent}`;
-    return this.loadState(key);
+    return this.loadState(intent);
   }
 
   clearIntentHandlingState(intent) {
     const key = `intentHandling_${intent}`;
-    this.clearState(key);
+    this.clearState(intent);
   }
 
   savePredictiveSearchState(query, result) {
@@ -103,12 +103,12 @@ class TemporalStateManager {
 
   loadPredictiveSearchState(query) {
     const key = `predictiveSearch_${query}`;
-    return this.loadState(key);
+    return this.loadState(query);
   }
 
   clearPredictiveSearchState(query) {
     const key = `predictiveSearch_${query}`;
-    this.clearState(key);
+    this.clearState(query);
   }
 
   // Confidence Score Routing state management
@@ -119,12 +119,12 @@ class TemporalStateManager {
 
   loadConfidenceScoreState(callId) {
     const key = `confidenceScore_${callId}`;
-    return this.loadState(key);
+    return this.loadState(callId);
   }
 
   clearConfidenceScoreState(callId) {
     const key = `confidenceScore_${callId}`;
-    this.clearState(key);
+    this.clearState(callId);
   }
 
   // Review Queue state management
@@ -138,6 +138,22 @@ class TemporalStateManager {
 
   clearReviewQueueState() {
     this.clearState('reviewQueue');
+  }
+
+  // Microsoft Teams state management
+  saveMicrosoftTeamsCallState(callId, callData) {
+    const key = `microsoftTeamsCall_${callId}`;
+    this.saveState(key, callData);
+  }
+
+  loadMicrosoftTeamsCallState(callId) {
+    const key = `microsoftTeamsCall_${callId}`;
+    return this.loadState(callId);
+  }
+
+  clearMicrosoftTeamsCallState(callId) {
+    const key = `microsoftTeamsCall_${callId}`;
+    this.clearState(callId);
   }
 }
 
