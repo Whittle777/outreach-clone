@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
-import SplitPaneReview from './components/SplitPaneReview';
+import SplitPaneReviewInterface from './components/SplitPaneReviewInterface';
 import CallFlags from './components/CallFlags';
 
 const App = () => {
@@ -21,7 +21,7 @@ const App = () => {
   return (
     <div className="App">
       <CallFlags />
-      <SplitPaneReview
+      <SplitPaneReviewInterface
         tasks={tasks}
         onAccept={handleAccept}
         onReject={handleReject}
