@@ -18,6 +18,7 @@ const azureServiceBusProducer = require('../services/azureServiceBusProducer');
 const rabbitMQProducer = require('../services/rabbitMQProducer');
 const naturalLanguageGuardrails = require('./naturalLanguageGuardrails');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
+const logger = require('../services/logger');
 
 async function run() {
   await azureServiceBusProducer.sendMessage({ topic: 'ngoe-tasks', message: 'Initialize NGOE' });
@@ -33,7 +34,7 @@ async function run() {
         const task = JSON.parse(message.value.toString());
         await executeTask(task);
       } catch (error) {
-        console.error('Error processing NGOE task:', error);
+        logger.error('Error processing NGOE task:', error);
       }
     },
   });
@@ -42,33 +43,41 @@ async function run() {
 async function executeTask(task) {
   const { type, payload } = task;
 
-  switch (type) {
-    case 'sendEmail':
-      await sendEmail(payload);
-      break;
-    case 'updateDMARCPolicy':
-      await updateDMARCPolicy(payload);
-      break;
-    case 'logTrackingPixelEvent':
-      await logTrackingPixelEvent(payload);
-      break;
-    case 'wrapLinks':
-      await wrapLinks(payload);
-      break;
-    case 'analyzeOpenRates':
-      await analyzeOpenRates(payload);
-      break;
-    case 'processBounceNotification':
-      await processBounceNotification(payload);
-      break;
-    case 'mcpSecureCommunication':
-      await mcpSecureCommunication(payload);
-      break;
-    case 'authenticateMicrosoft':
-      await authenticateMicrosoft(payload);
-      break;
-    default:
-      console.error('Unknown task type:', type);
+  logger.info(`Starting NGOE task: ${type}`, { payload });
+
+  try {
+    switch (type) {
+      case 'sendEmail':
+        await sendEmail(payload);
+        break;
+      case 'updateDMARCPolicy':
+        await updateDMARCPolicy(payload);
+        break;
+      case 'logTrackingPixelEvent':
+        await logTrackingPixelEvent(payload);
+        break;
+      case 'wrapLinks':
+        await wrapLinks(payload);
+        break;
+      case 'analyzeOpenRates':
+        await analyzeOpenRates(payload);
+        break;
+      case 'processBounceNotification':
+        await processBounceNotification(payload);
+        break;
+      case 'mcpSecureCommunication':
+        await mcpSecureCommunication(payload);
+        break;
+      case 'authenticateMicrosoft':
+        await authenticateMicrosoft(payload);
+        break;
+      default:
+        logger.error('Unknown task type:', type);
+    }
+  } catch (error) {
+    logger.error(`Error executing NGOE task: ${type}`, { error, payload });
+  } finally {
+    logger.info(`Completed NGOE task: ${type}`, { payload });
   }
 }
 
@@ -95,7 +104,7 @@ async function sendEmail(payload) {
       resource: email,
     });
 
-    console.log(`Email sent to prospectId: ${prospectId} via Google`);
+    logger.info(`Email sent to prospectId: ${prospectId} via Google`, { emailContent });
   } else if (provider === 'microsoft') {
     const auth = new google.auth.OAuth2({
       clientId: process.env.MICROSOFT_CLIENT_ID,
@@ -122,7 +131,7 @@ async function sendEmail(payload) {
       },
     });
 
-    console.log(`Email sent to prospectId: ${prospectId} via Microsoft`);
+    logger.info(`Email sent to prospectId: ${prospectId} via Microsoft`, { emailContent });
   }
 }
 
@@ -130,7 +139,9 @@ async function updateDMARCPolicy(payload) {
   const { prospectId, bento, dmarcPolicy } = payload;
   if (await validateDMARCPolicy(dmarcPolicy)) {
     await updateProspectDMARCPolicy(prospectId, bento, dmarcPolicy);
+    logger.info(`DMARC policy updated for prospectId: ${prospectId}`, { dmarcPolicy });
   } else {
+    logger.error('Invalid DMARC policy', { dmarcPolicy });
     throw new Error('Invalid DMARC policy');
   }
 }
@@ -138,12 +149,13 @@ async function updateDMARCPolicy(payload) {
 async function logTrackingPixelEvent(payload) {
   const { prospectId, bento, trackingPixelData } = payload;
   await logTrackingPixelEvent(prospectId, bento, trackingPixelData);
+  logger.info(`Tracking pixel event logged for prospectId: ${prospectId}`, { trackingPixelData });
 }
 
 async function wrapLinks(payload) {
   const { emailContent, trackingPixelData } = payload;
   const wrappedEmailContent = wrapLinksInEmail(emailContent, trackingPixelData);
-  console.log(`Wrapped email content for prospectId: ${payload.prospectId}`);
+  logger.info(`Wrapped email content for prospectId: ${payload.prospectId}`, { wrappedEmailContent });
 }
 
 async function updateProspectDMARCPolicy(prospectId, bento, dmarcPolicy) {
@@ -164,11 +176,12 @@ async function mcpSecureCommunication(payload) {
   const { data, signature } = payload;
 
   if (!mcp.verify(data, signature)) {
+    logger.error('Invalid MCP signature', { data, signature });
     throw new Error('Invalid MCP signature');
   }
 
   const decryptedData = mcp.decrypt(data);
-  console.log('Received and decrypted MCP data:', decryptedData);
+  logger.info('Received and decrypted MCP data:', decryptedData);
 
   // Process the decrypted data as needed
   // For example, you can parse the decrypted data and perform actions
