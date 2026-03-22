@@ -35,7 +35,7 @@ class VoiceAgentCall {
     const next = () => {};
 
     try {
-      callRateLimiting(req, res, next);
+      await callRateLimiting(req, res, next);
     } catch (error) {
       logger.error('Call rate limit exceeded', { error, phoneNumber });
       throw error;

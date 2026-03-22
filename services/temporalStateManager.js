@@ -50,6 +50,21 @@ class TemporalStateManager {
     const key = `stirShakenValidation_${prospectId}`;
     this.clearState(key);
   }
+
+  saveRateLimitState(phoneNumber, rateLimitData) {
+    const key = `rateLimit_${phoneNumber}`;
+    this.saveState(key, rateLimitData);
+  }
+
+  loadRateLimitState(phoneNumber) {
+    const key = `rateLimit_${phoneNumber}`;
+    return this.loadState(key);
+  }
+
+  clearRateLimitState(phoneNumber) {
+    const key = `rateLimit_${phoneNumber}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;
