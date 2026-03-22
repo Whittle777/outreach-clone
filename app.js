@@ -9,6 +9,7 @@ const session = require('express-session');
 const MemoryStore = session.MemoryStore;
 const quarterlyPerformancePrediction = require('./services/quarterlyPerformancePrediction');
 const mcpGatewayRoutes = require('./routes/mcpGateway');
+const dataResidencyMiddleware = require('./middleware/dataResidency');
 
 const app = express();
 
@@ -23,6 +24,9 @@ app.use(session({
 
 app.use(cors());
 app.use(bodyParser.json());
+
+// Use data residency middleware
+app.use(dataResidencyMiddleware);
 
 app.use('/api/tts', ttsRoutes);
 app.use('/api/mcpGateway', mcpGatewayRoutes);
