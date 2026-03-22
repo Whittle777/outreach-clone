@@ -8,6 +8,7 @@ const Prospect = require('../models/Prospect'); // Assuming the Prospect model i
 const BounceEvent = require('../models/bounceEvent'); // Added for bounce event tracking
 const UnsubscribeEvent = require('../models/unsubscribeEvent'); // Added for unsubscribe event tracking
 const AIGenerator = require('../services/aiGenerator'); // Added for AI-generated email content
+const logger = require('../services/logger'); // Added for logging
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport(smtpConfig);
@@ -44,12 +45,14 @@ async function sendScheduledEmails() {
         success = true;
         // Update the email status to 'sent' in the database
         await Email.update(prospect.email, { status: 'sent' });
+        logger.emailSent(`Email sent to ${prospect.email}`, { emailOptions });
       } catch (error) {
         if (error.response && error.response.status === 421) { // Soft bounce
           retryCount++;
           const backoffTime = config.emailService.backoffInterval * Math.pow(2, retryCount - 1);
           console.log(`Soft bounce detected for ${prospect.email}. Retrying in ${backoffTime} ms...`);
           await new Promise(resolve => setTimeout(resolve, backoffTime));
+          logger.emailRetry(`Soft bounce detected for ${prospect.email}. Retrying in ${backoffTime} ms...`, { emailOptions, retryCount });
         } else if (error.response && error.response.status === 550) { // Hard bounce
           console.log(`Hard bounce detected for ${prospect.email}.`);
           await handleHardBounce(prospect.email, prospect.bento);
@@ -58,6 +61,7 @@ async function sendScheduledEmails() {
           console.error(`Error sending email to ${prospect.email}:`, error);
           // Update the email status to 'bounced' in the database
           await Email.update(prospect.email, { status: 'bounced' });
+          logger.emailFailed(`Error sending email to ${prospect.email}`, { error, emailOptions });
           break;
         }
       }
@@ -67,6 +71,7 @@ async function sendScheduledEmails() {
       console.error(`Failed to send email to ${prospect.email} after ${retryCount} retries.`);
       // Update the email status to 'bounced' in the database
       await Email.update(prospect.email, { status: 'bounced' });
+      logger.emailFailed(`Failed to send email to ${prospect.email} after ${retryCount} retries.`, { emailOptions, retryCount });
     }
   }
 }
@@ -92,12 +97,14 @@ async function retrySoftBouncedEmails() {
         success = true;
         // Update the email status to 'sent' in the database
         await Email.update(email.to, { status: 'sent' });
+        logger.emailSent(`Email retried and sent to ${email.to}`, { email });
       } catch (error) {
         if (error.response && error.response.status === 421) { // Soft bounce
           retryCount++;
           const backoffTime = config.emailService.backoffInterval * Math.pow(2, retryCount - 1);
           console.log(`Soft bounce detected for ${email.to}. Retrying in ${backoffTime} ms...`);
           await new Promise(resolve => setTimeout(resolve, backoffTime));
+          logger.emailRetry(`Soft bounce detected for ${email.to}. Retrying in ${backoffTime} ms...`, { email, retryCount });
         } else if (error.response && error.response.status === 550) { // Hard bounce
           console.log(`Hard bounce detected for ${email.to}.`);
           await handleHardBounce(email.to, email.bento);
@@ -106,6 +113,7 @@ async function retrySoftBouncedEmails() {
           console.error(`Error retrying email to ${email.to}:`, error);
           // Update the email status to 'bounced' in the database
           await Email.update(email.to, { status: 'bounced' });
+          logger.emailFailed(`Error retrying email to ${email.to}`, { error, email });
           break;
         }
       }
@@ -115,6 +123,7 @@ async function retrySoftBouncedEmails() {
       console.error(`Failed to retry email to ${email.to} after ${retryCount} retries.`);
       // Update the email status to 'bounced' in the database
       await Email.update(email.to, { status: 'bounced' });
+      logger.emailFailed(`Failed to retry email to ${email.to} after ${retryCount} retries.`, { email, retryCount });
     }
   }
 }
@@ -126,6 +135,7 @@ async function handleHardBounce(email, bento) {
   await Prospect.markProspectAsFailed(email, bento);
   // Create a bounce event
   await BounceEvent.create({ email, bento, timestamp: new Date() });
+  logger.emailFailed(`Hard bounce detected for ${email}`, { email, bento });
 }
 
 module.exports = {
