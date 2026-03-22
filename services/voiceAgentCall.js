@@ -6,7 +6,7 @@ const logger = require('../services/logger');
 const doubleWriteStrategy = require('./doubleWriteStrategy');
 const NGOE = require('./ngoe');
 const { authenticateMcpToken } = require('../middleware/mcpAuth');
-const SentimentAnalysisService = require('./sentimentAnalysis');
+const SentimentAnalysisService = require('./sentimentAnalysisService');
 const VoiceAgentCallModel = require('../models/voiceAgentCall');
 const temporalStateManager = require('../services/temporalStateManager');
 const VoicemailScriptGenerator = require('./voicemailScriptGenerator');
@@ -15,6 +15,8 @@ const AzureServiceBus = require('../services/azureServiceBus');
 const RabbitMQ = require('../services/rabbitMQ');
 const path = require('path');
 const axios = require('axios');
+const { promisify } = require('util');
+const parallel = require('async/parallel');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -274,6 +276,23 @@ class VoiceAgentCall {
       logger.error('Error validating STIR/SHAKEN headers', { error, headers });
       throw error;
     }
+  }
+
+  // Method to process transcripts in parallel
+  async processTranscriptsInParallel(transcripts) {
+    const tasks = transcripts.map(transcript => async () => {
+      try {
+        const sentimentResult = await this.sentimentAnalysisService.analyze(transcript.text);
+        logger.log('Sentiment analysis successful', { sentimentResult });
+        return sentimentResult;
+      } catch (error) {
+        logger.error('Error analyzing sentiment', error);
+        return null;
+      }
+    });
+
+    const results = await parallel(tasks);
+    return results;
   }
 }
 
