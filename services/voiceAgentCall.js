@@ -18,6 +18,7 @@ const axios = require('axios');
 const { promisify } = require('util');
 const parallel = require('async/parallel');
 const DetectionService = require('./detectionService');
+const PredictiveSearch = require('./predictiveSearch');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -29,6 +30,7 @@ class VoiceAgentCall {
     this.azureServiceBus = new AzureServiceBus(config.azureServiceBusConnectionString, config.azureServiceBusQueueName);
     this.rabbitMQ = new RabbitMQ(config.rabbitmqUrl, config.rabbitmqQueueName);
     this.detectionService = new DetectionService();
+    this.predictiveSearch = new PredictiveSearch(config);
   }
 
   async initiateCall(callData) {
@@ -381,6 +383,12 @@ class VoiceAgentCall {
     });
 
     const results = await parallel(tasks);
+    return results;
+  }
+
+  // Method to search for prospects using predictive search
+  async searchProspects(query) {
+    const results = await this.predictiveSearch.search(query);
     return results;
   }
 }
