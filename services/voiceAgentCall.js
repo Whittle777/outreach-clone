@@ -6,12 +6,14 @@ const logger = require('../services/logger');
 const doubleWriteStrategy = require('./doubleWriteStrategy');
 const NGOE = require('./ngoe');
 const { authenticateMcpToken } = require('../middleware/mcpAuth');
+const SentimentAnalysisService = require('./sentimentAnalysis');
 
 class VoiceAgentCall {
-  constructor() {
+  constructor(apiKey) {
     this.azureAcsCallAutomation = new AzureAcsCallAutomation(config.azureAcsConnectionString, config.azureAcsQueueName);
     this.ttsService = new TtsService(config.azureSpeechApiKey, config.azureSpeechRegion);
     this.ngoe = new NGOE();
+    this.sentimentAnalysisService = new SentimentAnalysisService(apiKey);
   }
 
   async initiateCall(callData) {
@@ -39,6 +41,14 @@ class VoiceAgentCall {
   async handleRealTimeTranscript(transcriptData) {
     // Log the real-time transcript
     logger.realTimeTranscript(transcriptData);
+
+    // Analyze sentiment of the transcript
+    try {
+      const sentimentResult = await this.sentimentAnalysisService.analyze(transcriptData.text);
+      logger.log('Sentiment analysis successful', { sentimentResult });
+    } catch (error) {
+      logger.error('Error analyzing sentiment', error);
+    }
   }
 
   async predictQuarterlyPerformance(data) {

@@ -1,7 +1,8 @@
 const axios = require('axios');
 const config = require('../services/config').getConfig();
+const { SentimentAnalysis } = require('../models/sentimentAnalysis');
 
-class SentimentAnalysis {
+class SentimentAnalysisService {
   constructor(apiKey) {
     this.apiKey = apiKey;
     this.apiUrl = 'https://api.openai.com/v1/engines/davinci-codex/completions';
@@ -27,6 +28,7 @@ class SentimentAnalysis {
       );
 
       const result = JSON.parse(response.data.choices[0].text.trim());
+      await SentimentAnalysis.create(result);
       return result;
     } catch (error) {
       throw new Error(`Error analyzing sentiment: ${error.message}`);
@@ -34,4 +36,4 @@ class SentimentAnalysis {
   }
 }
 
-module.exports = SentimentAnalysis;
+module.exports = SentimentAnalysisService;
