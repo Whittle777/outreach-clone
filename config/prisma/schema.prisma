@@ -1,0 +1,9 @@
+model CallFlag {
+  id            Int      @id @default(autoincrement())
+  flagType      String
+  description   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  voiceAgentCall  VoiceAgentCall @relation(fields: [voiceAgentCallId], references: [id])
+  voiceAgentCallId Int
+}
