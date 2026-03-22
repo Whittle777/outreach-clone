@@ -2,8 +2,13 @@
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const Worker = require('./worker');
 
 class TaskQueue {
+  constructor() {
+    this.worker = new Worker();
+  }
+
   async addTask(task) {
     return await prisma.task.create({
       data: task,
@@ -26,13 +31,8 @@ class TaskQueue {
   async executePendingTasks() {
     const pendingTasks = await this.getPendingTasks();
     for (const task of pendingTasks) {
-      await this.executeTask(task);
+      await this.worker.executeTask(task);
     }
-  }
-
-  async executeTask(task) {
-    const aiAgent = require('./aiAgent');
-    await aiAgent.executeTask(task);
   }
 }
 
