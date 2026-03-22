@@ -11,6 +11,7 @@ const dataResidencyMiddleware = require('./middleware/dataResidency');
 const callRateLimiting = require('./middleware/callRateLimiting');
 const constraintsRouter = require('./routes/constraints');
 const winLossRoutes = require('./routes/winLossRoutes');
+const quarterlyPerformanceRoutes = require('./routes/quarterlyPerformance'); // New routes for quarterly performance
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/tts', ttsRoutes);
 app.use('/api/mcpGateway', mcpGatewayRoutes);
 app.use('/constraints', constraintsRouter);
 app.use('/api/winloss', winLossRoutes);
+app.use('/api/quarterlyPerformance', quarterlyPerformanceRoutes); // New routes for quarterly performance
 
 // New route for quarterly performance predictions
 app.get('/api/predictions/quarterly', quarterlyPerformancePrediction.getPredictions);
