@@ -179,6 +179,10 @@ class VoiceAgentCall {
       logger.visualFlag('Resistance or regulatory edge case detected', { transcriptData });
     }
   }
+
+  async sendApprovalNotification(channel, message, actions) {
+    logger.interactiveNotification(message, { channel, actions });
+  }
 }
 
 module.exports = VoiceAgentCall;
