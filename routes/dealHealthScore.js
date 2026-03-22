@@ -47,4 +47,32 @@ router.get('/top', async (req, res) => {
   }
 });
 
+// Retrieve deal health score by ID
+router.get('/score/:id', async (req, res) => {
+  try {
+    const dealHealthScore = await DealHealthScore.findById(req.params.id);
+    if (!dealHealthScore) {
+      return res.status(404).json({ message: 'Deal Health Score not found' });
+    }
+    res.json(dealHealthScore);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving deal health score', error: error.message });
+  }
+});
+
+// Update deal health score by ID
+router.put('/score/:id', async (req, res) => {
+  try {
+    const dealHealthScore = await DealHealthScore.findById(req.params.id);
+    if (!dealHealthScore) {
+      return res.status(404).json({ message: 'Deal Health Score not found' });
+    }
+
+    const updatedDealHealthScore = await DealHealthScore.update(req.params.id, req.body);
+    res.json(updatedDealHealthScore);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating deal health score', error: error.message });
+  }
+});
+
 module.exports = router;

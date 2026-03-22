@@ -35,6 +35,34 @@ class DealHealthScoreService {
       return topOpportunities;
     } catch (error) {
       logger.error('Error retrieving top opportunities', error);
+    }
+  }
+
+  static async getDealHealthScoreById(id) {
+    try {
+      const dealHealthScore = await DealHealthScore.findById(id);
+      if (!dealHealthScore) {
+        throw new Error('Deal Health Score not found');
+      }
+      return dealHealthScore;
+    } catch (error) {
+      logger.error('Error retrieving deal health score by ID', error);
+      throw error;
+    }
+  }
+
+  static async updateDealHealthScoreById(id, data) {
+    try {
+      const dealHealthScore = await DealHealthScore.findById(id);
+      if (!dealHealthScore) {
+        throw new Error('Deal Health Score not found');
+      }
+
+      const updatedDealHealthScore = await DealHealthScore.update(id, data);
+      logger.log('DealHealthScore updated successfully', updatedDealHealthScore);
+      return updatedDealHealthScore;
+    } catch (error) {
+      logger.error('Error updating deal health score by ID', error);
       throw error;
     }
   }
