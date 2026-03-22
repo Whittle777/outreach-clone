@@ -87,7 +87,7 @@ class VoiceAgentCall {
       throw error;
     }
 
-    // Store the call with CallFlags
+    // Store the call with CallFlags using double-write strategy
     try {
       const callDataWithFlags = {
         phoneNumber,
@@ -98,9 +98,9 @@ class VoiceAgentCall {
         callFlags,
       };
 
-      const createdCall = await VoiceAgentCallModel.VoiceAgentCall.create(callDataWithFlags);
-      logger.info('VoiceAgentCall created with CallFlags', { createdCall });
-      this.broadcastCallUpdate(createdCall);
+      await doubleWriteStrategy.write(callDataWithFlags);
+      logger.info('VoiceAgentCall created with CallFlags using double-write strategy', { callDataWithFlags });
+      this.broadcastCallUpdate(callDataWithFlags);
 
       // Send interactive notification for approval workflow
       const actions = [
@@ -120,7 +120,7 @@ class VoiceAgentCall {
 
       await slackIntegration.sendInteractiveNotification('#approval-channel', `New call initiated for ${prospectData.name}`, actions);
     } catch (error) {
-      logger.error('Error creating VoiceAgentCall with CallFlags', { error, callData });
+      logger.error('Error creating VoiceAgentCall with CallFlags using double-write strategy', { error, callData });
       throw error;
     }
   }
