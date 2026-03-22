@@ -1,5 +1,6 @@
 const config = require('../services/config').getConfig();
 const doubleWriteStrategy = require('./doubleWriteStrategy');
+const logger = require('../services/logger');
 
 class NaturalLanguageGuardrails {
   constructor() {
@@ -13,6 +14,7 @@ class NaturalLanguageGuardrails {
   enforcePolicyDirectives(text) {
     this.policyDirectives.forEach(directive => {
       if (text.includes(directive)) {
+        logger.error(`Policy directive violation: ${directive}`);
         throw new Error(`Policy directive violation: ${directive}`);
       }
     });
