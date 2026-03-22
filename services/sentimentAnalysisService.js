@@ -1,5 +1,6 @@
 const axios = require('axios');
 const DoubleWriteStrategy = require('../services/doubleWriteStrategy');
+const SentimentAnalysis = require('../models/SentimentAnalysis');
 
 class SentimentAnalysisService {
   constructor() {
@@ -26,6 +27,7 @@ class SentimentAnalysisService {
       };
 
       await this.doubleWriteStrategy.createSentimentAnalysis(sentimentData);
+      await SentimentAnalysis.create(sentimentData);
 
       return response.data;
     } catch (error) {
@@ -33,10 +35,12 @@ class SentimentAnalysisService {
     }
   }
 
-  async createSentimentAnalysis(sentimentData) {
-    // Implement the logic to create sentiment analysis record
-    // This could involve writing to a database or another datastore
-    console.log('Creating sentiment analysis record:', sentimentData);
+  async findSentimentAnalysis(transcriptionId) {
+    try {
+      return await SentimentAnalysis.findUnique({ where: { transcriptionId } });
+    } catch (error) {
+      throw new Error(`Failed to retrieve sentiment analysis: ${error.message}`);
+    }
   }
 }
 
