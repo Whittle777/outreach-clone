@@ -9,5 +9,6 @@ router.put('/:id', DealController.updateDeal);
 router.delete('/:id', DealController.deleteDeal);
 router.get('/', DealController.getAllDeals);
 router.get('/high-value-range', DealController.getHighValueDealsWithinRange);
+router.get('/top-opportunities', DealController.getTopOpportunities);
 
 module.exports = router;

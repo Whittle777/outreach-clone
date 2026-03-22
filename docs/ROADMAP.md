@@ -125,6 +125,6 @@ Master list of all planned features.
 - [x] Data Consistency During Migration: Implement double-write strategy to keep legacy databases and new microservice datastores synchronized
 - [x] Ensure zero-downtime migration path
 - [x] Deal Health Scores: Automated scoring flagging at-risk deals based on prospect engagement and momentum
-- [ ] Top Opportunities: Prioritized list of high-value deals nearing close dates
+- [x] Top Opportunities: Prioritized list of high-value deals nearing close dates
 - [ ] Win/Loss Modeling: Conversion rates analyzed by sales stage or forecast category
 - [ ] AI Projections: Machine learning models predicting quarterly performance based on historical win rates and seasonality

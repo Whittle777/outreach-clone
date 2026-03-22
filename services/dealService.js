@@ -1,34 +1,26 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const Deal = require('../models/deal');
 
 class DealService {
   static async create(dealData) {
-    return await prisma.deal.create({
-      data: dealData,
-    });
+    return await Deal.create(dealData);
   }
 
   static async findById(id) {
-    return await prisma.deal.findUnique({
-      where: { id: parseInt(id) },
-    });
+    return await Deal.findUnique({ id: parseInt(id) });
   }
 
   static async update(id, dealData) {
-    return await prisma.deal.update({
-      where: { id: parseInt(id) },
-      data: dealData,
-    });
+    return await Deal.update({ id: parseInt(id) }, dealData);
   }
 
   static async delete(id) {
-    return await prisma.deal.delete({
-      where: { id: parseInt(id) },
-    });
+    return await Deal.delete({ id: parseInt(id) });
   }
 
   static async getAll() {
-    return await prisma.deal.findMany();
+    return await Deal.findMany();
   }
 
   static async getHighValueDealsWithinRange(minValue, maxValue, startDate, endDate) {
