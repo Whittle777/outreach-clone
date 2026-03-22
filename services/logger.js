@@ -134,4 +134,15 @@ module.exports = {
     temporalStateManager.saveState('visualFlag', { message, data });
     slackIntegration.sendNotification(`Visual Flag: ${message}`);
   },
+  confidenceScoreRouting: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'confidenceScoreRouting', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'confidenceScoreRouting', data: { message, data } });
+    temporalStateManager.saveState('confidenceScoreRouting', { message, data });
+    slackIntegration.sendNotification(`Confidence Score Routing: ${message}`);
+  },
 };

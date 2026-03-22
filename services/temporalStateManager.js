@@ -110,6 +110,22 @@ class TemporalStateManager {
     const key = `predictiveSearch_${query}`;
     this.clearState(key);
   }
+
+  // Confidence Score Routing state management
+  saveConfidenceScoreState(callId, confidenceScore) {
+    const key = `confidenceScore_${callId}`;
+    this.saveState(key, confidenceScore);
+  }
+
+  loadConfidenceScoreState(callId) {
+    const key = `confidenceScore_${callId}`;
+    return this.loadState(key);
+  }
+
+  clearConfidenceScoreState(callId) {
+    const key = `confidenceScore_${callId}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;
