@@ -68,5 +68,27 @@ module.exports = {
     temporalStateManager.saveState('sentimentAnalysisResult', { message, data });
     slackIntegration.sendNotification(`Sentiment Analysis Result: ${message}`);
   },
+  realTimeTranscript: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'realTimeTranscript', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'realTimeTranscript', data: { message, data } });
+    temporalStateManager.saveState('realTimeTranscript', { message, data });
+    slackIntegration.sendNotification(`Real-Time Transcript: ${message}`);
+  },
+  detectionResult: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'detectionResult', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'detectionResult', data: { message, data } });
+    temporalStateManager.saveState('detectionResult', { message, data });
+    slackIntegration.sendNotification(`Detection Result: ${message}`);
+  },
   // Other methods remain unchanged...
 };

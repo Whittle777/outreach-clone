@@ -17,6 +17,7 @@ const path = require('path');
 const axios = require('axios');
 const { promisify } = require('util');
 const parallel = require('async/parallel');
+const DetectionService = require('./detectionService');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -27,6 +28,7 @@ class VoiceAgentCall {
     this.voicemailScriptGenerator = new VoicemailScriptGenerator();
     this.azureServiceBus = new AzureServiceBus(config.azureServiceBusConnectionString, config.azureServiceBusQueueName);
     this.rabbitMQ = new RabbitMQ(config.rabbitmqUrl, config.rabbitmqQueueName);
+    this.detectionService = new DetectionService();
   }
 
   async initiateCall(callData) {
@@ -116,6 +118,17 @@ class VoiceAgentCall {
     } catch (error) {
       logger.error('Error analyzing sentiment', error);
     }
+
+    // Detect resistance or regulatory edge cases
+    try {
+      const detectionResult = await this.detectionService.detectResistanceOrRegulatoryEdgeCases(transcriptData);
+      logger.log('Resistance or regulatory edge case detection successful', { detectionResult });
+
+      // Store detection results in the database
+      await this.storeDetectionResult(transcriptData.transcriptionId, detectionResult);
+    } catch (error) {
+      logger.error('Error detecting resistance or regulatory edge cases', error);
+    }
   }
 
   async storeSentimentAnalysisResult(transcriptionId, sentimentResult) {
@@ -132,6 +145,23 @@ class VoiceAgentCall {
       logger.info('Sentiment analysis result stored in the database', { sentimentData });
     } catch (error) {
       logger.error('Error storing sentiment analysis result', { error, transcriptionId, sentimentResult });
+      throw error;
+    }
+  }
+
+  async storeDetectionResult(transcriptionId, detectionResult) {
+    try {
+      const detectionData = {
+        transcriptionId,
+        hasResistance: detectionResult.hasResistance,
+        hasRegulatory: detectionResult.hasRegulatory,
+        message: detectionResult.message,
+      };
+
+      await DetectionResult.create(detectionData);
+      logger.info('Detection result stored in the database', { detectionData });
+    } catch (error) {
+      logger.error('Error storing detection result', { error, transcriptionId, detectionResult });
       throw error;
     }
   }

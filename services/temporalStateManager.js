@@ -65,6 +65,21 @@ class TemporalStateManager {
     const key = `rateLimit_${phoneNumber}`;
     this.clearState(key);
   }
+
+  saveDetectionResult(transcriptionId, detectionResult) {
+    const key = `detectionResult_${transcriptionId}`;
+    this.saveState(key, detectionResult);
+  }
+
+  loadDetectionResult(transcriptionId) {
+    const key = `detectionResult_${transcriptionId}`;
+    return this.loadState(key);
+  }
+
+  clearDetectionResult(transcriptionId) {
+    const key = `detectionResult_${transcriptionId}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;
