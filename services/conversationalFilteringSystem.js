@@ -1,10 +1,12 @@
 // services/conversationalFilteringSystem.js
 
 const intentDrivenShortcut = require('./intentDrivenShortcut');
+const PredictiveSearch = require('./predictiveSearch');
 
 class ConversationalFilteringSystem {
-  constructor() {
+  constructor(config) {
     this.filters = [];
+    this.predictiveSearch = new PredictiveSearch(config);
   }
 
   addFilter(filter) {
@@ -25,6 +27,10 @@ class ConversationalFilteringSystem {
       return shortcut(input);
     }
     return input;
+  }
+
+  async search(query) {
+    return await this.predictiveSearch.search(query);
   }
 }
 
