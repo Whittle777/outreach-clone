@@ -116,4 +116,18 @@ router.post('/:id/loss', async (req, res) => {
   }
 });
 
+// New endpoint to filter prospects by geographic routing
+router.get('/geographic-routing', async (req, res) => {
+  try {
+    const { countryRegion } = req.query;
+    if (!countryRegion) {
+      return res.status(400).json({ message: 'countryRegion query parameter is required' });
+    }
+    const prospects = await filterProspects({ countryRegion });
+    res.json(prospects);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

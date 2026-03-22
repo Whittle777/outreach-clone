@@ -88,6 +88,15 @@ class ProspectService {
     });
     return updatedProspect;
   }
+
+  static async filterByGeographicRouting(countryRegion) {
+    if (!isValidCountryRegion(countryRegion)) {
+      throw new Error('Invalid country/region');
+    }
+    return await prisma.prospect.findMany({
+      where: { countryRegion },
+    });
+  }
 }
 
 module.exports = ProspectService;
