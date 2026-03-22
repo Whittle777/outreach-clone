@@ -1,6 +1,9 @@
 const AWS = require('aws-sdk');
 const fs = require('fs');
 const path = require('path');
+const logger = require('../services/logger');
+const temporalStateManager = require('../services/temporalStateManager');
+const slackIntegration = require('../services/slackIntegration');
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -18,8 +21,16 @@ async function uploadAudioFile(fileName, filePath) {
     Body: fileContent,
     ContentType: 'audio/mpeg', // Set the correct content type for audio files
   };
-  const uploadResult = await s3.upload(params).promise();
-  return uploadResult.Location;
+  try {
+    const uploadResult = await s3.upload(params).promise();
+    logger.audioFileStored({ fileName: uploadResult.Key, location: uploadResult.Location });
+    temporalStateManager.saveState('audioFileStored', { fileName: uploadResult.Key, location: uploadResult.Location });
+    slackIntegration.sendNotification(`Audio file stored: ${uploadResult.Key}`);
+    return uploadResult.Location;
+  } catch (error) {
+    logger.error('Failed to upload audio file', { error, fileName });
+    throw error;
+  }
 }
 
 async function getAudioFileUrl(fileName) {
@@ -27,8 +38,13 @@ async function getAudioFileUrl(fileName) {
     Bucket: bucketName,
     Key: fileName,
   };
-  const headResult = await s3.headObject(params).promise();
-  return `https://${bucketName}.s3.amazonaws.com/${fileName}`;
+  try {
+    const headResult = await s3.headObject(params).promise();
+    return `https://${bucketName}.s3.amazonaws.com/${fileName}`;
+  } catch (error) {
+    logger.error('Failed to get audio file URL', { error, fileName });
+    throw error;
+  }
 }
 
 async function deleteAudioFile(fileName) {
@@ -36,7 +52,15 @@ async function deleteAudioFile(fileName) {
     Bucket: bucketName,
     Key: fileName,
   };
-  await s3.deleteObject(params).promise();
+  try {
+    await s3.deleteObject(params).promise();
+    logger.info('Audio file deleted', { fileName });
+    temporalStateManager.saveState('audioFileDeleted', { fileName });
+    slackIntegration.sendNotification(`Audio file deleted: ${fileName}`);
+  } catch (error) {
+    logger.error('Failed to delete audio file', { error, fileName });
+    throw error;
+  }
 }
 
 module.exports = {
