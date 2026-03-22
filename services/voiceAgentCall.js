@@ -19,6 +19,7 @@ const { promisify } = require('util');
 const parallel = require('async/parallel');
 const DetectionService = require('./detectionService');
 const PredictiveSearch = require('./predictiveSearch');
+const WebSocket = require('ws');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -31,6 +32,7 @@ class VoiceAgentCall {
     this.rabbitMQ = new RabbitMQ(config.rabbitmqUrl, config.rabbitmqQueueName);
     this.detectionService = new DetectionService();
     this.predictiveSearch = new PredictiveSearch(config);
+    this.wss = new WebSocket.Server({ port: 8080 });
   }
 
   async initiateCall(callData) {
@@ -91,6 +93,7 @@ class VoiceAgentCall {
 
       const createdCall = await VoiceAgentCallModel.VoiceAgentCall.create(callDataWithFlags);
       logger.info('VoiceAgentCall created with CallFlags', { createdCall });
+      this.broadcastCallUpdate(createdCall);
     } catch (error) {
       logger.error('Error creating VoiceAgentCall with CallFlags', { error, callData });
       throw error;
@@ -101,6 +104,7 @@ class VoiceAgentCall {
     try {
       await this.azureAcsCallAutomation.initiateVoicemailDrop(prospectData, audioFileUrl);
       logger.info('Voicemail drop initiated', { prospectData, audioFileUrl });
+      this.broadcastCallUpdate(prospectData);
     } catch (error) {
       logger.error('Error initiating voicemail drop', { error, prospectData, audioFileUrl });
     }
@@ -228,6 +232,7 @@ class VoiceAgentCall {
     try {
       const createdCall = await VoiceAgentCallModel.VoiceAgentCall.create(data);
       logger.info('VoiceAgentCall created', { createdCall });
+      this.broadcastCallUpdate(createdCall);
       return createdCall;
     } catch (error) {
       logger.error('Error creating VoiceAgentCall', { error, data });
@@ -265,6 +270,7 @@ class VoiceAgentCall {
     try {
       const updatedCall = await VoiceAgentCallModel.VoiceAgentCall.update({ where: { id }, data });
       logger.info('VoiceAgentCall updated', { updatedCall });
+      this.broadcastCallUpdate(updatedCall);
       return updatedCall;
     } catch (error) {
       logger.error('Error updating VoiceAgentCall', { error, id, data });
@@ -390,6 +396,14 @@ class VoiceAgentCall {
   async searchProspects(query) {
     const results = await this.predictiveSearch.search(query);
     return results;
+  }
+
+  broadcastCallUpdate(callData) {
+    this.wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'callUpdate', data: callData }));
+      }
+    });
   }
 }
 
