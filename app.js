@@ -10,6 +10,7 @@ const MemoryStore = session.MemoryStore;
 const quarterlyPerformancePrediction = require('./services/quarterlyPerformancePrediction');
 const mcpGatewayRoutes = require('./routes/mcpGateway');
 const dataResidencyMiddleware = require('./middleware/dataResidency');
+const callRateLimiting = require('./middleware/callRateLimiting');
 
 const app = express();
 
@@ -33,6 +34,11 @@ app.use('/api/mcpGateway', mcpGatewayRoutes);
 
 // New route for quarterly performance predictions
 app.get('/api/predictions/quarterly', quarterlyPerformancePrediction.getPredictions);
+
+// New route for call rate limit enforcement
+app.post('/call', callRateLimiting, (req, res) => {
+  res.json({ message: 'Call allowed' });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
