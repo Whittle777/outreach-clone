@@ -126,6 +126,19 @@ class TemporalStateManager {
     const key = `confidenceScore_${callId}`;
     this.clearState(key);
   }
+
+  // Review Queue state management
+  saveReviewQueueState(reviewQueue) {
+    this.saveState('reviewQueue', reviewQueue);
+  }
+
+  loadReviewQueueState() {
+    return this.loadState('reviewQueue');
+  }
+
+  clearReviewQueueState() {
+    this.clearState('reviewQueue');
+  }
 }
 
 module.exports = TemporalStateManager;

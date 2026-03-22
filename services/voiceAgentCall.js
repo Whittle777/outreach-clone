@@ -20,6 +20,7 @@ const parallel = require('async/parallel');
 const DetectionService = require('./detectionService');
 const PredictiveSearch = require('./predictiveSearch');
 const WebSocket = require('ws');
+const hitlWorkflow = require('../services/hitlWorkflow');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -408,31 +409,7 @@ class VoiceAgentCall {
 
   // Confidence Score Routing logic
   async routeCallByConfidenceScore(callData, confidenceScore) {
-    if (confidenceScore > 85) {
-      // High confidence: AI executes autonomously
-      await this.initiateCall(callData);
-      logger.info('High confidence call routed autonomously', { callData, confidenceScore });
-    } else if (confidenceScore >= 70) {
-      // Moderate confidence: Pause and route to review queue
-      await this.pauseAndRouteToReviewQueue(callData);
-      logger.info('Moderate confidence call routed to review queue', { callData, confidenceScore });
-    } else {
-      // Low confidence: Workflow halts with high-priority supervisor notifications
-      await this.haltAndNotifySupervisor(callData);
-      logger.info('Low confidence call halted with supervisor notifications', { callData, confidenceScore });
-    }
-  }
-
-  async pauseAndRouteToReviewQueue(callData) {
-    // Implement logic to pause the call and route to review queue
-    // This could involve setting a flag or sending a message to a review queue
-    logger.warn('Call paused and routed to review queue', { callData });
-  }
-
-  async haltAndNotifySupervisor(callData) {
-    // Implement logic to halt the call and notify supervisor
-    // This could involve sending an alert or message to a supervisor
-    logger.error('Call halted with supervisor notifications', { callData });
+    await hitlWorkflow.routeCallByConfidenceScore(callData, confidenceScore);
   }
 }
 
