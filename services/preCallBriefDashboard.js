@@ -3,6 +3,7 @@ const logger = require('./logger');
 const AICallGoals = require('./aiCallGoals');
 const NaturalLanguageGenerator = require('./naturalLanguageGenerator');
 const WebSocket = require('ws');
+const RealTimeUpdates = require('./realTimeUpdates');
 
 class PreCallBriefDashboard {
   constructor() {
@@ -10,6 +11,7 @@ class PreCallBriefDashboard {
     this.aiCallGoals = new AICallGoals();
     this.naturalLanguageGenerator = new NaturalLanguageGenerator();
     this.ws = new WebSocket(`ws://localhost:${config.webSocket.port}`);
+    this.realTimeUpdates = new RealTimeUpdates();
 
     this.ws.on('open', () => {
       logger.log('Connected to WebSocket server');
