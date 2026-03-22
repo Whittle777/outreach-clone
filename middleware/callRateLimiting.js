@@ -2,11 +2,11 @@ const config = require('../services/config').getConfig();
 const moment = require('moment');
 
 const callRateLimiting = (req, res, next) => {
-  const { phoneNumber } = req.body;
-  const rateLimits = config.rateLimits.teamsPhoneNumbers[phoneNumber];
+  const { phoneNumber, callType } = req.body;
+  const rateLimits = config.rateLimits[callType][phoneNumber];
 
   if (!rateLimits) {
-    return res.status(400).json({ error: 'Phone number not allowed' });
+    return res.status(400).json({ error: 'Phone number not allowed for this call type' });
   }
 
   const { limit, duration } = rateLimits;

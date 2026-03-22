@@ -28,47 +28,47 @@ class VoiceAgentCall {
   }
 
   async initiateCall(callData) {
-    const { phoneNumber, prospectData, voiceName, onBehalfOf } = callData;
+    const { phoneNumber, prospectData, voiceName, onBehalfOf, callType } = callData;
 
     // Apply call rate limiting middleware
-    const req = { body: { phoneNumber } };
+    const req = { body: { phoneNumber, callType } };
     const res = { status: (code) => ({ json: (message) => { throw new Error(`${code}: ${message.error}`); } }) };
     const next = () => {};
 
     try {
       callRateLimiting(req, res, next);
     } catch (error) {
-      logger.error('Call rate limit exceeded', { error, phoneNumber });
+      logger.error('Call rate limit exceeded', { error, phoneNumber, callType });
       throw error;
     }
 
     // Check time block configuration
     const timeBlockConfig = await TimeBlockConfigModel.TimeBlockConfig.findUnique({ where: { userId: prospectData.userId } });
     if (!this.isTimeWithinApprovedBlocks(timeBlockConfig)) {
-      logger.warn('Call initiation outside approved time blocks', { phoneNumber });
+      logger.warn('Call initiation outside approved time blocks', { phoneNumber, callType });
       throw new Error('Call initiation outside approved time blocks');
     }
 
     // Generate voicemail script
     const script = this.voicemailScriptGenerator.generateScript(prospectData);
-    logger.info('Voicemail script generated', { script, phoneNumber });
+    logger.info('Voicemail script generated', { script, phoneNumber, callType });
 
     // Generate TTS audio file
     const outputFilePath = path.join(__dirname, `../temp/${phoneNumber}_tts.wav`);
     try {
       await this.ttsService.generateAndStoreTtsAudio(script, voiceName, outputFilePath);
-      logger.info('TTS audio file generated', { phoneNumber, outputFilePath });
+      logger.info('TTS audio file generated', { phoneNumber, outputFilePath, callType });
     } catch (error) {
-      logger.error('Error generating TTS audio file', { error, phoneNumber });
+      logger.error('Error generating TTS audio file', { error, phoneNumber, callType });
       throw error;
     }
 
     // Proceed with initiating the call
     try {
       await this.azureAcsCallAutomation.initiateCall(phoneNumber, script, outputFilePath, onBehalfOf);
-      logger.info('Call initiated', { phoneNumber, onBehalfOf });
+      logger.info('Call initiated', { phoneNumber, onBehalfOf, callType });
     } catch (error) {
-      logger.error('Error initiating call', { error, phoneNumber, onBehalfOf });
+      logger.error('Error initiating call', { error, phoneNumber, onBehalfOf, callType });
       throw error;
     }
   }
@@ -79,7 +79,6 @@ class VoiceAgentCall {
       logger.info('Voicemail drop initiated', { prospectData, audioFileUrl });
     } catch (error) {
       logger.error('Error initiating voicemail drop', { error, prospectData, audioFileUrl });
-      throw error;
     }
   }
 
