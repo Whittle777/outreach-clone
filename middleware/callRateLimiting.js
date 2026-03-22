@@ -26,28 +26,6 @@ const callRateLimiting = (req, res, next) => {
   next();
 };
 
-const timeBlockMiddleware = (req, res, next) => {
-  const now = moment();
-  const dayOfWeek = now.isoWeekday();
-  const hour = now.hour();
-
-  const timeBlocks = config.timeBlocks;
-  const isAllowed = timeBlocks.some(block => {
-    return (
-      block.days.includes(dayOfWeek) &&
-      hour >= block.startTime &&
-      hour < block.endTime
-    );
-  });
-
-  if (!isAllowed) {
-    return res.status(403).json({ error: 'Call outside approved time blocks' });
-  }
-
-  next();
-};
-
 module.exports = {
-  callRateLimiting,
-  timeBlockMiddleware
+  callRateLimiting
 };

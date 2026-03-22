@@ -30,7 +30,7 @@ class VoiceAgentCall {
     const { phoneNumber, prospectData, voiceName, onBehalfOf } = callData;
 
     // Apply call rate limiting middleware
-    const req = { body: { phoneNumber } };
+    const req = { body: { phoneNumber, callType: 'voiceAgentCall' } };
     const res = { status: (code) => ({ json: (message) => { throw new Error(`${code}: ${message.error}`); } }) };
     const next = () => {};
 
