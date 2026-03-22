@@ -112,3 +112,16 @@ model VoiceAgentCall {
   updatedAt              DateTime  @updatedAt
   prospect               Prospect  @relation(fields: [prospectId], references: [id])
 }
+
+model TimeBlockConfig {
+  id                     Int       @id @default(autoincrement())
+  startTime              DateTime
+  endTime                DateTime
+  daysOfWeek             String[]  // Array of days of the week (e.g., ["Monday", "Tuesday"])
+  holidayExclusions      String[]  // Array of holiday names or dates
+  userOrTeamAssociation  String    // User or team identifier
+  bento                  String
+  activeStatus           Boolean   @default(true)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+}

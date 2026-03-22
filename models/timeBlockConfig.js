@@ -1,26 +1,21 @@
-class TimeBlockConfig {
-  constructor(start, end, daysOfWeek, holidayExclusions, userOrTeamAssociation, bentoIdentifier, activeStatus) {
-    this.start = start;
-    this.end = end;
-    this.daysOfWeek = daysOfWeek;
-    this.holidayExclusions = holidayExclusions;
-    this.userOrTeamAssociation = userOrTeamAssociation;
-    this.bentoIdentifier = bentoIdentifier;
-    this.activeStatus = activeStatus;
-  }
+const { prisma } = require('../prismaClient');
 
-  isActive() {
-    return this.activeStatus;
-  }
-
-  isWithinTimeBlock(date) {
-    const dayOfWeek = date.getDay();
-    const isWeekday = this.daysOfWeek.includes(dayOfWeek);
-    const isHoliday = this.holidayExclusions.includes(date.toISOString().split('T')[0]);
-    const isWithinTime = date >= this.start && date <= this.end;
-
-    return isWeekday && !isHoliday && isWithinTime;
-  }
-}
-
-module.exports = TimeBlockConfig;
+module.exports = {
+  TimeBlockConfig: {
+    async create(data) {
+      return await prisma.timeBlockConfig.create({ data });
+    },
+    async findMany() {
+      return await prisma.timeBlockConfig.findMany();
+    },
+    async findUnique(where) {
+      return await prisma.timeBlockConfig.findUnique({ where });
+    },
+    async update(where, data) {
+      return await prisma.timeBlockConfig.update({ where, data });
+    },
+    async delete(where) {
+      return await prisma.timeBlockConfig.delete({ where });
+    },
+  },
+};
