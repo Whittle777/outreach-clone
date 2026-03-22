@@ -1,9 +1,9 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function createSequenceStep(sequenceId, order, delayDays, subject, body, bento, schemaTag = "default", scheduledTime = null, state = "pending") {
+async function createSequenceStep(sequenceId, order, delayDays, subject, body, bento, schemaTag = "default", scheduledTime = null, state = "pending", timeShift = 0) {
   const shard = getShard(bento);
-  const calculatedScheduledTime = calculateScheduledTime(delayDays);
+  const calculatedScheduledTime = calculateScheduledTime(delayDays, timeShift);
   return await prisma[shard].sequenceStep.create({
     data: {
       sequenceId,
@@ -61,9 +61,9 @@ function getShard(bento) {
   return `shard_${bento % 3}`;
 }
 
-function calculateScheduledTime(delayDays) {
+function calculateScheduledTime(delayDays, timeShift) {
   const now = new Date();
-  now.setDate(now.getDate() + delayDays);
+  now.setDate(now.getDate() + delayDays + timeShift);
   return now.toISOString();
 }
 
