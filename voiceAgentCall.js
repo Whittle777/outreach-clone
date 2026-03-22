@@ -14,6 +14,7 @@ const AzureServiceBus = require('../services/azureServiceBus');
 const RabbitMQ = require('../services/rabbitMQ');
 const path = require('path');
 const axios = require('axios');
+const NLP = require('../services/nlp');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -24,6 +25,7 @@ class VoiceAgentCall {
     this.voicemailScriptGenerator = new VoicemailScriptGenerator();
     this.azureServiceBus = new AzureServiceBus(config.azureServiceBusConnectionString, config.azureServiceBusQueueName);
     this.rabbitMQ = new RabbitMQ(config.rabbitmqUrl, config.rabbitmqQueueName);
+    this.nlp = new NLP(config);
   }
 
   async initiateCall(callData) {
@@ -78,6 +80,17 @@ class VoiceAgentCall {
       this.emitSentimentAnalysisResult(sentimentResult);
     } catch (error) {
       logger.error('Error analyzing sentiment', error);
+    }
+  }
+
+  async parseUserPrompt(prompt) {
+    try {
+      const parsedData = await this.nlp.parsePrompt(prompt);
+      logger.info('User prompt parsed', { prompt, parsedData });
+      return parsedData;
+    } catch (error) {
+      logger.error('Error parsing user prompt', { prompt, error });
+      throw error;
     }
   }
 

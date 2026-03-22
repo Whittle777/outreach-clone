@@ -90,5 +90,16 @@ module.exports = {
     temporalStateManager.saveState('detectionResult', { message, data });
     slackIntegration.sendNotification(`Detection Result: ${message}`);
   },
+  userPromptParsed: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'userPromptParsed', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'userPromptParsed', data: { message, data } });
+    temporalStateManager.saveState('userPromptParsed', { message, data });
+    slackIntegration.sendNotification(`User Prompt Parsed: ${message}`);
+  },
   // Other methods remain unchanged...
 };
