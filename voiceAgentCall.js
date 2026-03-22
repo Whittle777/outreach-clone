@@ -93,9 +93,10 @@ class VoiceAgentCall {
       logger.error('Error starting transcription', { error });
     }
 
-    // Analyze sentiment of the transcript
+    // Analyze sentiment of the transcript in parallel
     try {
-      const sentimentResult = await this.sentimentAnalysisService.analyze(transcriptData.text);
+      const sentimentAnalysisPromise = this.sentimentAnalysisService.analyze(transcriptData.text);
+      const [sentimentResult] = await Promise.all([sentimentAnalysisPromise]);
       logger.log('Sentiment analysis successful', { sentimentResult });
       this.emitSentimentAnalysisResult(sentimentResult);
     } catch (error) {
