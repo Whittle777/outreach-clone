@@ -92,8 +92,29 @@ class VoiceAgentCall {
     try {
       const sentimentResult = await this.sentimentAnalysisService.analyze(transcriptData.text);
       logger.log('Sentiment analysis successful', { sentimentResult });
+
+      // Store sentiment analysis results in the database
+      await this.storeSentimentAnalysisResult(transcriptData.transcriptionId, sentimentResult);
     } catch (error) {
       logger.error('Error analyzing sentiment', error);
+    }
+  }
+
+  async storeSentimentAnalysisResult(transcriptionId, sentimentResult) {
+    try {
+      const sentimentData = {
+        transcriptionId,
+        sentimentScore: sentimentResult.sentimentScore,
+        sentimentLabel: sentimentResult.sentimentLabel,
+        metadata: sentimentResult.metadata,
+        country: sentimentResult.country,
+      };
+
+      await SentimentAnalysis.create(sentimentData);
+      logger.info('Sentiment analysis result stored in the database', { sentimentData });
+    } catch (error) {
+      logger.error('Error storing sentiment analysis result', { error, transcriptionId, sentimentResult });
+      throw error;
     }
   }
 

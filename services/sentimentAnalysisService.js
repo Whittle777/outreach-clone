@@ -3,9 +3,10 @@ const DoubleWriteStrategy = require('../services/doubleWriteStrategy');
 const SentimentAnalysis = require('../models/SentimentAnalysis');
 
 class SentimentAnalysisService {
-  constructor() {
+  constructor(apiKey) {
     this.apiUrl = 'https://api.sentimentanalysis.com/analyze'; // Hypothetical API endpoint
     this.doubleWriteStrategy = new DoubleWriteStrategy();
+    this.apiKey = apiKey;
   }
 
   async analyze(transcriptionId) {
@@ -15,6 +16,7 @@ class SentimentAnalysisService {
       }, {
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
         },
       });
 
