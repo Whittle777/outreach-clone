@@ -26,7 +26,7 @@ class VoiceAgentCall {
   }
 
   async initiateCall(callData) {
-    const { phoneNumber, prospectData, voiceName } = callData;
+    const { phoneNumber, prospectData, voiceName, onBehalfOf } = callData;
 
     // Apply call rate limiting middleware
     const req = { body: { phoneNumber } };
@@ -63,10 +63,10 @@ class VoiceAgentCall {
 
     // Proceed with initiating the call
     try {
-      await this.azureAcsCallAutomation.initiateCall(phoneNumber, script, outputFilePath);
-      logger.info('Call initiated', { phoneNumber });
+      await this.azureAcsCallAutomation.initiateCall(phoneNumber, script, outputFilePath, onBehalfOf);
+      logger.info('Call initiated', { phoneNumber, onBehalfOf });
     } catch (error) {
-      logger.error('Error initiating call', { error, phoneNumber });
+      logger.error('Error initiating call', { error, phoneNumber, onBehalfOf });
       throw error;
     }
   }
