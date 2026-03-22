@@ -178,8 +178,7 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'interactiveNotification', data: { message, data } });
     temporalStateManager.saveState('interactiveNotification', { message, data });
-    slackIntegration.sendNotification(`Interactive Notification: ${message}`);
-    microsoftTeamsIntegration.sendInteractiveNotification(data.channel, message, data.actions);
+    slackIntegration.sendInteractiveNotification(data.channel, message, data.actions);
   },
   versionChange: (message, data) => {
     logger.info(message, data);
@@ -240,5 +239,17 @@ module.exports = {
     temporalStateManager.saveState('migrationError', { message, data });
     slackIntegration.sendNotification(`Migration Error: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Migration Error: ${message}`);
+  },
+  conversionRatesCalculated: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'conversionRatesCalculated', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'conversionRatesCalculated', data: { message, data } });
+    temporalStateManager.saveState('conversionRatesCalculated', { message, data });
+    slackIntegration.sendNotification(`Conversion Rates Calculated: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Conversion Rates Calculated: ${message}`);
   },
 };

@@ -231,6 +231,17 @@ class VoiceAgentCall {
       logger.warn('No version to roll back');
     }
   }
+
+  async calculateConversionRatesByForecastCategory() {
+    try {
+      const conversionRates = await this.ngoe.calculateConversionRatesByForecastCategory();
+      logger.info('Conversion rates calculated', { conversionRates });
+      return conversionRates;
+    } catch (error) {
+      logger.error('Error calculating conversion rates', { error });
+      throw error;
+    }
+  }
 }
 
 module.exports = VoiceAgentCall;

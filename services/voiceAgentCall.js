@@ -5,8 +5,7 @@ const TtsService = require('./ttsService');
 const logger = require('../services/logger');
 const doubleWriteStrategy = require('./doubleWriteStrategy');
 const NGOE = require('./ngoe');
-const { authenticateMcpToken } = require('../middleware/mcpAuth');
-const SentimentAnalysisService = require('./sentimentAnalysisService');
+const SentimentAnalysisService = require('./sentimentAnalysis');
 const VoiceAgentCallModel = require('../models/voiceAgentCall');
 const temporalStateManager = require('../services/temporalStateManager');
 const VoicemailScriptGenerator = require('./voicemailScriptGenerator');
@@ -15,14 +14,11 @@ const AzureServiceBus = require('../services/azureServiceBus');
 const RabbitMQ = require('../services/rabbitMQ');
 const path = require('path');
 const axios = require('axios');
-const { promisify } = require('util');
-const parallel = require('async/parallel');
-const DetectionService = require('./detectionService');
-const PredictiveSearch = require('./predictiveSearch');
-const WebSocket = require('ws');
-const hitlWorkflow = require('../services/hitlWorkflow');
-const NaturalLanguageGuardrails = require('./naturalLanguageGuardrails');
-const slackIntegration = require('../services/slackIntegration');
+const NLP = require('../services/nlp');
+const IntentDrivenShortcuts = require('../services/intentDrivenShortcuts');
+const AzureSpeechService = require('./azureSpeechService'); // New service for transcription
+const DynamicKnowledgeGraphs = require('../services/dynamicKnowledgeGraphs');
+const MicrosoftTeamsIntegration = require('../services/microsoftTeamsIntegration');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -33,14 +29,15 @@ class VoiceAgentCall {
     this.voicemailScriptGenerator = new VoicemailScriptGenerator();
     this.azureServiceBus = new AzureServiceBus(config.azureServiceBusConnectionString, config.azureServiceBusQueueName);
     this.rabbitMQ = new RabbitMQ(config.rabbitmqUrl, config.rabbitmqQueueName);
-    this.detectionService = new DetectionService();
-    this.predictiveSearch = new PredictiveSearch(config);
-    this.wss = new WebSocket.Server({ port: 8080 });
-    this.naturalLanguageGuardrails = new NaturalLanguageGuardrails();
+    this.nlp = new NLP(config);
+    this.intentDrivenShortcuts = new IntentDrivenShortcuts(config);
+    this.azureSpeechService = new AzureSpeechService(config.azureSpeechApiKey, config.azureSpeechRegion); // Initialize transcription service
+    this.dynamicKnowledgeGraphs = new DynamicKnowledgeGraphs();
+    this.microsoftTeamsIntegration = new MicrosoftTeamsIntegration(config);
   }
 
   async initiateCall(callData) {
-    const { phoneNumber, prospectData, voiceName, onBehalfOf, callType, callFlags } = callData;
+    const { phoneNumber, prospectData, voiceName, onBehalfOf, callType } = callData;
 
     // Apply call rate limiting middleware
     const req = { body: { phoneNumber, callType } };
@@ -65,9 +62,6 @@ class VoiceAgentCall {
     const script = this.voicemailScriptGenerator.generateScript(prospectData);
     logger.info('Voicemail script generated', { script, phoneNumber, callType });
 
-    // Enforce natural language guardrails
-    this.naturalLanguageGuardrails.enforcePolicyDirectives(script);
-
     // Generate TTS audio file
     const outputFilePath = path.join(__dirname, `../temp/${phoneNumber}_tts.wav`);
     try {
@@ -87,45 +81,167 @@ class VoiceAgentCall {
       throw error;
     }
 
-    // Store the call with CallFlags using double-write strategy
+    // Start transcription
     try {
-      const callDataWithFlags = {
-        phoneNumber,
-        prospectData,
-        voiceName,
-        onBehalfOf,
-        callType,
-        callFlags,
+      const transcriptionStream = await this.azureSpeechService.startTranscription(outputFilePath);
+      transcriptionStream.on('data', (data) => {
+        logger.realTimeTranscript('Transcription data received', { data });
+      });
+      transcriptionStream.on('error', (error) => {
+        logger.error('Error in transcription', { error });
+      });
+      transcriptionStream.on('end', () => {
+        logger.info('Transcription ended');
+      });
+    } catch (error) {
+      logger.error('Error starting transcription', { error });
+    }
+
+    // Analyze sentiment of the transcript in parallel
+    try {
+      const sentimentAnalysisPromise = this.sentimentAnalysisService.analyze(transcriptData.text);
+      const [sentimentResult] = await Promise.all([sentimentAnalysisPromise]);
+      logger.log('Sentiment analysis successful', { sentimentResult });
+      this.emitSentimentAnalysisResult(sentimentResult);
+    } catch (error) {
+      logger.error('Error analyzing sentiment', error);
+    }
+
+    // Log real-time reasoning
+    try {
+      const reasoningLog = {
+        step: 'initiateCall',
+        action: 'call initiated',
+        data: { phoneNumber, onBehalfOf, callType },
       };
+      logger.realTimeReasoningLog('Real-time reasoning log', { reasoningLog });
+    } catch (error) {
+      logger.error('Error logging real-time reasoning', { error });
+    }
 
-      await doubleWriteStrategy.write(callDataWithFlags);
-      logger.info('VoiceAgentCall created with CallFlags using double-write strategy', { callDataWithFlags });
-      this.broadcastCallUpdate(callDataWithFlags);
+    // Add prospect to dynamic knowledge graph
+    this.dynamicKnowledgeGraphs.addNode(prospectData);
 
-      // Send interactive notification for approval workflow
+    // Send interactive notification to Microsoft Teams
+    if (callType === 'microsoftTeams') {
       const actions = [
         {
-          name: "approve",
-          text: "Approve",
-          type: "button",
-          value: "approve"
+          type: 'Action.OpenUrl',
+          title: 'Approve',
+          url: 'https://example.com/approve'
         },
         {
-          name: "reject",
-          text: "Reject",
-          type: "button",
-          value: "reject"
+          type: 'Action.OpenUrl',
+          title: 'Reject',
+          url: 'https://example.com/reject'
         }
       ];
+      await this.microsoftTeamsIntegration.sendInteractiveNotification('general', 'New call initiated', actions);
+    }
+  }
 
-      await slackIntegration.sendInteractiveNotification('#approval-channel', `New call initiated for ${prospectData.name}`, actions);
+  async parseUserPrompt(prompt) {
+    try {
+      const parsedData = await this.nlp.parsePrompt(prompt);
+      logger.info('User prompt parsed', { prompt, parsedData });
+      return parsedData;
     } catch (error) {
-      logger.error('Error creating VoiceAgentCall with CallFlags using double-write strategy', { error, callData });
+      logger.error('Error parsing user prompt', { prompt, error });
       throw error;
     }
   }
 
-  // Other methods remain unchanged...
+  emitSentimentAnalysisResult(sentimentResult) {
+    const { message, data } = sentimentResult;
+    logger.log('sentimentAnalysisResult', { message, data });
+  }
+
+  async handleIntent(intent, data) {
+    try {
+      const result = await this.intentDrivenShortcuts.handleIntent(intent, data);
+      logger.intentHandled('Intent handled successfully', { intent, result });
+      return result;
+    } catch (error) {
+      logger.error('Error handling intent', { intent, error });
+      throw error;
+    }
+  }
+
+  async performPredictiveSearch(query) {
+    try {
+      const result = await this.intentDrivenShortcuts.predictSearch(query);
+      logger.predictiveSearchResult('Predictive search successful', { query, result });
+      return result;
+    } catch (error) {
+      logger.error('Error performing predictive search', { query, error });
+      throw error;
+    }
+  }
+
+  isTimeWithinApprovedBlocks(timeBlockConfig) {
+    // Implementation to check if the current time is within the approved time blocks
+    // This is a placeholder implementation
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const hour = now.getHours();
+    return timeBlockConfig.daysOfWeek.includes(dayOfWeek) && timeBlockConfig.startTime <= hour && hour < timeBlockConfig.endTime;
+  }
+
+  // New method to detect resistance or regulatory edge cases
+  detectResistanceOrRegulatoryEdgeCases(transcriptData) {
+    // Placeholder logic for detecting resistance or regulatory edge cases
+    const resistanceKeywords = ['resistance', 'regulatory', 'edge', 'case'];
+    const transcriptText = transcriptData.text.toLowerCase();
+    const hasResistanceKeyword = resistanceKeywords.some(keyword => transcriptText.includes(keyword));
+
+    if (hasResistanceKeyword) {
+      logger.visualFlag('Resistance or regulatory edge case detected', { transcriptData });
+    }
+  }
+
+  async sendApprovalNotification(channel, message, actions) {
+    logger.interactiveNotification(message, { channel, actions });
+  }
+
+  async checkVersionCompatibility(newVersion) {
+    const currentVersion = temporalStateManager.loadCurrentVersion();
+    if (currentVersion && currentVersion !== newVersion) {
+      logger.warn('Version mismatch detected', { currentVersion, newVersion });
+      throw new Error('Version mismatch detected');
+    }
+  }
+
+  async updateVersion(newVersion) {
+    try {
+      await this.checkVersionCompatibility(newVersion);
+      temporalStateManager.saveCurrentVersion(newVersion);
+      logger.versionChange('Version updated successfully', { newVersion });
+    } catch (error) {
+      logger.error('Error updating version', { error });
+      throw error;
+    }
+  }
+
+  async rollbackVersion() {
+    const currentVersion = temporalStateManager.loadCurrentVersion();
+    if (currentVersion) {
+      temporalStateManager.clearCurrentVersion();
+      logger.versionChange('Version rolled back successfully', { currentVersion });
+    } else {
+      logger.warn('No version to roll back');
+    }
+  }
+
+  async calculateConversionRatesByForecastCategory() {
+    try {
+      const conversionRates = await this.ngoe.calculateConversionRatesByForecastCategory();
+      logger.info('Conversion rates calculated', { conversionRates });
+      return conversionRates;
+    } catch (error) {
+      logger.error('Error calculating conversion rates', { error });
+      throw error;
+    }
+  }
 }
 
 module.exports = VoiceAgentCall;

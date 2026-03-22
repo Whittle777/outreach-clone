@@ -102,7 +102,6 @@ class TemporalStateManager {
   }
 
   loadPredictiveSearchState(query) {
-    const key = `predictiveSearch_${query}`;
     return this.loadState(query);
   }
 
@@ -183,6 +182,19 @@ class TemporalStateManager {
   clearMigrationState(key) {
     const migrationKey = `migration_${key}`;
     this.clearState(migrationKey);
+  }
+
+  // Conversion rates state management
+  saveConversionRates(conversionRates) {
+    this.saveState('conversionRates', conversionRates);
+  }
+
+  loadConversionRates() {
+    return this.loadState('conversionRates');
+  }
+
+  clearConversionRates() {
+    this.clearState('conversionRates');
   }
 }
 
