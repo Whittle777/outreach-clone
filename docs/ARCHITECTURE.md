@@ -37,7 +37,7 @@ This project is a headless REST API for a sales engagement platform (similar to 
 - **Agentic Reasoning Engine:** Autonomous fallback logic for handling missing or messy data with third-party enrichment
 
 ### Testing & Development Stack
-- **Email Provider Flexibility:** Support for multiple email providers including Gmail (personal accounts) for testing
+- **Email Provider Flexibility:** Support for multiple email providers including Gmail (personal accounts) and Outlook for testing
 - **Configuration Management:** Environment-based provider switching to enable easy testing with different SMTP/API credentials
 - **Thorough Testing Requirements:** ALL features must be thoroughly tested before deployment, including voice agent functionality
 
@@ -630,7 +630,7 @@ Records email bounce events with classification.
 8. Enable schema tagging for analytics aggregation across data centers
 9. Add Sentiment Analysis, AudioFile, and DealHealthScore models for AI-driven features
 10. Implement GDPR compliance checks across all data operations
-11. Enable flexible email provider testing configuration
+11. Enable flexible email provider testing configuration (Gmail, Outlook)
 12. Add TaskQueue model for dynamic task playlist generation from natural language queries
 13. Implement NaturalLanguageQueryLog for tracking prompt-to-query translations
 14. Prepare agentic reasoning engine for fallback logic when data is missing or incomplete
