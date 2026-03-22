@@ -30,7 +30,7 @@ class VoiceAgentCall {
   }
 
   async initiateCall(callData) {
-    const { phoneNumber, prospectData, voiceName, onBehalfOf, callType } = callData;
+    const { phoneNumber, prospectData, voiceName, onBehalfOf, callType, callFlags } = callData;
 
     // Apply call rate limiting middleware
     const req = { body: { phoneNumber, callType } };
@@ -71,6 +71,24 @@ class VoiceAgentCall {
       logger.info('Call initiated', { phoneNumber, onBehalfOf, callType });
     } catch (error) {
       logger.error('Error initiating call', { error, phoneNumber, onBehalfOf, callType });
+      throw error;
+    }
+
+    // Store the call with CallFlags
+    try {
+      const callDataWithFlags = {
+        phoneNumber,
+        prospectData,
+        voiceName,
+        onBehalfOf,
+        callType,
+        callFlags,
+      };
+
+      const createdCall = await VoiceAgentCallModel.VoiceAgentCall.create(callDataWithFlags);
+      logger.info('VoiceAgentCall created with CallFlags', { createdCall });
+    } catch (error) {
+      logger.error('Error creating VoiceAgentCall with CallFlags', { error, callData });
       throw error;
     }
   }
