@@ -13,6 +13,7 @@ const VoicemailScriptGenerator = require('./voicemailScriptGenerator');
 const TimeBlockConfigModel = require('../models/timeBlockConfig');
 const AzureServiceBus = require('../services/azureServiceBus');
 const RabbitMQ = require('../services/rabbitMQ');
+const path = require('path');
 
 class VoiceAgentCall {
   constructor(apiKey) {
