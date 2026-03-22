@@ -59,6 +59,16 @@ class DealController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  static async getTopOpportunities(req, res) {
+    try {
+      const { minValue, maxValue, startDate, endDate } = req.query;
+      const deals = await DealService.getTopOpportunities(minValue, maxValue, startDate, endDate);
+      res.json(deals);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = DealController;
