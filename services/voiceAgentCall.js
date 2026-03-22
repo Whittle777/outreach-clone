@@ -22,6 +22,7 @@ const PredictiveSearch = require('./predictiveSearch');
 const WebSocket = require('ws');
 const hitlWorkflow = require('../services/hitlWorkflow');
 const NaturalLanguageGuardrails = require('./naturalLanguageGuardrails');
+const slackIntegration = require('../services/slackIntegration');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -100,6 +101,24 @@ class VoiceAgentCall {
       const createdCall = await VoiceAgentCallModel.VoiceAgentCall.create(callDataWithFlags);
       logger.info('VoiceAgentCall created with CallFlags', { createdCall });
       this.broadcastCallUpdate(createdCall);
+
+      // Send interactive notification for approval workflow
+      const actions = [
+        {
+          name: "approve",
+          text: "Approve",
+          type: "button",
+          value: "approve"
+        },
+        {
+          name: "reject",
+          text: "Reject",
+          type: "button",
+          value: "reject"
+        }
+      ];
+
+      await slackIntegration.sendInteractiveNotification('#approval-channel', `New call initiated for ${prospectData.name}`, actions);
     } catch (error) {
       logger.error('Error creating VoiceAgentCall with CallFlags', { error, callData });
       throw error;
