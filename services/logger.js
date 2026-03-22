@@ -115,6 +115,7 @@ module.exports = {
     });
     doubleWriteStrategy.write({ type: 'audioFileStored', data: { fileData } });
     temporalStateManager.saveState('audioFileStored', { fileData });
+    slackIntegration.sendNotification(`Audio File Stored: ${fileData.fileName}`);
   },
   rabbitmqMessageSent: (data) => {
     logger.info('RabbitMQ message sent', { data });

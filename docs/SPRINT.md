@@ -3,3 +3,12 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
+3. [ ] Implement audio file storage in the backend using Azure Blob Storage or AWS S3
+4. [ ] Update the `audioFileController.js` to handle audio file uploads and storage
+5. [ ] Update the `models/audioFile.js` to include audio file metadata
+6. [ ] Update the `services/audioFileStorage.js` to handle audio file uploads to the cloud storage
+7. [ ] Update the `services/logger.js` to log audio file storage events
+8. [ ] Update the `services/temporalStateManager.js` to save audio file storage state
+9. [ ] Update the `services/slackIntegration.js` to send notifications for audio file storage events
+10. [ ] Write unit tests for the audio file storage functionality
+11. [ ] Write integration tests for the audio file storage functionality
