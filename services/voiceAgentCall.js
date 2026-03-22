@@ -8,6 +8,7 @@ const NGOE = require('./ngoe');
 const { authenticateMcpToken } = require('../middleware/mcpAuth');
 const SentimentAnalysisService = require('./sentimentAnalysis');
 const VoiceAgentCallModel = require('../models/voiceAgentCall');
+const temporalStateManager = require('../services/temporalStateManager');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -28,15 +29,28 @@ class VoiceAgentCall {
     try {
       callRateLimiting(req, res, next);
     } catch (error) {
+      logger.error('Call rate limit exceeded', { error, phoneNumber });
       throw error;
     }
 
     // Generate TTS audio file
     const outputFilePath = path.join(__dirname, `../temp/${phoneNumber}_tts.wav`);
-    await this.ttsService.generateAndStoreTtsAudio(script, voiceName, outputFilePath);
+    try {
+      await this.ttsService.generateAndStoreTtsAudio(script, voiceName, outputFilePath);
+      logger.info('TTS audio file generated', { phoneNumber, outputFilePath });
+    } catch (error) {
+      logger.error('Error generating TTS audio file', { error, phoneNumber });
+      throw error;
+    }
 
     // Proceed with initiating the call
-    await this.azureAcsCallAutomation.createCall(phoneNumber, script, outputFilePath);
+    try {
+      await this.azureAcsCallAutomation.createCall(phoneNumber, script, outputFilePath);
+      logger.info('Call initiated', { phoneNumber });
+    } catch (error) {
+      logger.error('Error initiating call', { error, phoneNumber });
+      throw error;
+    }
   }
 
   async handleRealTimeTranscript(transcriptData) {
@@ -80,31 +94,72 @@ class VoiceAgentCall {
         const { data } = req.body;
         // Process the data as needed
         res.status(200).json({ message: 'MCP request processed successfully' });
+        logger.info('MCP request processed', { data });
       });
     } catch (error) {
       res.status(403).json({ message: error.message });
+      logger.error('Error processing MCP request', { error });
     }
   }
 
   // CRUD operations for VoiceAgentCall
   async createVoiceAgentCall(data) {
-    return await VoiceAgentCallModel.VoiceAgentCall.create(data);
+    try {
+      const createdCall = await VoiceAgentCallModel.VoiceAgentCall.create(data);
+      logger.info('VoiceAgentCall created', { createdCall });
+      return createdCall;
+    } catch (error) {
+      logger.error('Error creating VoiceAgentCall', { error, data });
+      throw error;
+    }
   }
 
   async getVoiceAgentCalls() {
-    return await VoiceAgentCallModel.VoiceAgentCall.findMany();
+    try {
+      const calls = await VoiceAgentCallModel.VoiceAgentCall.findMany();
+      logger.info('VoiceAgentCalls retrieved', { calls });
+      return calls;
+    } catch (error) {
+      logger.error('Error retrieving VoiceAgentCalls', { error });
+      throw error;
+    }
   }
 
   async getVoiceAgentCallById(id) {
-    return await VoiceAgentCallModel.VoiceAgentCall.findUnique({ where: { id } });
+    try {
+      const call = await VoiceAgentCallModel.VoiceAgentCall.findUnique({ where: { id } });
+      if (call) {
+        logger.info('VoiceAgentCall retrieved by ID', { call });
+      } else {
+        logger.warn('VoiceAgentCall not found by ID', { id });
+      }
+      return call;
+    } catch (error) {
+      logger.error('Error retrieving VoiceAgentCall by ID', { error, id });
+      throw error;
+    }
   }
 
   async updateVoiceAgentCall(id, data) {
-    return await VoiceAgentCallModel.VoiceAgentCall.update({ where: { id }, data });
+    try {
+      const updatedCall = await VoiceAgentCallModel.VoiceAgentCall.update({ where: { id }, data });
+      logger.info('VoiceAgentCall updated', { updatedCall });
+      return updatedCall;
+    } catch (error) {
+      logger.error('Error updating VoiceAgentCall', { error, id, data });
+      throw error;
+    }
   }
 
   async deleteVoiceAgentCall(id) {
-    return await VoiceAgentCallModel.VoiceAgentCall.delete({ where: { id } });
+    try {
+      const deletedCall = await VoiceAgentCallModel.VoiceAgentCall.delete({ where: { id } });
+      logger.info('VoiceAgentCall deleted', { deletedCall });
+      return deletedCall;
+    } catch (error) {
+      logger.error('Error deleting VoiceAgentCall', { error, id });
+      throw error;
+    }
   }
 }
 
