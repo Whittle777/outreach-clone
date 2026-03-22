@@ -13,6 +13,7 @@ const VoicemailScriptGenerator = require('./voicemailScriptGenerator');
 const TimeBlockConfigModel = require('../models/timeBlockConfig');
 const AzureServiceBus = require('../services/azureServiceBus');
 const RabbitMQ = require('../services/rabbitMQ');
+const path = require('path');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -252,6 +253,15 @@ class VoiceAgentCall {
       logger.error('Error sending message to RabbitMQ queue', { error, message });
       throw error;
     }
+  }
+
+  // Method to validate STIR/SHAKEN headers
+  async validateStirShakenHeaders(headers) {
+    // Placeholder implementation for STIR/SHAKEN validation
+    // In a real-world scenario, this would involve checking the headers for valid STIR/SHAKEN information
+    const isValid = headers['P-Stir-Shaken'] === 'valid';
+    logger.log('STIR/SHAKEN validation result', { isValid, headers });
+    return isValid;
   }
 }
 

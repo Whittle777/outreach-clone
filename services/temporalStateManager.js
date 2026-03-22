@@ -35,6 +35,21 @@ class TemporalStateManager {
     const key = `audioFileStorage_${prospectId}`;
     this.clearState(key);
   }
+
+  saveStirShakenValidationResult(prospectId, validationResult) {
+    const key = `stirShakenValidation_${prospectId}`;
+    this.saveState(key, validationResult);
+  }
+
+  loadStirShakenValidationResult(prospectId) {
+    const key = `stirShakenValidation_${prospectId}`;
+    return this.loadState(key);
+  }
+
+  clearStirShakenValidationResult(prospectId) {
+    const key = `stirShakenValidation_${prospectId}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;
