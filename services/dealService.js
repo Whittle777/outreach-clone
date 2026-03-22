@@ -69,6 +69,14 @@ class DealService {
       return { ...deal, score };
     });
   }
+
+  // New method to fetch top prioritized deals
+  static async getTopPrioritizedDeals() {
+    const deals = await Deal.findMany();
+    const scoredDeals = await this.scoreDeals(deals);
+    scoredDeals.sort((a, b) => b.score - a.score);
+    return scoredDeals.slice(0, 10); // Return top 10 prioritized deals
+  }
 }
 
 module.exports = DealService;

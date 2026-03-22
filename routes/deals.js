@@ -61,4 +61,14 @@ router.get('/top-opportunities', async (req, res) => {
   }
 });
 
+// New route to fetch top prioritized deals
+router.get('/top-prioritized', async (req, res) => {
+  try {
+    const topPrioritizedDeals = await dealsService.getTopPrioritizedDeals();
+    res.json(topPrioritizedDeals);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
