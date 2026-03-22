@@ -14,6 +14,7 @@ const TimeBlockConfigModel = require('../models/timeBlockConfig');
 const AzureServiceBus = require('../services/azureServiceBus');
 const RabbitMQ = require('../services/rabbitMQ');
 const hitlWorkflow = require('../services/hitlWorkflow');
+const DynamicKnowledgeGraphs = require('../services/dynamicKnowledgeGraphs');
 
 jest.mock('../services/azureAcsCallAutomation');
 jest.mock('../services/ttsService');
@@ -29,6 +30,7 @@ jest.mock('../models/timeBlockConfig');
 jest.mock('../services/azureServiceBus');
 jest.mock('../services/rabbitMQ');
 jest.mock('../services/hitlWorkflow');
+jest.mock('../services/dynamicKnowledgeGraphs');
 
 describe('VoiceAgentCall', () => {
   let voiceAgentCall;
@@ -53,6 +55,7 @@ describe('VoiceAgentCall', () => {
 
       expect(AzureAcsCallAutomation.prototype.initiateCall).toHaveBeenCalledWith('1234567890', expect.any(String), expect.any(String));
       expect(TtsService.prototype.generateAndStoreTtsAudio).toHaveBeenCalledWith(expect.any(String), 'en-US-JennyNeural', expect.any(String));
+      expect(DynamicKnowledgeGraphs.addNode).toHaveBeenCalledWith(callData.prospectData);
     });
 
     it('should throw an error if call rate limit is exceeded', async () => {

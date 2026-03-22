@@ -28,6 +28,12 @@ class DynamicKnowledgeGraphs {
   getGraph() {
     return this.graph;
   }
+
+  visualizeGraph() {
+    // Placeholder for graph visualization logic
+    // This could involve converting the graph to a format suitable for visualization libraries
+    return JSON.stringify(this.graph, null, 2);
+  }
 }
 
 module.exports = new DynamicKnowledgeGraphs();

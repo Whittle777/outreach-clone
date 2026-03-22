@@ -17,6 +17,7 @@ const axios = require('axios');
 const NLP = require('../services/nlp');
 const IntentDrivenShortcuts = require('../services/intentDrivenShortcuts');
 const AzureSpeechService = require('./azureSpeechService'); // New service for transcription
+const DynamicKnowledgeGraphs = require('../services/dynamicKnowledgeGraphs');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -30,6 +31,7 @@ class VoiceAgentCall {
     this.nlp = new NLP(config);
     this.intentDrivenShortcuts = new IntentDrivenShortcuts(config);
     this.azureSpeechService = new AzureSpeechService(config.azureSpeechApiKey, config.azureSpeechRegion); // Initialize transcription service
+    this.dynamicKnowledgeGraphs = new DynamicKnowledgeGraphs();
   }
 
   async initiateCall(callData) {
@@ -114,6 +116,9 @@ class VoiceAgentCall {
     } catch (error) {
       logger.error('Error logging real-time reasoning', { error });
     }
+
+    // Add prospect to dynamic knowledge graph
+    this.dynamicKnowledgeGraphs.addNode(prospectData);
   }
 
   async parseUserPrompt(prompt) {
