@@ -1,5 +1,7 @@
 // services/conversationalFilteringSystem.js
 
+const intentDrivenShortcut = require('./intentDrivenShortcut');
+
 class ConversationalFilteringSystem {
   constructor() {
     this.filters = [];
@@ -15,6 +17,14 @@ class ConversationalFilteringSystem {
       result = filter(result);
     }
     return result;
+  }
+
+  applyShortcut(intent, input) {
+    const shortcut = intentDrivenShortcut.getShortcut(intent);
+    if (shortcut) {
+      return shortcut(input);
+    }
+    return input;
   }
 }
 
