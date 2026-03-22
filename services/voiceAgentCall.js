@@ -7,6 +7,7 @@ const doubleWriteStrategy = require('./doubleWriteStrategy');
 const NGOE = require('./ngoe');
 const { authenticateMcpToken } = require('../middleware/mcpAuth');
 const SentimentAnalysisService = require('./sentimentAnalysis');
+const VoiceAgentCallModel = require('../models/voiceAgentCall');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -83,6 +84,27 @@ class VoiceAgentCall {
     } catch (error) {
       res.status(403).json({ message: error.message });
     }
+  }
+
+  // CRUD operations for VoiceAgentCall
+  async createVoiceAgentCall(data) {
+    return await VoiceAgentCallModel.VoiceAgentCall.create(data);
+  }
+
+  async getVoiceAgentCalls() {
+    return await VoiceAgentCallModel.VoiceAgentCall.findMany();
+  }
+
+  async getVoiceAgentCallById(id) {
+    return await VoiceAgentCallModel.VoiceAgentCall.findUnique({ where: { id } });
+  }
+
+  async updateVoiceAgentCall(id, data) {
+    return await VoiceAgentCallModel.VoiceAgentCall.update({ where: { id }, data });
+  }
+
+  async deleteVoiceAgentCall(id) {
+    return await VoiceAgentCallModel.VoiceAgentCall.delete({ where: { id } });
   }
 }
 
