@@ -176,6 +176,33 @@ class VoiceAgentCall {
       throw error;
     }
   }
+
+  // Method to test end-to-end voice agent call flow with voicemail drop
+  async testEndToEndCallFlow(prospectData, voiceName) {
+    try {
+      // Step 1: Generate voicemail script
+      const script = this.voicemailScriptGenerator.generateScript(prospectData);
+      logger.info('Voicemail script generated', { script, prospectData });
+
+      // Step 2: Generate TTS audio file
+      const outputFilePath = path.join(__dirname, `../temp/${prospectData.phoneNumber}_tts.wav`);
+      await this.ttsService.generateAndStoreTtsAudio(script, voiceName, outputFilePath);
+      logger.info('TTS audio file generated', { prospectData, outputFilePath });
+
+      // Step 3: Initiate call
+      await this.azureAcsCallAutomation.initiateCall(prospectData.phoneNumber, script, outputFilePath);
+      logger.info('Call initiated', { prospectData });
+
+      // Step 4: Initiate voicemail drop
+      await this.azureAcsCallAutomation.initiateVoicemailDrop(prospectData, outputFilePath);
+      logger.info('Voicemail drop initiated', { prospectData });
+
+      logger.info('End-to-end voice agent call flow with voicemail drop completed successfully', { prospectData });
+    } catch (error) {
+      logger.error('Error in end-to-end voice agent call flow with voicemail drop', { error, prospectData });
+      throw error;
+    }
+  }
 }
 
 module.exports = VoiceAgentCall;
