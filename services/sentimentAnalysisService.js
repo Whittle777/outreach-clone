@@ -44,6 +44,14 @@ class SentimentAnalysisService {
       throw new Error(`Failed to retrieve sentiment analysis: ${error.message}`);
     }
   }
+
+  async findAllSentimentAnalysis() {
+    try {
+      return await SentimentAnalysis.findMany();
+    } catch (error) {
+      throw new Error(`Failed to retrieve all sentiment analysis results: ${error.message}`);
+    }
+  }
 }
 
 module.exports = SentimentAnalysisService;

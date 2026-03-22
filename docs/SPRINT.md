@@ -3,5 +3,4 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
-6. [ ] Create API endpoints to retrieve sentiment analysis results
 7. [ ] Implement real-time updates for sentiment analysis results in the frontend
