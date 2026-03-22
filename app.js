@@ -8,6 +8,7 @@ const config = require('./services/config');
 const session = require('express-session');
 const MemoryStore = session.MemoryStore;
 const quarterlyPerformancePrediction = require('./services/quarterlyPerformancePrediction');
+const mcpGatewayRoutes = require('./routes/mcpGateway');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use('/api/tts', ttsRoutes);
+app.use('/api/mcpGateway', mcpGatewayRoutes);
 
 // New route for quarterly performance predictions
 app.get('/api/predictions/quarterly', quarterlyPerformancePrediction.getPredictions);
