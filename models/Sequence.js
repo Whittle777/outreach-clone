@@ -45,6 +45,23 @@ async function deleteSequence(id, bento) {
   });
 }
 
+async function updateTimeShiftForSequence(id, bento, timeShift) {
+  const shard = getShard(bento);
+  const sequence = await prisma[shard].sequence.findUnique({
+    where: { id },
+  });
+
+  if (!sequence) {
+    throw new Error('Sequence not found');
+  }
+
+  const newNextRun = new Date(sequence.nextRun.getTime() + timeShift);
+  return await prisma[shard].sequence.update({
+    where: { id },
+    data: { nextRun: newNextRun },
+  });
+}
+
 function getShard(bento) {
   // Simple sharding logic based on bento value
   // For example, you can use a hash function or a modulo operation
@@ -57,4 +74,5 @@ module.exports = {
   getSequencesByUserId,
   updateSequence,
   deleteSequence,
+  updateTimeShiftForSequence,
 };
