@@ -3,7 +3,6 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
-6. [ ] Update the `services/audioFileStorage.js` to handle audio file uploads to the cloud storage
 7. [ ] Update the `services/logger.js` to log audio file storage events
 8. [ ] Update the `services/temporalStateManager.js` to save audio file storage state
 9. [ ] Update the `services/slackIntegration.js` to send notifications for audio file storage events
