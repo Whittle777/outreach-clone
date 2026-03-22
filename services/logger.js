@@ -145,4 +145,15 @@ module.exports = {
     temporalStateManager.saveState('confidenceScoreRouting', { message, data });
     slackIntegration.sendNotification(`Confidence Score Routing: ${message}`);
   },
+  realTimeReasoningLog: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'realTimeReasoningLog', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'realTimeReasoningLog', data: { message, data } });
+    temporalStateManager.saveState('realTimeReasoningLog', { message, data });
+    slackIntegration.sendNotification(`Real-Time Reasoning Log: ${message}`);
+  },
 };

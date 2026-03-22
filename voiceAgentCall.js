@@ -102,6 +102,18 @@ class VoiceAgentCall {
     } catch (error) {
       logger.error('Error analyzing sentiment', error);
     }
+
+    // Log real-time reasoning
+    try {
+      const reasoningLog = {
+        step: 'initiateCall',
+        action: 'call initiated',
+        data: { phoneNumber, onBehalfOf, callType },
+      };
+      logger.realTimeReasoningLog('Real-time reasoning log', { reasoningLog });
+    } catch (error) {
+      logger.error('Error logging real-time reasoning', { error });
+    }
   }
 
   async parseUserPrompt(prompt) {
