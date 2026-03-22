@@ -1,12 +1,14 @@
 const { CallAutomationClient } = require('@azure/communication-callingserver');
+const { ServiceBusClient } = require('@azure/service-bus');
 const logger = require('../services/logger');
 const config = require('../services/config');
 
 class AzureAcsCallAutomation {
-  constructor() {
-    const connectionString = config.getConfig().azureAcsConnectionString;
+  constructor(connectionString, queueName) {
     this.callAutomationClient = new CallAutomationClient(connectionString);
-    logger.log('Azure ACS Call Automation client initialized', { connectionString });
+    this.serviceBusClient = new ServiceBusClient(connectionString);
+    this.serviceBusSender = this.serviceBusClient.createSender(queueName);
+    logger.log('Azure ACS Call Automation client initialized', { connectionString, queueName });
   }
 
   async initiateCall(prospectData, script, audioFileUrl) {
@@ -48,4 +50,4 @@ class AzureAcsCallAutomation {
   }
 }
 
-module.exports = new AzureAcsCallAutomation();
+module.exports = new AzureAcsCallAutomation(config.azureAcsConnectionString, config.azureAcsQueueName);

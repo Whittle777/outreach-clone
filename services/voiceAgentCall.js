@@ -51,10 +51,20 @@ class VoiceAgentCall {
 
     // Proceed with initiating the call
     try {
-      await this.azureAcsCallAutomation.createCall(phoneNumber, script, outputFilePath);
+      await this.azureAcsCallAutomation.initiateCall(phoneNumber, script, outputFilePath);
       logger.info('Call initiated', { phoneNumber });
     } catch (error) {
       logger.error('Error initiating call', { error, phoneNumber });
+      throw error;
+    }
+  }
+
+  async initiateVoicemailDrop(prospectData, audioFileUrl) {
+    try {
+      await this.azureAcsCallAutomation.initiateVoicemailDrop(prospectData, audioFileUrl);
+      logger.info('Voicemail drop initiated', { prospectData, audioFileUrl });
+    } catch (error) {
+      logger.error('Error initiating voicemail drop', { error, prospectData, audioFileUrl });
       throw error;
     }
   }
