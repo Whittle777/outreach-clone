@@ -168,6 +168,22 @@ class TemporalStateManager {
   clearCurrentVersion() {
     this.clearState('currentVersion');
   }
+
+  // Migration state management
+  saveMigrationState(key, value) {
+    const migrationKey = `migration_${key}`;
+    this.saveState(migrationKey, value);
+  }
+
+  loadMigrationState(key) {
+    const migrationKey = `migration_${key}`;
+    return this.loadState(migrationKey);
+  }
+
+  clearMigrationState(key) {
+    const migrationKey = `migration_${key}`;
+    this.clearState(migrationKey);
+  }
 }
 
 module.exports = TemporalStateManager;

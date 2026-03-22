@@ -193,4 +193,52 @@ module.exports = {
     slackIntegration.sendNotification(`Version Change: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Version Change: ${message}`);
   },
+  migrationStart: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'migrationStart', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'migrationStart', data: { message, data } });
+    temporalStateManager.saveState('migrationStart', { message, data });
+    slackIntegration.sendNotification(`Migration Start: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Migration Start: ${message}`);
+  },
+  migrationProgress: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'migrationProgress', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'migrationProgress', data: { message, data } });
+    temporalStateManager.saveState('migrationProgress', { message, data });
+    slackIntegration.sendNotification(`Migration Progress: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Migration Progress: ${message}`);
+  },
+  migrationComplete: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'migrationComplete', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'migrationComplete', data: { message, data } });
+    temporalStateManager.saveState('migrationComplete', { message, data });
+    slackIntegration.sendNotification(`Migration Complete: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Migration Complete: ${message}`);
+  },
+  migrationError: (message, data) => {
+    logger.error(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'migrationError', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'migrationError', data: { message, data } });
+    temporalStateManager.saveState('migrationError', { message, data });
+    slackIntegration.sendNotification(`Migration Error: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Migration Error: ${message}`);
+  },
 };
