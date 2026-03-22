@@ -1,0 +1,27 @@
+/* Add styles for the filter chips */
+.filter-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.filter-chip {
+  display: flex;
+  align-items: center;
+  background-color: #e0e0e0;
+  border-radius: 16px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.filter-chip-close {
+  margin-left: 8px;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+}
+
+.filter-chip-close:hover {
+  color: #000;
+}
