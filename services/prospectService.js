@@ -1,5 +1,6 @@
 const { isValidCountryRegion } = require('../utils/validation');
 const dynamicKnowledgeGraphs = require('../services/dynamicKnowledgeGraphs');
+const scoringAlgorithm = require('../services/scoringAlgorithm');
 
 class ProspectService {
   static async create(prospectData) {
@@ -96,6 +97,16 @@ class ProspectService {
     return await prisma.prospect.findMany({
       where: { countryRegion },
     });
+  }
+
+  static async calculateAndUpdateScore(id) {
+    const prospect = await Prospect.findById(id);
+    if (!prospect) {
+      throw new Error('Prospect not found');
+    }
+    const score = scoringAlgorithm.calculateScore(prospect);
+    await Prospect.updateScore(id, score);
+    return score;
   }
 }
 

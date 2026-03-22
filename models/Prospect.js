@@ -36,6 +36,13 @@ class Prospect {
       data: { status: 'failed', bento },
     });
   }
+
+  static async updateScore(id, score) {
+    return await prisma.prospect.update({
+      where: { id: parseInt(id) },
+      data: { score },
+    });
+  }
 }
 
 module.exports = Prospect;
