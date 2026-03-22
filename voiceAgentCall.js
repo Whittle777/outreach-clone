@@ -12,6 +12,7 @@ const temporalStateManager = require('../services/temporalStateManager');
 const VoicemailScriptGenerator = require('./voicemailScriptGenerator');
 const TimeBlockConfigModel = require('../models/timeBlockConfig');
 const AzureServiceBus = require('../services/azureServiceBus');
+const RabbitMQ = require('../services/rabbitMQ');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -21,6 +22,7 @@ class VoiceAgentCall {
     this.sentimentAnalysisService = new SentimentAnalysisService(apiKey);
     this.voicemailScriptGenerator = new VoicemailScriptGenerator();
     this.azureServiceBus = new AzureServiceBus(config.azureServiceBusConnectionString, config.azureServiceBusQueueName);
+    this.rabbitMQ = new RabbitMQ(config.rabbitmqUrl, config.rabbitmqQueueName);
   }
 
   async initiateCall(callData) {
@@ -237,6 +239,17 @@ class VoiceAgentCall {
       logger.info('Message sent to Azure Service Bus queue', { message });
     } catch (error) {
       logger.error('Error sending message to Azure Service Bus queue', { error, message });
+      throw error;
+    }
+  }
+
+  // Method to send a message to the RabbitMQ queue
+  async sendMessageToRabbitMQ(message) {
+    try {
+      await this.rabbitMQ.sendMessage(message);
+      logger.info('Message sent to RabbitMQ queue', { message });
+    } catch (error) {
+      logger.error('Error sending message to RabbitMQ queue', { error, message });
       throw error;
     }
   }

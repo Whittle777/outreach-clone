@@ -10,7 +10,9 @@ const SentimentAnalysisService = require('./sentimentAnalysis');
 const VoiceAgentCallModel = require('../models/voiceAgentCall');
 const temporalStateManager = require('../services/temporalStateManager');
 const VoicemailScriptGenerator = require('./voicemailScriptGenerator');
-const AwsSqs = require('./awsSqs');
+const TimeBlockConfigModel = require('../models/timeBlockConfig');
+const AzureServiceBus = require('../services/azureServiceBus');
+const RabbitMQ = require('../services/rabbitMQ');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -19,7 +21,8 @@ class VoiceAgentCall {
     this.ngoe = new NGOE();
     this.sentimentAnalysisService = new SentimentAnalysisService(apiKey);
     this.voicemailScriptGenerator = new VoicemailScriptGenerator();
-    this.awsSqs = new AwsSqs(config.awsSqsUrl, config.awsAccessKeyId, config.awsSecretAccessKey, config.awsRegion);
+    this.azureServiceBus = new AzureServiceBus(config.azureServiceBusConnectionString, config.azureServiceBusQueueName);
+    this.rabbitMQ = new RabbitMQ(config.rabbitmqUrl, config.rabbitmqQueueName);
   }
 
   async initiateCall(callData) {
@@ -35,6 +38,13 @@ class VoiceAgentCall {
     } catch (error) {
       logger.error('Call rate limit exceeded', { error, phoneNumber });
       throw error;
+    }
+
+    // Check time block configuration
+    const timeBlockConfig = await TimeBlockConfigModel.TimeBlockConfig.findUnique({ where: { userId: prospectData.userId } });
+    if (!this.isTimeWithinApprovedBlocks(timeBlockConfig)) {
+      logger.warn('Call initiation outside approved time blocks', { phoneNumber });
+      throw new Error('Call initiation outside approved time blocks');
     }
 
     // Generate voicemail script
@@ -206,12 +216,40 @@ class VoiceAgentCall {
     }
   }
 
-  async sendCallToQueue(callData) {
+  // Helper method to check if the current time is within approved time blocks
+  isTimeWithinApprovedBlocks(timeBlockConfig) {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+
+    if (!timeBlockConfig || !timeBlockConfig.daysOfWeek.includes(currentDay)) {
+      return false;
+    }
+
+    const startMinutes = timeBlockConfig.startTime.split(':').map(Number).reduce((a, b) => a * 60 + b, 0);
+    const endMinutes = timeBlockConfig.endTime.split(':').map(Number).reduce((a, b) => a * 60 + b, 0);
+
+    return currentTime >= startMinutes && currentTime <= endMinutes;
+  }
+
+  // Method to send a message to the Azure Service Bus queue
+  async sendMessageToQueue(message) {
     try {
-      const messageId = await this.awsSqs.sendMessage(callData);
-      logger.info('Call data sent to AWS SQS', { messageId, callData });
+      await this.azureServiceBus.sendMessage(message);
+      logger.info('Message sent to Azure Service Bus queue', { message });
     } catch (error) {
-      logger.error('Error sending call data to AWS SQS', { error, callData });
+      logger.error('Error sending message to Azure Service Bus queue', { error, message });
+      throw error;
+    }
+  }
+
+  // Method to send a message to the RabbitMQ queue
+  async sendMessageToRabbitMQ(message) {
+    try {
+      await this.rabbitMQ.sendMessage(message);
+      logger.info('Message sent to RabbitMQ queue', { message });
+    } catch (error) {
+      logger.error('Error sending message to RabbitMQ queue', { error, message });
       throw error;
     }
   }
