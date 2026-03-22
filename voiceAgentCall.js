@@ -14,6 +14,7 @@ const TimeBlockConfigModel = require('../models/timeBlockConfig');
 const AzureServiceBus = require('../services/azureServiceBus');
 const RabbitMQ = require('../services/rabbitMQ');
 const path = require('path');
+const axios = require('axios');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -27,47 +28,47 @@ class VoiceAgentCall {
   }
 
   async initiateCall(callData) {
-    const { phoneNumber, prospectData, voiceName, onBehalfOf } = callData;
+    const { phoneNumber, prospectData, voiceName, onBehalfOf, callType } = callData;
 
     // Apply call rate limiting middleware
-    const req = { body: { phoneNumber, callType: 'voiceAgentCall' } };
+    const req = { body: { phoneNumber, callType } };
     const res = { status: (code) => ({ json: (message) => { throw new Error(`${code}: ${message.error}`); } }) };
     const next = () => {};
 
     try {
-      await callRateLimiting(req, res, next);
+      callRateLimiting(req, res, next);
     } catch (error) {
-      logger.error('Call rate limit exceeded', { error, phoneNumber });
+      logger.error('Call rate limit exceeded', { error, phoneNumber, callType });
       throw error;
     }
 
     // Check time block configuration
     const timeBlockConfig = await TimeBlockConfigModel.TimeBlockConfig.findUnique({ where: { userId: prospectData.userId } });
     if (!this.isTimeWithinApprovedBlocks(timeBlockConfig)) {
-      logger.warn('Call initiation outside approved time blocks', { phoneNumber });
+      logger.warn('Call initiation outside approved time blocks', { phoneNumber, callType });
       throw new Error('Call initiation outside approved time blocks');
     }
 
     // Generate voicemail script
     const script = this.voicemailScriptGenerator.generateScript(prospectData);
-    logger.info('Voicemail script generated', { script, phoneNumber });
+    logger.info('Voicemail script generated', { script, phoneNumber, callType });
 
     // Generate TTS audio file
     const outputFilePath = path.join(__dirname, `../temp/${phoneNumber}_tts.wav`);
     try {
       await this.ttsService.generateAndStoreTtsAudio(script, voiceName, outputFilePath);
-      logger.info('TTS audio file generated', { phoneNumber, outputFilePath });
+      logger.info('TTS audio file generated', { phoneNumber, outputFilePath, callType });
     } catch (error) {
-      logger.error('Error generating TTS audio file', { error, phoneNumber });
+      logger.error('Error generating TTS audio file', { error, phoneNumber, callType });
       throw error;
     }
 
     // Proceed with initiating the call
     try {
       await this.azureAcsCallAutomation.initiateCall(phoneNumber, script, outputFilePath, onBehalfOf);
-      logger.info('Call initiated', { phoneNumber, onBehalfOf });
+      logger.info('Call initiated', { phoneNumber, onBehalfOf, callType });
     } catch (error) {
-      logger.error('Error initiating call', { error, phoneNumber, onBehalfOf });
+      logger.error('Error initiating call', { error, phoneNumber, onBehalfOf, callType });
       throw error;
     }
   }
@@ -78,7 +79,6 @@ class VoiceAgentCall {
       logger.info('Voicemail drop initiated', { prospectData, audioFileUrl });
     } catch (error) {
       logger.error('Error initiating voicemail drop', { error, prospectData, audioFileUrl });
-      throw error;
     }
   }
 
@@ -257,12 +257,90 @@ class VoiceAgentCall {
 
   // Method to validate STIR/SHAKEN headers
   async validateStirShakenHeaders(headers) {
-    // Implement STIR/SHAKEN validation logic here
-    // For example, check for specific headers like 'P-Stir-Shaken-Version', 'P-Stir-Shaken-Identity', etc.
-    if (!headers['P-Stir-Shaken-Version'] || !headers['P-Stir-Shaken-Identity']) {
-      throw new Error('STIR/SHAKEN validation failed: Missing required headers');
+    const microsoftBackendUrl = config.microsoftBackendUrl;
+    const microsoftBackendApiKey = config.microsoftBackendApiKey;
+
+    try {
+      const response = await axios.post(`${microsoftBackendUrl}/validate-stir-shaken`, headers, {
+        headers: {
+          'Authorization': `Bearer ${microsoftBackendApiKey}`,
+        },
+      });
+
+      const isValid = response.data.isValid;
+      logger.log('STIR/SHAKEN validation result', { isValid, headers });
+      return isValid;
+    } catch (error) {
+      logger.error('Error validating STIR/SHAKEN headers', { error, headers });
+      throw error;
     }
-    logger.info('STIR/SHAKEN validation successful', { headers });
+  }
+
+  // Method to detect hard bounces
+  async detectHardBounce(prospectData, bounceData) {
+    try {
+      const isHardBounce = bounceData.type === 'hard';
+      if (isHardBounce) {
+        logger.error('Hard bounce detected', { prospectData, bounceData });
+        await this.handleHardBounce(prospectData, bounceData);
+      } else {
+        logger.warn('Soft bounce detected', { prospectData, bounceData });
+      }
+    } catch (error) {
+      logger.error('Error detecting hard bounce', { error, prospectData, bounceData });
+    }
+  }
+
+  // Method to handle hard bounces
+  async handleHardBounce(prospectData, bounceData) {
+    try {
+      // Update the prospect status to 'Bounced'
+      const updatedProspect = await this.updateProspectStatus(prospectData.id, 'Bounced');
+      logger.info('Prospect status updated to Bounced', { updatedProspect });
+
+      // Log the hard bounce event
+      await this.logHardBounceEvent(prospectData, bounceData);
+      logger.info('Hard bounce event logged', { prospectData, bounceData });
+
+      // Notify stakeholders via Slack
+      slackIntegration.sendNotification(`Hard bounce detected for prospect: ${prospectData.email}`);
+      logger.info('Slack notification sent for hard bounce', { prospectData, bounceData });
+    } catch (error) {
+      logger.error('Error handling hard bounce', { error, prospectData, bounceData });
+    }
+  }
+
+  // Method to update prospect status
+  async updateProspectStatus(prospectId, status) {
+    try {
+      const updatedProspect = await prisma.prospect.update({
+        where: { id: prospectId },
+        data: { status },
+      });
+      return updatedProspect;
+    } catch (error) {
+      logger.error('Error updating prospect status', { error, prospectId, status });
+      throw error;
+    }
+  }
+
+  // Method to log hard bounce event
+  async logHardBounceEvent(prospectData, bounceData) {
+    try {
+      const bounceEvent = await BounceEvent.create({
+        prospectId: prospectData.id,
+        bounceType: bounceData.type,
+        bounceReasonCode: bounceData.reasonCode,
+        providerSource: bounceData.provider,
+        timestamp: new Date(),
+        retryCount: bounceData.retryCount,
+        permanentFailure: true,
+      });
+      return bounceEvent;
+    } catch (error) {
+      logger.error('Error logging hard bounce event', { error, prospectData, bounceData });
+      throw error;
+    }
   }
 }
 
