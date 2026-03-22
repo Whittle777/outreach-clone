@@ -254,6 +254,16 @@ class VoiceAgentCall {
       throw error;
     }
   }
+
+  // Method to validate STIR/SHAKEN headers
+  async validateStirShakenHeaders(headers) {
+    // Implement STIR/SHAKEN validation logic here
+    // For example, check for specific headers like 'P-Stir-Shaken-Version', 'P-Stir-Shaken-Identity', etc.
+    if (!headers['P-Stir-Shaken-Version'] || !headers['P-Stir-Shaken-Identity']) {
+      throw new Error('STIR/SHAKEN validation failed: Missing required headers');
+    }
+    logger.info('STIR/SHAKEN validation successful', { headers });
+  }
 }
 
 module.exports = VoiceAgentCall;

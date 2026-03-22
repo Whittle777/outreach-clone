@@ -262,4 +262,25 @@ describe('VoiceAgentCall', () => {
       expect(RabbitMQ.prototype.sendMessage).toHaveBeenCalledWith(message);
     });
   });
+
+  describe('validateStirShakenHeaders', () => {
+    it('should validate STIR/SHAKEN headers successfully', async () => {
+      const headers = {
+        'P-Stir-Shaken-Version': '1.0',
+        'P-Stir-Shaken-Identity': 'example.com'
+      };
+
+      await voiceAgentCall.validateStirShakenHeaders(headers);
+
+      expect(logger.info).toHaveBeenCalledWith('STIR/SHAKEN validation successful', { headers });
+    });
+
+    it('should throw an error if STIR/SHAKEN headers are missing', async () => {
+      const headers = {
+        'P-Stir-Shaken-Version': '1.0'
+      };
+
+      await expect(voiceAgentCall.validateStirShakenHeaders(headers)).rejects.toThrow('STIR/SHAKEN validation failed: Missing required headers');
+    });
+  });
 });
