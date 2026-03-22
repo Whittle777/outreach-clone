@@ -3,7 +3,6 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
-4. [ ] Update the `audioFileController.js` to handle audio file uploads and storage
 5. [ ] Update the `models/audioFile.js` to include audio file metadata
 6. [ ] Update the `services/audioFileStorage.js` to handle audio file uploads to the cloud storage
 7. [ ] Update the `services/logger.js` to log audio file storage events
