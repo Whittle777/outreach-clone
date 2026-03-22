@@ -123,4 +123,15 @@ module.exports = {
     temporalStateManager.saveState('predictiveSearchResult', { message, data });
     slackIntegration.sendNotification(`Predictive Search Result: ${message}`);
   },
+  visualFlag: (message, data) => {
+    logger.warn(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'visualFlag', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'visualFlag', data: { message, data } });
+    temporalStateManager.saveState('visualFlag', { message, data });
+    slackIntegration.sendNotification(`Visual Flag: ${message}`);
+  },
 };

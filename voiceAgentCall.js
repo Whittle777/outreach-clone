@@ -150,6 +150,18 @@ class VoiceAgentCall {
     const hour = now.getHours();
     return timeBlockConfig.daysOfWeek.includes(dayOfWeek) && timeBlockConfig.startTime <= hour && hour < timeBlockConfig.endTime;
   }
+
+  // New method to detect resistance or regulatory edge cases
+  detectResistanceOrRegulatoryEdgeCases(transcriptData) {
+    // Placeholder logic for detecting resistance or regulatory edge cases
+    const resistanceKeywords = ['resistance', 'regulatory', 'edge', 'case'];
+    const transcriptText = transcriptData.text.toLowerCase();
+    const hasResistanceKeyword = resistanceKeywords.some(keyword => transcriptText.includes(keyword));
+
+    if (hasResistanceKeyword) {
+      logger.visualFlag('Resistance or regulatory edge case detected', { transcriptData });
+    }
+  }
 }
 
 module.exports = VoiceAgentCall;
