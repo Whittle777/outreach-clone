@@ -16,6 +16,7 @@ const path = require('path');
 const axios = require('axios');
 const NLP = require('../services/nlp');
 const IntentDrivenShortcuts = require('../services/intentDrivenShortcuts');
+const AzureSpeechService = require('./azureSpeechService'); // New service for transcription
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -28,6 +29,7 @@ class VoiceAgentCall {
     this.rabbitMQ = new RabbitMQ(config.rabbitmqUrl, config.rabbitmqQueueName);
     this.nlp = new NLP(config);
     this.intentDrivenShortcuts = new IntentDrivenShortcuts(config);
+    this.azureSpeechService = new AzureSpeechService(config.azureSpeechApiKey, config.azureSpeechRegion); // Initialize transcription service
   }
 
   async initiateCall(callData) {
@@ -73,6 +75,22 @@ class VoiceAgentCall {
     } catch (error) {
       logger.error('Error initiating call', { error, phoneNumber, onBehalfOf, callType });
       throw error;
+    }
+
+    // Start transcription
+    try {
+      const transcriptionStream = await this.azureSpeechService.startTranscription(outputFilePath);
+      transcriptionStream.on('data', (data) => {
+        logger.realTimeTranscript('Transcription data received', { data });
+      });
+      transcriptionStream.on('error', (error) => {
+        logger.error('Error in transcription', { error });
+      });
+      transcriptionStream.on('end', () => {
+        logger.info('Transcription ended');
+      });
+    } catch (error) {
+      logger.error('Error starting transcription', { error });
     }
 
     // Analyze sentiment of the transcript
@@ -123,7 +141,14 @@ class VoiceAgentCall {
     }
   }
 
-  // Other methods remain unchanged...
+  isTimeWithinApprovedBlocks(timeBlockConfig) {
+    // Implementation to check if the current time is within the approved time blocks
+    // This is a placeholder implementation
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const hour = now.getHours();
+    return timeBlockConfig.daysOfWeek.includes(dayOfWeek) && timeBlockConfig.startTime <= hour && hour < timeBlockConfig.endTime;
+  }
 }
 
 module.exports = VoiceAgentCall;
