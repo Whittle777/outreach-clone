@@ -1,14 +1,17 @@
 const axios = require('axios');
+const MCPGatewayEncryption = require('./mcpGatewayEncryption');
 
 class MCPGateway {
-  constructor(apiUrl, apiKey) {
+  constructor(apiUrl, apiKey, secretKey) {
     this.apiUrl = apiUrl;
     this.apiKey = apiKey;
+    this.encryption = new MCPGatewayEncryption(secretKey);
   }
 
   async sendData(data) {
     try {
-      const response = await axios.post(`${this.apiUrl}/send`, data, {
+      const encryptedData = this.encryption.encrypt(data);
+      const response = await axios.post(`${this.apiUrl}/send`, encryptedData, {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json'
@@ -36,9 +39,10 @@ class MCPGateway {
           'Content-Type': 'application/json'
         }
       });
+      const decryptedData = this.encryption.decrypt(response.data);
       return {
         success: true,
-        data: response.data
+        data: decryptedData
       };
     } catch (error) {
       return {
