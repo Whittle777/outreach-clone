@@ -13,6 +13,7 @@ const VoicemailScriptGenerator = require('../services/voicemailScriptGenerator')
 const TimeBlockConfigModel = require('../models/timeBlockConfig');
 const AzureServiceBus = require('../services/azureServiceBus');
 const RabbitMQ = require('../services/rabbitMQ');
+const hitlWorkflow = require('../services/hitlWorkflow');
 
 jest.mock('../services/azureAcsCallAutomation');
 jest.mock('../services/ttsService');
@@ -27,6 +28,7 @@ jest.mock('../services/voicemailScriptGenerator');
 jest.mock('../models/timeBlockConfig');
 jest.mock('../services/azureServiceBus');
 jest.mock('../services/rabbitMQ');
+jest.mock('../services/hitlWorkflow');
 
 describe('VoiceAgentCall', () => {
   let voiceAgentCall;
@@ -281,6 +283,41 @@ describe('VoiceAgentCall', () => {
       };
 
       await expect(voiceAgentCall.validateStirShakenHeaders(headers)).rejects.toThrow('STIR/SHAKEN validation failed: Missing required headers');
+    });
+  });
+
+  describe('Confidence Score Routing and Split-Pane Review Interface', () => {
+    it('should route call by confidence score with high confidence', async () => {
+      const callData = { id: 1, phoneNumber: '1234567890' };
+      const confidenceScore = 90;
+
+      hitlWorkflow.routeCallByConfidenceScore.mockResolvedValue();
+
+      await voiceAgentCall.routeCallByConfidenceScore(callData, confidenceScore);
+
+      expect(hitlWorkflow.routeCallByConfidenceScore).toHaveBeenCalledWith(callData, confidenceScore);
+    });
+
+    it('should route call by confidence score with moderate confidence', async () => {
+      const callData = { id: 1, phoneNumber: '1234567890' };
+      const confidenceScore = 75;
+
+      hitlWorkflow.routeCallByConfidenceScore.mockResolvedValue();
+
+      await voiceAgentCall.routeCallByConfidenceScore(callData, confidenceScore);
+
+      expect(hitlWorkflow.routeCallByConfidenceScore).toHaveBeenCalledWith(callData, confidenceScore);
+    });
+
+    it('should route call by confidence score with low confidence', async () => {
+      const callData = { id: 1, phoneNumber: '1234567890' };
+      const confidenceScore = 60;
+
+      hitlWorkflow.routeCallByConfidenceScore.mockResolvedValue();
+
+      await voiceAgentCall.routeCallByConfidenceScore(callData, confidenceScore);
+
+      expect(hitlWorkflow.routeCallByConfidenceScore).toHaveBeenCalledWith(callData, confidenceScore);
     });
   });
 });
