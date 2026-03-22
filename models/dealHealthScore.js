@@ -68,6 +68,19 @@ class DealHealthScore {
       logger.error('Error retrieving all DealHealthScores', error);
     }
   }
+
+  static async findTopOpportunities(limit) {
+    try {
+      const result = await prisma.dealHealthScore.findMany({
+        orderBy: { score: 'desc' },
+        take: limit,
+      });
+      logger.log('Top DealHealthScores retrieved successfully', result);
+      return result;
+    } catch (error) {
+      logger.error('Error retrieving top DealHealthScores', error);
+    }
+  }
 }
 
 module.exports = DealHealthScore;
