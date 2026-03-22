@@ -8,12 +8,13 @@ class AzureAcsCallAutomation {
     this.serviceBusSender = this.serviceBusClient.createSender(config.getConfig().serviceBusQueueName);
   }
 
-  async initiateCall(prospectData) {
+  async initiateCall(prospectData, script, audioFileUrl) {
     try {
       const callData = {
         prospectId: prospectData.id,
         phoneNumber: prospectData.phoneNumber,
-        script: prospectData.script,
+        script: script,
+        audioFileUrl: audioFileUrl,
       };
 
       await this.serviceBusSender.sendMessages({ body: JSON.stringify(callData) });

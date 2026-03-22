@@ -39,7 +39,7 @@ This project is a headless REST API for a sales engagement platform (similar to 
 ### Testing & Development Stack
 - **Email Provider Flexibility:** Support for multiple email providers including Gmail (personal accounts) for testing
 - **Configuration Management:** Environment-based provider switching to enable easy testing with different SMTP/API credentials
-- **Thorough Testing Requirements:** All features must be thoroughly tested before deployment, including voice agent functionality
+- **Thorough Testing Requirements:** ALL features must be thoroughly tested before deployment, including voice agent functionality
 
 ## Core Data Models
 
@@ -147,6 +147,7 @@ Dynamic task playlists generated from natural language queries.
 - AI Confidence Score
 - Human Review Required Flag
 - Sequential Completion Tracking (for auto-advance to next task)
+- Auto-Advance Workflow Support (next task automatically shows after completion)
 
 ### NaturalLanguageQueryLog
 Records of natural language prompts and their resolved queries.
@@ -166,6 +167,36 @@ Configuration for scheduling time blocks and approved calling hours.
 - User/Team Association
 - Bento identifier for multi-tenant isolation
 - Active Status
+
+### QuarterlyPerformance
+Tracks quarterly performance metrics for teams and individuals.
+- Quarter Identifier
+- Team/User Association
+- Revenue Target
+- Actual Revenue
+- Quota Attainment Percentage
+- Activity Metrics (emails sent, calls made, meetings scheduled)
+- Calculation Timestamp
+
+### QuarterlyPerformancePredictor
+Machine learning model predictions for quarterly outcomes.
+- Model Version
+- Historical Data Reference
+- Predicted Revenue
+- Confidence Interval
+- Seasonality Factors
+- Prediction Timestamp
+- Bento identifier for multi-tenant isolation
+
+### BounceEvent
+Records email bounce events with classification.
+- Links to Prospect and Email Activity
+- Bounce Type (Hard, Soft)
+- Bounce Reason Code
+- Provider Source
+- Timestamp
+- Retry Count (for soft bounces)
+- Permanent Failure Flag
 
 ## Architecture Decisions
 
@@ -307,7 +338,8 @@ Configuration for scheduling time blocks and approved calling hours.
   - Example: If Country field is blank, filter by phone number country code (+1)
   - Example: Query third-party enrichment APIs (ZoomInfo, BuiltWith) for missing tech stack data
   - Example: Filter by tags if direct country/region info unavailable
-- **Fallback Logic:** Deductive proxies when direct data unavailable (e.g., job postings mentioning AI = likely AI adopter)
+  - Example: Use deductive proxies (job postings mentioning AI = likely AI adopter)
+- **Fallback Logic:** Multiple fallback strategies applied sequentially until viable results found
 - **Task Queue Generation:** Results compiled into ordered, actionable task playlist
 
 ### Dynamic Task Queue System
@@ -315,6 +347,7 @@ Configuration for scheduling time blocks and approved calling hours.
 - **UI State Control:** AI actively changes interface to "execution mode" with split-pane view
 - **Easy Completion Workflow:** List of calls/tasks that can be completed sequentially with next item auto-showing
 - **Natural Language to UI State:** Autonomous agent powers workflow from prompt to actionable interface
+- **Auto-Advance Feature:** Upon task completion, system automatically displays next pending task without user navigation
 
 ### Persona & Tech-Stack Targeting
 - **Title Filtering:** Search for titles containing specific keywords (e.g., "VP," "Vice President," "Head of")
@@ -516,7 +549,12 @@ Configuration for scheduling time blocks and approved calling hours.
 
 ### Comprehensive Documentation
 - Up-to-date READMEs, architectural decision records (ADRs), and auto-generated API specifications (like Swagger/OpenAPI) to ensure knowledge is shared and persistent
-- **UI Navigation Paths:** All UI navigation paths must be detailed in README with comprehensive user flows
+- **UI Navigation Paths:** All UI navigation paths must be detailed in README with comprehensive user flows including:
+  - Layer 1 to Layer 3 progression paths
+  - Task queue completion workflow navigation
+  - HITL review interface navigation
+  - Dashboard access paths (Deliverability Gate, Pre-Call Brief, Voice Agent Fleet Command)
+  - Natural language query to task execution flow
 
 ### Graceful Degradation and Resiliency
 - Fallback mechanisms, retries, and rate limiting that allow the system to remain partially operational even when external services fail
@@ -560,7 +598,17 @@ Configuration for scheduling time blocks and approved calling hours.
 - Support testing with multiple email providers (Gmail, Outlook, etc.)
 - Environment-based configuration for SMTP/API credentials
 - Easy switching between personal Gmail accounts and production providers
-- **Thorough Testing:** All features must be thoroughly tested before deployment, including voice agent functionality
+- **Thorough Testing:** ALL features must be thoroughly tested before deployment, including voice agent functionality
+
+### Comprehensive Feature Testing
+- **Voice Agent Functionality:** End-to-end testing of auto-dialer, AMD, voicemail drop, and human routing
+- **Natural Language Querying:** Test NLQ with various prompts including edge cases requiring fallback logic
+- **Task Queue Auto-Advance:** Verify sequential task completion workflow functions correctly
+- **Predictive Dialer:** Test pacing engine, compliance safeguards, and abandonment rate monitoring
+- **HITL Workflow:** Validate confidence score routing and split-pane review interface
+- **Dashboard Features:** Test all dashboard components (Deliverability Gate, Pre-Call Brief, Voice Agent Fleet Command)
+- **Multi-Tenant Isolation:** Verify Bento cell isolation prevents cross-tenant data leakage
+- **GDPR Compliance:** Test country/region filtering and data residency compliance
 
 ### GDPR Compliance
 - All data models include country/region fields for data residency compliance
@@ -600,7 +648,7 @@ Configuration for scheduling time blocks and approved calling hours.
 26. Enable Microsoft Teams calling phone number integration with auto-dialing capability
 27. Implement agentic voicemail recording generation before calls are made
 28. Add support for leaving auto voicemail recordings via ACS Play action
-29. Ensure thorough testing of all features including voice agent functionality
+29. Ensure thorough testing of ALL features including voice agent functionality
 30. Support human-in-the-loop interface for AE oversight and AI draft correction
 31. Enable natural language to UI state workflow with autonomous agent task completion
 32. Implement easy task workflow list where completed tasks auto-advance to next item
@@ -611,4 +659,9 @@ Configuration for scheduling time blocks and approved calling hours.
 37. Enable conversational filtering system with dynamic UI generation
 38. Implement split-pane review interface for HITL workflow
 39. Add support for administrative tuning dashboard for predictive dialer
-40. Ensure all features are thoroughly tested before deployment
+40. Ensure ALL features are thoroughly tested before deployment
+41. Add QuarterlyPerformance and QuarterlyPerformancePredictor models for forecasting
+42. Implement BounceEvent model for email bounce tracking and classification
+43. Support task queue auto-advance workflow with sequential completion tracking
+44. Enable comprehensive NLQ fallback logic testing with multiple scenarios
+45. Document all UI navigation paths including Layer 1-3 progression and dashboard access

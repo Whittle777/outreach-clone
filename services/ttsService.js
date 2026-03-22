@@ -7,26 +7,24 @@ const logger = require('./logger');
 const doubleWriteStrategy = require('./doubleWriteStrategy');
 
 class TtsService {
-  constructor(apiKey) {
+  constructor(apiKey, region) {
     this.apiKey = apiKey;
-    this.apiUrl = 'https://api.elevenlabs.io/v1/text-to-speech';
+    this.region = region;
+    this.apiUrl = `https://${this.region}.tts.speech.microsoft.com/cognitiveservices/v1`;
   }
 
-  async generateTtsAudio(text, voiceId, outputFilePath) {
+  async generateTtsAudio(text, voiceName, outputFilePath) {
     try {
       const response = await axios.post(
-        `${this.apiUrl}/${voiceId}`,
-        {
-          text: text,
-          voice_settings: {
-            stability: 0.75,
-            similarity_boost: 0.75,
-          },
-        },
+        this.apiUrl,
+        text,
         {
           headers: {
-            'xi-api-key': this.apiKey,
-            'Content-Type': 'application/json',
+            'Ocp-Apim-Subscription-Key': this.apiKey,
+            'Ocp-Apim-Subscription-Region': this.region,
+            'Content-Type': 'application/ssml+xml',
+            'X-Microsoft-OutputFormat': 'riff-24khz-16bit-mono-pcm',
+            'User-Agent': 'YOUR_RESOURCE_NAME',
           },
           responseType: 'stream',
         }
@@ -45,11 +43,11 @@ class TtsService {
     }
   }
 
-  async generateAndStoreTtsAudio(text, voiceId, outputFilePath) {
+  async generateAndStoreTtsAudio(text, voiceName, outputFilePath) {
     try {
-      await this.generateTtsAudio(text, voiceId, outputFilePath);
+      await this.generateTtsAudio(text, voiceName, outputFilePath);
       logger.log('TTS audio file generated and stored:', outputFilePath);
-      await doubleWriteStrategy.write({ type: 'generateAndStoreTtsAudio', data: { text, voiceId, outputFilePath } });
+      await doubleWriteStrategy.write({ type: 'generateAndStoreTtsAudio', data: { text, voiceName, outputFilePath } });
       return outputFilePath;
     } catch (error) {
       logger.error('Failed to generate and store TTS audio file:', error);
@@ -58,4 +56,4 @@ class TtsService {
   }
 }
 
-module.exports = new TtsService('your-elevenlabs-api-key');
+module.exports = new TtsService('your-azure-speech-api-key', 'your-region');

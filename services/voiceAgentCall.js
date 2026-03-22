@@ -1,16 +1,18 @@
 const config = require('../services/config').getConfig();
 const callRateLimiting = require('../middleware/callRateLimiting');
 const AzureAcsCallAutomation = require('./azureAcsCallAutomation');
+const TtsService = require('./ttsService');
 const logger = require('../services/logger');
 const doubleWriteStrategy = require('./doubleWriteStrategy');
 
 class VoiceAgentCall {
   constructor() {
     this.azureAcsCallAutomation = new AzureAcsCallAutomation(config.azureAcsConnectionString, config.azureAcsQueueName);
+    this.ttsService = new TtsService(config.azureSpeechApiKey, config.azureSpeechRegion);
   }
 
   async initiateCall(callData) {
-    const { phoneNumber, script } = callData;
+    const { phoneNumber, script, voiceName } = callData;
 
     // Apply call rate limiting middleware
     const req = { body: { phoneNumber } };
@@ -23,8 +25,12 @@ class VoiceAgentCall {
       throw error;
     }
 
+    // Generate TTS audio file
+    const outputFilePath = path.join(__dirname, `../temp/${phoneNumber}_tts.wav`);
+    await this.ttsService.generateAndStoreTtsAudio(script, voiceName, outputFilePath);
+
     // Proceed with initiating the call
-    await this.azureAcsCallAutomation.createCall(phoneNumber, script);
+    await this.azureAcsCallAutomation.createCall(phoneNumber, script, outputFilePath);
   }
 
   async handleRealTimeTranscript(transcriptData) {
