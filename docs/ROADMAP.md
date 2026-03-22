@@ -117,7 +117,7 @@ Master list of all planned features.
 - [x] Intent-driven shortcuts and predictive search
 - [x] Visual filter chips for active constraints
 - [x] Mass Email Sequencing & Deliverability: Personalization Waterfall, Dynamic Generative Copy, Deliverability Gate Dashboard
-- [ ] Prospect Calling & Voice Agents: 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks
+- [x] Prospect Calling & Voice Agents: 30-Second Pre-Call Brief Dashboard with AI-generated call goals and talk tracks
 - [ ] Autonomous Voice Agent Fleet Command for real-time monitoring
 - [ ] Human-in-the-Loop (HITL) Workflow: Confidence Score Routing, Split-Pane Review Interface
 - [ ] System Resilience & Transparency: Temporal State Management, Real-Time Reasoning Logs, Dynamic Knowledge Graphs, Natural Language Guardrails
