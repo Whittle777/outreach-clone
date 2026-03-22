@@ -155,6 +155,19 @@ class TemporalStateManager {
     const key = `microsoftTeamsCall_${callId}`;
     this.clearState(callId);
   }
+
+  // Version management
+  saveCurrentVersion(version) {
+    this.saveState('currentVersion', version);
+  }
+
+  loadCurrentVersion() {
+    return this.loadState('currentVersion');
+  }
+
+  clearCurrentVersion() {
+    this.clearState('currentVersion');
+  }
 }
 
 module.exports = TemporalStateManager;

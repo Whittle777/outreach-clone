@@ -5,7 +5,6 @@ const TtsService = require('../services/ttsService');
 const logger = require('../services/logger');
 const doubleWriteStrategy = require('../services/doubleWriteStrategy');
 const NGOE = require('../services/ngoe');
-const { authenticateMcpToken } = require('../middleware/mcpAuth');
 const SentimentAnalysisService = require('../services/sentimentAnalysis');
 const VoiceAgentCallModel = require('../models/voiceAgentCall');
 const temporalStateManager = require('../services/temporalStateManager');
@@ -134,5 +133,34 @@ describe('VoiceAgentCall', () => {
     });
   });
 
-  // Other tests remain unchanged...
+  describe('version management', () => {
+    it('should update version successfully', async () => {
+      const newVersion = 'v2.0.0';
+      await voiceAgentCall.updateVersion(newVersion);
+      expect(temporalStateManager.saveCurrentVersion).toHaveBeenCalledWith(newVersion);
+      expect(logger.versionChange).toHaveBeenCalledWith('Version updated successfully', { newVersion });
+    });
+
+    it('should throw an error on version mismatch', async () => {
+      const currentVersion = 'v1.0.0';
+      temporalStateManager.loadCurrentVersion.mockReturnValue(currentVersion);
+      const newVersion = 'v2.0.0';
+      await expect(voiceAgentCall.updateVersion(newVersion)).rejects.toThrow('Version mismatch detected');
+      expect(logger.warn).toHaveBeenCalledWith('Version mismatch detected', { currentVersion, newVersion });
+    });
+
+    it('should roll back version successfully', async () => {
+      const currentVersion = 'v1.0.0';
+      temporalStateManager.loadCurrentVersion.mockReturnValue(currentVersion);
+      await voiceAgentCall.rollbackVersion();
+      expect(temporalStateManager.clearCurrentVersion).toHaveBeenCalled();
+      expect(logger.versionChange).toHaveBeenCalledWith('Version rolled back successfully', { currentVersion });
+    });
+
+    it('should log no version to roll back', async () => {
+      temporalStateManager.loadCurrentVersion.mockReturnValue(null);
+      await voiceAgentCall.rollbackVersion();
+      expect(logger.warn).toHaveBeenCalledWith('No version to roll back');
+    });
+  });
 });

@@ -202,6 +202,35 @@ class VoiceAgentCall {
   async sendApprovalNotification(channel, message, actions) {
     logger.interactiveNotification(message, { channel, actions });
   }
+
+  async checkVersionCompatibility(newVersion) {
+    const currentVersion = temporalStateManager.loadCurrentVersion();
+    if (currentVersion && currentVersion !== newVersion) {
+      logger.warn('Version mismatch detected', { currentVersion, newVersion });
+      throw new Error('Version mismatch detected');
+    }
+  }
+
+  async updateVersion(newVersion) {
+    try {
+      await this.checkVersionCompatibility(newVersion);
+      temporalStateManager.saveCurrentVersion(newVersion);
+      logger.versionChange('Version updated successfully', { newVersion });
+    } catch (error) {
+      logger.error('Error updating version', { error });
+      throw error;
+    }
+  }
+
+  async rollbackVersion() {
+    const currentVersion = temporalStateManager.loadCurrentVersion();
+    if (currentVersion) {
+      temporalStateManager.clearCurrentVersion();
+      logger.versionChange('Version rolled back successfully', { currentVersion });
+    } else {
+      logger.warn('No version to roll back');
+    }
+  }
 }
 
 module.exports = VoiceAgentCall;

@@ -181,4 +181,16 @@ module.exports = {
     slackIntegration.sendNotification(`Interactive Notification: ${message}`);
     microsoftTeamsIntegration.sendInteractiveNotification(data.channel, message, data.actions);
   },
+  versionChange: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'versionChange', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'versionChange', data: { message, data } });
+    temporalStateManager.saveState('versionChange', { message, data });
+    slackIntegration.sendNotification(`Version Change: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Version Change: ${message}`);
+  },
 };
