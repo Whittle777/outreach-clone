@@ -10,6 +10,7 @@ const SentimentAnalysisService = require('./sentimentAnalysis');
 const VoiceAgentCallModel = require('../models/voiceAgentCall');
 const temporalStateManager = require('../services/temporalStateManager');
 const VoicemailScriptGenerator = require('./voicemailScriptGenerator');
+const AwsSqs = require('./awsSqs');
 
 class VoiceAgentCall {
   constructor(apiKey) {
@@ -18,6 +19,7 @@ class VoiceAgentCall {
     this.ngoe = new NGOE();
     this.sentimentAnalysisService = new SentimentAnalysisService(apiKey);
     this.voicemailScriptGenerator = new VoicemailScriptGenerator();
+    this.awsSqs = new AwsSqs(config.awsSqsUrl, config.awsAccessKeyId, config.awsSecretAccessKey, config.awsRegion);
   }
 
   async initiateCall(callData) {
@@ -200,6 +202,16 @@ class VoiceAgentCall {
       logger.info('End-to-end voice agent call flow with voicemail drop completed successfully', { prospectData });
     } catch (error) {
       logger.error('Error in end-to-end voice agent call flow with voicemail drop', { error, prospectData });
+      throw error;
+    }
+  }
+
+  async sendCallToQueue(callData) {
+    try {
+      const messageId = await this.awsSqs.sendMessage(callData);
+      logger.info('Call data sent to AWS SQS', { messageId, callData });
+    } catch (error) {
+      logger.error('Error sending call data to AWS SQS', { error, callData });
       throw error;
     }
   }
