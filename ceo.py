@@ -189,21 +189,24 @@ while True:
                 lines = f.readlines()
                 
             for idx, line in enumerate(lines):
-                if "- [ ]" in line:
-                    # Extract the feature and ignore empty checkboxes
-                    extracted = line.replace("- [ ]", "").strip()
+                # Just look for "[ ]" to ensure it matches what check_roadmap_has_tasks() saw
+                if "[ ]" in line:
+                    # Extract whatever text comes AFTER the checkbox
+                    extracted = line.split("[ ]", 1)[-1].strip()
                     if extracted:
                         target_feature = extracted
                         target_line_idx = idx
                         break
                     else:
-                        # Auto-clear blank tasks so we don't get stuck on them
-                        lines[idx] = line.replace("- [ ]", "- [x]", 1)
+                        # Auto-clear blank/ghost tasks so we don't get stuck on them
+                        lines[idx] = line.replace("[ ]", "[x]", 1)
 
-            # Save if we cleared any blank tasks, then loop back
+            # If we didn't find a valid feature (e.g., we just cleared empty checkboxes)
             if target_feature == "":
                 with open(ROADMAP_FILE, 'w') as f:
                     f.writelines(lines)
+                print("[INFO] Cleaned up empty/invalid checkboxes in roadmap.")
+                time.sleep(5) # Give the loop a breather before restarting
                 continue
                     
             print(f"Target Feature: {target_feature}")
@@ -221,7 +224,7 @@ while True:
             if check_sprint_has_tasks():
                 print(f"\n[SUCCESS] Tasks generated for: {target_feature}")
                 # Now it is safe to check off the roadmap item
-                lines[target_line_idx] = lines[target_line_idx].replace("- [ ]", "- [x]", 1)
+                lines[target_line_idx] = lines[target_line_idx].replace("[ ]", "[x]", 1)
                 
                 with open(ROADMAP_FILE, 'w') as f:
                     f.writelines(lines)
@@ -229,6 +232,7 @@ while True:
                 commit_to_git(f"Roadmap -> Sprint: {target_feature}")
             else:
                 print("\n[TECH LEAD FAILED] AI failed to generate sprint tasks. Keeping task on roadmap and retrying...")
+                time.sleep(5) # Prevent aggressive retry spam
                 
             continue
             
