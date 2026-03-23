@@ -285,4 +285,30 @@ module.exports = {
     microsoftTeamsIntegration.sendNotification(`OAuth2 Login: ${message}`);
     kafkaProducer.sendToTopic('oauth2Login', { message, data });
   },
+  teamsPhoneExtensibility: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'teamsPhoneExtensibility', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'teamsPhoneExtensibility', data: { message, data } });
+    temporalStateManager.saveState('teamsPhoneExtensibility', { message, data });
+    slackIntegration.sendNotification(`Teams Phone Extensibility: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Teams Phone Extensibility: ${message}`);
+    kafkaProducer.sendToTopic('teams-phone-extensibility', { message, data });
+  },
+  stirShakenCompliance: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'stirShakenCompliance', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'stirShakenCompliance', data: { message, data } });
+    temporalStateManager.saveState('stirShakenCompliance', { message, data });
+    slackIntegration.sendNotification(`STIR/SHAKEN Compliance: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`STIR/SHAKEN Compliance: ${message}`);
+    kafkaProducer.sendToTopic('stir-shaken-compliance', { message, data });
+  },
 };

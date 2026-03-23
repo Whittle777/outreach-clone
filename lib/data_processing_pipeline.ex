@@ -39,4 +39,16 @@ defmodule DataProcessingPipeline do
     IO.inspect(message.data)
     message
   end
+
+  defp handle_teams_phone_extensibility(data) do
+    # Add logic to handle Teams Phone Extensibility
+    IO.inspect("Handling Teams Phone Extensibility: #{inspect(data)}")
+    data
+  end
+
+  defp handle_stir_shaken_compliance(data) do
+    # Add logic to handle STIR/SHAKEN compliance
+    IO.inspect("Handling STIR/SHAKEN compliance: #{inspect(data)}")
+    data
+  end
 end

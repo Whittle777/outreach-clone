@@ -61,5 +61,11 @@ module.exports = {
         });
       }
     });
+  },
+  sendTeamsPhoneExtensibilityMessage: (message) => {
+    return module.exports.sendToTopic('teams-phone-extensibility', message);
+  },
+  sendStirShakenComplianceMessage: (message) => {
+    return module.exports.sendToTopic('stir-shaken-compliance', message);
   }
 };
