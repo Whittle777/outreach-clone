@@ -1,3 +1,7 @@
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const dkim = require('nodemailer-dkim');
+
 module.exports = {
   getConfig: () => {
     return {
@@ -18,6 +22,23 @@ module.exports = {
       rateLimitBucketCapacity: process.env.RATE_LIMIT_BUCKET_CAPACITY || 10, // Default bucket capacity of 10 tokens
       dnsApiKey: process.env.DNS_API_KEY, // New configuration for DNS API key
       dnsApiUrl: process.env.DNS_API_URL || 'https://api.example.com/dns', // Default DNS API URL
+      dkimPrivateKey: process.env.DKIM_PRIVATE_KEY || generateDkimPrivateKey(),
+      dkimSelector: process.env.DKIM_SELECTOR || 'default',
     };
+  },
+
+  generateDkimPrivateKey: () => {
+    const key = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      publicKeyEncoding: {
+        type: 'spki',
+        format: 'pem'
+      },
+      privateKeyEncoding: {
+        type: 'pkcs8',
+        format: 'pem'
+      }
+    });
+    return key.privateKey;
   }
 };

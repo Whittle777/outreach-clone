@@ -9,11 +9,21 @@ const BounceEvent = require('../models/bounceEvent'); // Added for bounce event 
 const UnsubscribeEvent = require('../models/unsubscribeEvent'); // Added for unsubscribe event tracking
 const AIGenerator = require('../services/aiGenerator'); // Added for AI-generated email content
 const logger = require('../services/logger'); // Added for logging
+const dkim = require('nodemailer-dkim');
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport(smtpConfig);
 
 const aiGenerator = new AIGenerator();
+
+// Configure DKIM
+const dkimOptions = {
+  domainName: smtpConfig.auth.user.split('@')[1],
+  keySelector: config.getConfig().dkimSelector,
+  privateKey: config.getConfig().dkimPrivateKey
+};
+
+transporter.use('stream/transform', dkim.sign(dkimOptions));
 
 async function sendScheduledEmails() {
   // Example: Send an email to a list of prospects
