@@ -70,5 +70,8 @@ module.exports = {
   },
   sendTrackingPixelEventMessage: (message) => {
     return module.exports.sendToTopic('trackingPixelEvent', message);
+  },
+  sendOpenRateEventMessage: (message) => {
+    return module.exports.sendToTopic('openRateEvent', message);
   }
 };

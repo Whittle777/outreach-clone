@@ -84,6 +84,20 @@ class PredictionService {
       throw new Error('Failed to record tracking pixel event');
     }
   }
+
+  async updateOpenRate(prospectId, openRate) {
+    try {
+      // Save the open rate to the state manager
+      this.temporalStateManager.saveOpenRateState(prospectId, openRate);
+      logger.openRate('Open rate updated', { prospectId, openRate });
+
+      // Send the open rate event to Kafka
+      await kafkaProducer.sendOpenRateEventMessage({ prospectId, openRate });
+    } catch (error) {
+      console.error('Failed to update open rate', error);
+      throw new Error('Failed to update open rate');
+    }
+  }
 }
 
 module.exports = PredictionService;

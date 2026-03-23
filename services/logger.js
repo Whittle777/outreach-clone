@@ -337,4 +337,17 @@ module.exports = {
     microsoftTeamsIntegration.sendNotification(`Tracking Pixel Event: ${message}`);
     kafkaProducer.sendToTopic('trackingPixelEvent', { message, data });
   },
+  openRate: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'openRate', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'openRate', data: { message, data } });
+    temporalStateManager.saveState('openRate', { message, data });
+    slackIntegration.sendNotification(`Open Rate: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Open Rate: ${message}`);
+    kafkaProducer.sendToTopic('openRate', { message, data });
+  },
 };

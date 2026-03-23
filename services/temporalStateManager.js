@@ -246,12 +246,26 @@ class TemporalStateManager {
   }
 
   loadTrackingPixelEvent(prospectId) {
-    const key = `trackingPixelEvent_${prospectId}`;
     return this.loadState(key);
   }
 
   clearTrackingPixelEvent(prospectId) {
     const key = `trackingPixelEvent_${prospectId}`;
+    this.clearState(key);
+  }
+
+  // Open Rate state management
+  saveOpenRateState(prospectId, openRate) {
+    const key = `openRate_${prospectId}`;
+    this.saveState(key, openRate);
+  }
+
+  loadOpenRateState(prospectId) {
+    return this.loadState(key);
+  }
+
+  clearOpenRateState(prospectId) {
+    const key = `openRate_${prospectId}`;
     this.clearState(key);
   }
 }
