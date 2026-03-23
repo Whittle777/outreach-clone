@@ -1,4 +1,5 @@
 const axios = require('axios');
+const kafkaProducer = require('../messageBroker/kafkaProducer');
 
 class MicrosoftTeamsIntegration {
   constructor(config) {
@@ -12,6 +13,7 @@ class MicrosoftTeamsIntegration {
         text: `${this.bento}: ${message}`
       });
       console.log('Microsoft Teams notification sent successfully:', response.data);
+      kafkaProducer.sendToTopic('microsoftTeamsNotification', { message });
     } catch (error) {
       console.error('Failed to send Microsoft Teams notification:', error);
     }
@@ -40,6 +42,7 @@ class MicrosoftTeamsIntegration {
         }]
       });
       console.log('Microsoft Teams interactive notification sent successfully:', response.data);
+      kafkaProducer.sendToTopic('microsoftTeamsInteractiveNotification', { message, actions });
     } catch (error) {
       console.error('Failed to send Microsoft Teams interactive notification:', error);
     }

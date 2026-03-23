@@ -1,5 +1,6 @@
 const axios = require('axios');
 const config = require('../services/config').getConfig();
+const kafkaProducer = require('../messageBroker/kafkaProducer');
 
 class SlackIntegration {
   constructor(webhookUrl) {
@@ -17,6 +18,7 @@ class SlackIntegration {
         text: message,
       });
       console.log('Slack notification sent successfully');
+      kafkaProducer.sendToTopic('slackNotification', { message });
     } catch (error) {
       console.error('Failed to send Slack notification:', error);
     }
@@ -45,6 +47,7 @@ class SlackIntegration {
         ]
       });
       console.log('Slack interactive notification sent successfully');
+      kafkaProducer.sendToTopic('slackInteractiveNotification', { message, actions });
     } catch (error) {
       console.error('Failed to send Slack interactive notification:', error);
     }

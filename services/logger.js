@@ -6,6 +6,7 @@ const { wss } = require('../services/websocketServer');
 const temporalStateManager = require('../services/temporalStateManager');
 const slackIntegration = require('../services/slackIntegration');
 const microsoftTeamsIntegration = require('../services/microsoftTeamsIntegration');
+const kafkaProducer = require('../messageBroker/kafkaProducer');
 
 const logger = winston.createLogger({
   level: 'info',
@@ -36,6 +37,7 @@ module.exports = {
     temporalStateManager.saveState('log', { message, data });
     slackIntegration.sendNotification(`Log: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Log: ${message}`);
+    kafkaProducer.sendToTopic('log', { message, data });
   },
   error: (message, data) => {
     logger.error(message, data);
@@ -48,6 +50,7 @@ module.exports = {
     temporalStateManager.saveState('error', { message, data });
     slackIntegration.sendNotification(`Error: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Error: ${message}`);
+    kafkaProducer.sendToTopic('error', { message, data });
   },
   info: (message, data) => {
     logger.info(message, data);
@@ -60,6 +63,7 @@ module.exports = {
     temporalStateManager.saveState('info', { message, data });
     slackIntegration.sendNotification(`Info: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Info: ${message}`);
+    kafkaProducer.sendToTopic('info', { message, data });
   },
   sentimentAnalysisResult: (message, data) => {
     logger.info(message, data);
@@ -72,6 +76,7 @@ module.exports = {
     temporalStateManager.saveState('sentimentAnalysisResult', { message, data });
     slackIntegration.sendNotification(`Sentiment Analysis Result: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Sentiment Analysis Result: ${message}`);
+    kafkaProducer.sendToTopic('sentimentAnalysisResult', { message, data });
   },
   realTimeTranscript: (message, data) => {
     logger.info(message, data);
@@ -84,6 +89,7 @@ module.exports = {
     temporalStateManager.saveState('realTimeTranscript', { message, data });
     slackIntegration.sendNotification(`Real-Time Transcript: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Real-Time Transcript: ${message}`);
+    kafkaProducer.sendToTopic('realTimeTranscript', { message, data });
   },
   detectionResult: (message, data) => {
     logger.info(message, data);
@@ -96,6 +102,7 @@ module.exports = {
     temporalStateManager.saveState('detectionResult', { message, data });
     slackIntegration.sendNotification(`Detection Result: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Detection Result: ${message}`);
+    kafkaProducer.sendToTopic('detectionResult', { message, data });
   },
   userPromptParsed: (message, data) => {
     logger.info(message, data);
@@ -108,6 +115,7 @@ module.exports = {
     temporalStateManager.saveState('userPromptParsed', { message, data });
     slackIntegration.sendNotification(`User Prompt Parsed: ${message}`);
     microsoftTeamsIntegration.sendNotification(`User Prompt Parsed: ${message}`);
+    kafkaProducer.sendToTopic('userPromptParsed', { message, data });
   },
   intentHandled: (message, data) => {
     logger.info(message, data);
@@ -120,6 +128,7 @@ module.exports = {
     temporalStateManager.saveState('intentHandled', { message, data });
     slackIntegration.sendNotification(`Intent Handled: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Intent Handled: ${message}`);
+    kafkaProducer.sendToTopic('intentHandled', { message, data });
   },
   predictiveSearchResult: (message, data) => {
     logger.info(message, data);
@@ -132,6 +141,7 @@ module.exports = {
     temporalStateManager.saveState('predictiveSearchResult', { message, data });
     slackIntegration.sendNotification(`Predictive Search Result: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Predictive Search Result: ${message}`);
+    kafkaProducer.sendToTopic('predictiveSearchResult', { message, data });
   },
   visualFlag: (message, data) => {
     logger.warn(message, data);
@@ -144,6 +154,7 @@ module.exports = {
     temporalStateManager.saveState('visualFlag', { message, data });
     slackIntegration.sendNotification(`Visual Flag: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Visual Flag: ${message}`);
+    kafkaProducer.sendToTopic('visualFlag', { message, data });
   },
   confidenceScoreRouting: (message, data) => {
     logger.info(message, data);
@@ -156,6 +167,7 @@ module.exports = {
     temporalStateManager.saveState('confidenceScoreRouting', { message, data });
     slackIntegration.sendNotification(`Confidence Score Routing: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Confidence Score Routing: ${message}`);
+    kafkaProducer.sendToTopic('confidenceScoreRouting', { message, data });
   },
   realTimeReasoningLog: (message, data) => {
     logger.info(message, data);
@@ -168,6 +180,7 @@ module.exports = {
     temporalStateManager.saveState('realTimeReasoningLog', { message, data });
     slackIntegration.sendNotification(`Real-Time Reasoning Log: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Real-Time Reasoning Log: ${message}`);
+    kafkaProducer.sendToTopic('realTimeReasoningLog', { message, data });
   },
   interactiveNotification: (message, data) => {
     logger.info(message, data);
@@ -179,6 +192,7 @@ module.exports = {
     doubleWriteStrategy.write({ type: 'interactiveNotification', data: { message, data } });
     temporalStateManager.saveState('interactiveNotification', { message, data });
     slackIntegration.sendInteractiveNotification(data.channel, message, data.actions);
+    kafkaProducer.sendToTopic('interactiveNotification', { message, data });
   },
   versionChange: (message, data) => {
     logger.info(message, data);
@@ -191,6 +205,7 @@ module.exports = {
     temporalStateManager.saveState('versionChange', { message, data });
     slackIntegration.sendNotification(`Version Change: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Version Change: ${message}`);
+    kafkaProducer.sendToTopic('versionChange', { message, data });
   },
   migrationStart: (message, data) => {
     logger.info(message, data);
@@ -203,6 +218,7 @@ module.exports = {
     temporalStateManager.saveState('migrationStart', { message, data });
     slackIntegration.sendNotification(`Migration Start: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Migration Start: ${message}`);
+    kafkaProducer.sendToTopic('migrationStart', { message, data });
   },
   migrationProgress: (message, data) => {
     logger.info(message, data);
@@ -215,6 +231,7 @@ module.exports = {
     temporalStateManager.saveState('migrationProgress', { message, data });
     slackIntegration.sendNotification(`Migration Progress: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Migration Progress: ${message}`);
+    kafkaProducer.sendToTopic('migrationProgress', { message, data });
   },
   migrationComplete: (message, data) => {
     logger.info(message, data);
@@ -227,6 +244,7 @@ module.exports = {
     temporalStateManager.saveState('migrationComplete', { message, data });
     slackIntegration.sendNotification(`Migration Complete: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Migration Complete: ${message}`);
+    kafkaProducer.sendToTopic('migrationComplete', { message, data });
   },
   migrationError: (message, data) => {
     logger.error(message, data);
@@ -239,6 +257,7 @@ module.exports = {
     temporalStateManager.saveState('migrationError', { message, data });
     slackIntegration.sendNotification(`Migration Error: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Migration Error: ${message}`);
+    kafkaProducer.sendToTopic('migrationError', { message, data });
   },
   conversionRatesCalculated: (message, data) => {
     logger.info(message, data);
@@ -251,5 +270,6 @@ module.exports = {
     temporalStateManager.saveState('conversionRatesCalculated', { message, data });
     slackIntegration.sendNotification(`Conversion Rates Calculated: ${message}`);
     microsoftTeamsIntegration.sendNotification(`Conversion Rates Calculated: ${message}`);
+    kafkaProducer.sendToTopic('conversionRatesCalculated', { message, data });
   },
 };

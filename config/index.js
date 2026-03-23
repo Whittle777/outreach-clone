@@ -13,6 +13,7 @@ module.exports = {
       awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       awsRegion: process.env.AWS_REGION,
       messageBrokerType: process.env.MESSAGE_BROKER_TYPE || 'azureServiceBus', // Default to Azure Service Bus
+      kafkaHost: process.env.KAFKA_HOST || 'localhost:9092', // Default to local Kafka broker
       microsoftBackendUrl: process.env.MICROSOFT_BACKEND_URL,
       microsoftBackendApiKey: process.env.MICROSOFT_BACKEND_API_KEY,
       prisma: {
