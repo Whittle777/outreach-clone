@@ -7,6 +7,7 @@ const {
   createSequence,
   updateSequence,
   deleteSequence,
+  updateSequenceState,
 } = require('../controllers/sequences');
 
 router.use(authenticateToken);
@@ -20,5 +21,7 @@ router.post('/', createSequence);
 router.put('/:id', updateSequence);
 
 router.delete('/:id', deleteSequence);
+
+router.patch('/:id/state', updateSequenceState);
 
 module.exports = router;
