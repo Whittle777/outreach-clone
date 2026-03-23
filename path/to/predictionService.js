@@ -98,6 +98,34 @@ class PredictionService {
       throw new Error('Failed to update open rate');
     }
   }
+
+  async addNgoeTask(taskId, taskData) {
+    try {
+      // Save the NGOE task to the state manager
+      this.temporalStateManager.saveNgoeTask(taskId, taskData);
+      logger.info('NGOE task added', { taskId, taskData });
+
+      // Send the NGOE task to Kafka
+      await kafkaProducer.sendNgoeTaskMessage({ taskId, taskData });
+    } catch (error) {
+      console.error('Failed to add NGOE task', error);
+      throw new Error('Failed to add NGOE task');
+    }
+  }
+
+  async updateNgoeTaskQueue(taskQueue) {
+    try {
+      // Save the NGOE task queue to the state manager
+      this.temporalStateManager.saveNgoeTaskQueue(taskQueue);
+      logger.info('NGOE task queue updated', { taskQueue });
+
+      // Send the NGOE task queue to Kafka
+      await kafkaProducer.sendNgoeTaskQueueMessage({ taskQueue });
+    } catch (error) {
+      console.error('Failed to update NGOE task queue', error);
+      throw new Error('Failed to update NGOE task queue');
+    }
+  }
 }
 
 module.exports = PredictionService;

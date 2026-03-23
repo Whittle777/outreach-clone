@@ -268,6 +268,33 @@ class TemporalStateManager {
     const key = `openRate_${prospectId}`;
     this.clearState(key);
   }
+
+  // NGOE state management
+  saveNgoeTask(taskId, taskData) {
+    const key = `ngoeTask_${taskId}`;
+    this.saveState(key, taskData);
+  }
+
+  loadNgoeTask(taskId) {
+    return this.loadState(taskId);
+  }
+
+  clearNgoeTask(taskId) {
+    const key = `ngoeTask_${taskId}`;
+    this.clearState(taskId);
+  }
+
+  saveNgoeTaskQueue(taskQueue) {
+    this.saveState('ngoeTaskQueue', taskQueue);
+  }
+
+  loadNgoeTaskQueue() {
+    return this.loadState('ngoeTaskQueue');
+  }
+
+  clearNgoeTaskQueue() {
+    this.clearState('ngoeTaskQueue');
+  }
 }
 
 module.exports = TemporalStateManager;

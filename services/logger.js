@@ -350,4 +350,30 @@ module.exports = {
     microsoftTeamsIntegration.sendNotification(`Open Rate: ${message}`);
     kafkaProducer.sendToTopic('openRate', { message, data });
   },
+  ngoeTaskAdded: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'ngoeTaskAdded', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'ngoeTaskAdded', data: { message, data } });
+    temporalStateManager.saveState('ngoeTaskAdded', { message, data });
+    slackIntegration.sendNotification(`NGOE Task Added: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`NGOE Task Added: ${message}`);
+    kafkaProducer.sendToTopic('ngoeTaskAdded', { message, data });
+  },
+  ngoeTaskQueueUpdated: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'ngoeTaskQueueUpdated', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'ngoeTaskQueueUpdated', data: { message, data } });
+    temporalStateManager.saveState('ngoeTaskQueueUpdated', { message, data });
+    slackIntegration.sendNotification(`NGOE Task Queue Updated: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`NGOE Task Queue Updated: ${message}`);
+    kafkaProducer.sendToTopic('ngoeTaskQueueUpdated', { message, data });
+  },
 };
