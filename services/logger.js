@@ -272,4 +272,17 @@ module.exports = {
     microsoftTeamsIntegration.sendNotification(`Conversion Rates Calculated: ${message}`);
     kafkaProducer.sendToTopic('conversionRatesCalculated', { message, data });
   },
+  oauth2Login: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'oauth2Login', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'oauth2Login', data: { message, data } });
+    temporalStateManager.saveState('oauth2Login', { message, data });
+    slackIntegration.sendNotification(`OAuth2 Login: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`OAuth2 Login: ${message}`);
+    kafkaProducer.sendToTopic('oauth2Login', { message, data });
+  },
 };

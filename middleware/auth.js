@@ -5,6 +5,7 @@ const oauthService = require('../services/oauthService'); // New import
 const axios = require('axios');
 const crypto = require('crypto');
 const config = require('../services/config').getConfig();
+const { GoogleOAuth2, MicrosoftOAuth2 } = require('./oauth2');
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -95,6 +96,52 @@ async function authenticateWebhook(req, res, next) {
   next();
 }
 
+async function authenticateGoogleOAuth2(req, res, next) {
+  const code = req.query.code;
+
+  if (!code) {
+    return res.status(400).json({ message: 'Authorization code is required' });
+  }
+
+  try {
+    const accessToken = await GoogleOAuth2.getAccessToken(code);
+    const userInfo = await GoogleOAuth2.getUserInfo(accessToken);
+    const userId = userInfo.sub;
+    const bento = userInfo.bento; // Assuming bento is part of the userInfo
+
+    const token = GoogleOAuth2.generateJwtToken(userId, bento);
+    req.userId = userId;
+    req.bento = bento;
+    req.token = token;
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: 'Invalid or expired Google OAuth2 token' });
+  }
+}
+
+async function authenticateMicrosoftOAuth2(req, res, next) {
+  const code = req.query.code;
+
+  if (!code) {
+    return res.status(400).json({ message: 'Authorization code is required' });
+  }
+
+  try {
+    const accessToken = await MicrosoftOAuth2.getAccessToken(code);
+    const userInfo = await MicrosoftOAuth2.getUserInfo(accessToken);
+    const userId = userInfo.sub;
+    const bento = userInfo.bento; // Assuming bento is part of the userInfo
+
+    const token = MicrosoftOAuth2.generateJwtToken(userId, bento);
+    req.userId = userId;
+    req.bento = bento;
+    req.token = token;
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: 'Invalid or expired Microsoft OAuth2 token' });
+  }
+}
+
 function isProtectedRoute(route) {
   // Define your protected routes here
   const protectedRoutes = [
@@ -116,4 +163,12 @@ function applyAuthenticationMiddleware(app) {
   });
 }
 
-module.exports = { authenticateToken, authenticateGoogleWorkspaceToken, authenticateMicrosoftToken, authenticateWebhook, applyAuthenticationMiddleware };
+module.exports = {
+  authenticateToken,
+  authenticateGoogleWorkspaceToken,
+  authenticateMicrosoftToken,
+  authenticateWebhook,
+  authenticateGoogleOAuth2,
+  authenticateMicrosoftOAuth2,
+  applyAuthenticationMiddleware,
+};
