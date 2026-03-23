@@ -48,6 +48,11 @@ module.exports = {
         port: process.env.WEBHOOK_PORT || 3001,
         path: process.env.WEBHOOK_PATH || '/webhook',
       },
+      headerBasedSync: {
+        enabled: process.env.HEADER_BASED_SYNC_ENABLED === 'true',
+        headerName: process.env.HEADER_BASED_SYNC_HEADER_NAME || 'X-Sync-Header',
+        headerValue: process.env.HEADER_BASED_SYNC_HEADER_VALUE || 'sync-value',
+      },
     };
   },
 };
