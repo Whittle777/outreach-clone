@@ -12,10 +12,37 @@ class RabbitMq {
     this.connection = await amqplib.connect(this.config.connectionString);
     this.channel = await this.connection.createChannel();
     await this.channel.assertQueue(this.config.queueName, { durable: true });
+    this.channel.on('flow', (ok) => {
+      if (!ok) {
+        console.warn('RabbitMQ channel is paused, waiting...');
+        setTimeout(() => {
+          this.channel.resume();
+        }, 1000); // Wait for 1 second before resuming
+      }
+    });
   }
 
   async sendMessage(message, token) {
-    await this.channel.sendToQueue(this.config.queueName, Buffer.from(JSON.stringify(message)));
+    return new Promise((resolve, reject) => {
+      if (!this.channel.isFlowOk) {
+        console.warn('RabbitMQ channel is paused, waiting...');
+        setTimeout(() => {
+          this.sendMessage(message, token).then(resolve).catch(reject);
+        }, 1000); // Wait for 1 second before retrying
+      } else {
+        this.channel.sendToQueue(this.config.queueName, Buffer.from(JSON.stringify(message)), {
+          persistent: true
+        }, (err, ok) => {
+          if (err) {
+            console.error('Error sending message to RabbitMQ:', err);
+            reject(err);
+          } else {
+            console.log('Message sent to RabbitMQ:', ok);
+            resolve(ok);
+          }
+        });
+      }
+    });
   }
 
   async receiveMessage(token) {

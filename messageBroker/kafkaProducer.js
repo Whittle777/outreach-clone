@@ -36,16 +36,29 @@ broadway.on('processed', (message) => {
   console.log('Message processed:', message.value);
 });
 
+const MAX_QUEUE_LENGTH = 100; // Define a maximum queue length
+
 module.exports = {
   sendToTopic: (topic, message) => {
-    const payloads = [
-      { topic, messages: JSON.stringify(message) }
-    ];
-    producer.send(payloads, (err, data) => {
-      if (err) {
-        console.error('Error sending message to Kafka:', err);
+    return new Promise((resolve, reject) => {
+      if (producer.queueLength() > MAX_QUEUE_LENGTH) {
+        console.warn('Kafka producer queue is full, waiting...');
+        setTimeout(() => {
+          module.exports.sendToTopic(topic, message).then(resolve).catch(reject);
+        }, 1000); // Wait for 1 second before retrying
       } else {
-        console.log('Message sent to Kafka:', data);
+        const payloads = [
+          { topic, messages: JSON.stringify(message) }
+        ];
+        producer.send(payloads, (err, data) => {
+          if (err) {
+            console.error('Error sending message to Kafka:', err);
+            reject(err);
+          } else {
+            console.log('Message sent to Kafka:', data);
+            resolve(data);
+          }
+        });
       }
     });
   }
