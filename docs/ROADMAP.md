@@ -4,7 +4,7 @@ Master list of all planned features.
 
 ## Immediate Goals
 
-1. [ ] Ensure all protected routes use JWT validation
+1. [x] Ensure all protected routes use JWT validation
 
 ## New Features
 
