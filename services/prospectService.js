@@ -108,6 +108,13 @@ class ProspectService {
     await Prospect.updateScore(id, score);
     return score;
   }
+
+  static async handleListUnsubscribe(email) {
+    await prisma.prospect.update({
+      where: { email },
+      data: { status: 'unsubscribed' },
+    });
+  }
 }
 
 module.exports = ProspectService;

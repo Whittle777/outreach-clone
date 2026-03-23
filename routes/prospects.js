@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips, filterProspects, getTopOpportunities, recordWin, recordLoss } = require('../controllers/prospectsController');
+const { createProspect, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips, filterProspects, getTopOpportunities, recordWin, recordLoss, handleListUnsubscribe } = require('../controllers/prospectsController');
 
 router.get('/', async (req, res) => {
   try {
@@ -125,6 +125,20 @@ router.get('/geographic-routing', async (req, res) => {
     }
     const prospects = await filterProspects({ countryRegion });
     res.json(prospects);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// New endpoint to handle List-Unsubscribe headers
+router.post('/list-unsubscribe', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    await handleListUnsubscribe(email);
+    res.json({ message: 'Unsubscribed successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
