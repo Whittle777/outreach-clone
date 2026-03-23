@@ -376,4 +376,17 @@ module.exports = {
     microsoftTeamsIntegration.sendNotification(`NGOE Task Queue Updated: ${message}`);
     kafkaProducer.sendToTopic('ngoeTaskQueueUpdated', { message, data });
   },
+  voiceAgentWorkflowInitiated: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'voiceAgentWorkflowInitiated', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'voiceAgentWorkflowInitiated', data: { message, data } });
+    temporalStateManager.saveState('voiceAgentWorkflowInitiated', { message, data });
+    slackIntegration.sendNotification(`Voice Agent Workflow Initiated: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Voice Agent Workflow Initiated: ${message}`);
+    kafkaProducer.sendToTopic('voiceAgentWorkflowInitiated', { message, data });
+  }
 };

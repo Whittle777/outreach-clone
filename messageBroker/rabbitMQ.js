@@ -22,15 +22,15 @@ class RabbitMq {
     });
   }
 
-  async sendMessage(message, token) {
+  async sendMessage(message, queueName) {
     return new Promise((resolve, reject) => {
       if (!this.channel.isFlowOk) {
         console.warn('RabbitMQ channel is paused, waiting...');
         setTimeout(() => {
-          this.sendMessage(message, token).then(resolve).catch(reject);
+          this.sendMessage(message, queueName).then(resolve).catch(reject);
         }, 1000); // Wait for 1 second before retrying
       } else {
-        this.channel.sendToQueue(this.config.queueName, Buffer.from(JSON.stringify(message)), {
+        this.channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), {
           persistent: true
         }, (err, ok) => {
           if (err) {
@@ -45,9 +45,9 @@ class RabbitMq {
     });
   }
 
-  async receiveMessage(token) {
+  async receiveMessage(queueName) {
     return new Promise((resolve, reject) => {
-      this.channel.consume(this.config.queueName, (msg) => {
+      this.channel.consume(queueName, (msg) => {
         if (msg !== null) {
           resolve(JSON.parse(msg.content.toString()));
           this.channel.ack(msg);

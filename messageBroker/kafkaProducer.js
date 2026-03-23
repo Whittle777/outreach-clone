@@ -73,5 +73,8 @@ module.exports = {
   },
   sendOpenRateEventMessage: (message) => {
     return module.exports.sendToTopic('openRateEvent', message);
+  },
+  sendVoiceAgentWorkflowMessage: (message) => {
+    return module.exports.sendToTopic('voice-agent-workflow', message);
   }
 };

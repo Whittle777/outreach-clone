@@ -295,6 +295,22 @@ class TemporalStateManager {
   clearNgoeTaskQueue() {
     this.clearState('ngoeTaskQueue');
   }
+
+  // Voice Agent Workflow state management
+  saveVoiceAgentWorkflowState(prospectId, workflowData) {
+    const key = `voiceAgentWorkflow_${prospectId}`;
+    this.saveState(key, workflowData);
+  }
+
+  loadVoiceAgentWorkflowState(prospectId) {
+    const key = `voiceAgentWorkflow_${prospectId}`;
+    return this.loadState(key);
+  }
+
+  clearVoiceAgentWorkflowState(prospectId) {
+    const key = `voiceAgentWorkflow_${prospectId}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;

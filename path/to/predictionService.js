@@ -6,6 +6,7 @@ const config = require('../config');
 const logger = require('../services/logger');
 const TemporalStateManager = require('../services/temporalStateManager');
 const MCPGateway = require('../services/mcpGateway');
+const RabbitMq = require('../messageBroker/rabbitMQ');
 
 class PredictionService {
   constructor(apiKey, bento) {
@@ -15,6 +16,7 @@ class PredictionService {
     this.dnsManager = new DnsManager(config.getConfig().dnsApiKey, bento);
     this.temporalStateManager = new TemporalStateManager();
     this.mcpGateway = new MCPGateway(config.getConfig().mcpGatewayUrl, config.getConfig().mcpGatewayApiKey, 'your-secret-key');
+    this.rabbitMq = new RabbitMq(config.getConfig().rabbitMq);
   }
 
   async predict(quarterData) {
@@ -157,6 +159,53 @@ class PredictionService {
       console.error('Error receiving data from MCP Gateway', error);
       throw new Error('Failed to receive data from MCP Gateway');
     }
+  }
+
+  async initiateVoiceAgentWorkflow(prospectId) {
+    try {
+      // Pre-flight check
+      const prospect = await this.getProspect(prospectId);
+      const script = await this.generateScript(prospect);
+      const audioFileUrl = await this.generateAudioFile(script);
+
+      // Save audio file URL to state manager
+      this.temporalStateManager.saveAudioFileStorageState(prospectId, audioFileUrl);
+
+      // Auto-dialer
+      await this.autoDialer(prospectId, audioFileUrl);
+
+      // Log the initiation of the voice agent workflow
+      logger.info('Voice agent workflow initiated', { prospectId, script, audioFileUrl });
+    } catch (error) {
+      console.error('Error initiating voice agent workflow', error);
+      throw new Error('Failed to initiate voice agent workflow');
+    }
+  }
+
+  async getProspect(prospectId) {
+    // Placeholder for fetching prospect data
+    return { id: prospectId, name: 'John Doe', phoneNumber: '+1234567890' };
+  }
+
+  async generateScript(prospect) {
+    // Placeholder for script generation
+    return `Hello ${prospect.name}, this is a call from our team.`;
+  }
+
+  async generateAudioFile(script) {
+    // Placeholder for audio file generation
+    return 'https://example.com/audiofile.wav';
+  }
+
+  async autoDialer(prospectId, audioFileUrl) {
+    // Placeholder for auto-dialer logic
+    const message = {
+      prospectId,
+      audioFileUrl,
+      status: 'Queued'
+    };
+    await this.rabbitMq.sendMessage(message, 'voice-agent-queue');
+    logger.info('Auto-dialer initiated', { prospectId, audioFileUrl });
   }
 }
 
