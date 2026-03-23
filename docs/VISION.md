@@ -381,4 +381,4 @@ Test all features!!
 
 Read all files and make sure they are complete!
 
-Create a README that details how to launce and use app!!!!
+Create a README that details how to launce and use app!!!! Create detailed and easily understandable README for how to use the app
