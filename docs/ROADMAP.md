@@ -26,7 +26,7 @@ Master list of all planned features.
 7. [x] Rate Limiting (Phase 6):
    - [x] Hierarchical Throttles
    - [x] Implementation
-8. [ ] Deliverability & Compliance (Phase 7):
+8. [x] Deliverability & Compliance (Phase 7):
    - [x] Cryptographic Authentication
    - [x] Reputation Monitoring
    - [x] Unsubscribe & Bounce Handling
