@@ -30,7 +30,7 @@ Master list of all planned features.
    - [x] Cryptographic Authentication
    - [x] Reputation Monitoring
    - [x] Unsubscribe & Bounce Handling
-9. [ ] Engagement Telemetry (Phase 8):
+9. [x] Engagement Telemetry (Phase 8):
    - [x] Tracking Pixels
    - [x] Link Wrapping
    - [x] Open Rate Considerations
