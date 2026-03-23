@@ -23,7 +23,7 @@ Master list of all planned features.
 6. [x] Provider Integrations (Phase 5):
    - [x] Authentication Protocols
    - [x] Real-Time Sync
-7. [ ] Rate Limiting (Phase 6):
+7. [x] Rate Limiting (Phase 6):
    - [x] Hierarchical Throttles
    - [x] Implementation
 8. [ ] Deliverability & Compliance (Phase 7):
