@@ -3,7 +3,6 @@
 Immediate technical tasks to execute.
 
 1. [x] Build standard CRUD routes for Prospects
-2. [ ] Implement SPF configuration for all tenants
 3. [ ] Set up DKIM with 2048-bit keys for all tenants
 4. [ ] Configure DMARC policy progression for all tenants
 5. [ ] Monitor abuse complaint rates and track algorithmic reputation across mail providers

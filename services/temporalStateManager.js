@@ -212,6 +212,22 @@ class TemporalStateManager {
     const key = `geographicRouting_${prospectId}`;
     this.clearState(key);
   }
+
+  // SPF Record state management
+  saveSpfRecordState(domain, spfRecord) {
+    const key = `spfRecord_${domain}`;
+    this.saveState(key, spfRecord);
+  }
+
+  loadSpfRecordState(domain) {
+    const key = `spfRecord_${domain}`;
+    return this.loadState(key);
+  }
+
+  clearSpfRecordState(domain) {
+    const key = `spfRecord_${domain}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;

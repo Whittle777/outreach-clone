@@ -16,6 +16,8 @@ module.exports = {
       redisPassword: process.env.REDIS_PASSWORD || null,
       rateLimitRefillRate: process.env.RATE_LIMIT_REFILL_RATE || 1, // Default refill rate of 1 token per second
       rateLimitBucketCapacity: process.env.RATE_LIMIT_BUCKET_CAPACITY || 10, // Default bucket capacity of 10 tokens
+      dnsApiKey: process.env.DNS_API_KEY, // New configuration for DNS API key
+      dnsApiUrl: process.env.DNS_API_URL || 'https://api.example.com/dns', // Default DNS API URL
     };
   }
 };
