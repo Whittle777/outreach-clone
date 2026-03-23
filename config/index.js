@@ -28,6 +28,8 @@ module.exports = {
       crmSyncEnabled: process.env.CRM_SYNC_ENABLED || false, // Enable CRM synchronization
       crmSyncUrl: process.env.CRM_SYNC_URL, // CRM synchronization API URL
       crmSyncApiKey: process.env.CRM_SYNC_API_KEY, // CRM synchronization API key
+      mcpGatewayUrl: process.env.MCP_GATEWAY_URL, // MCP Gateway URL
+      mcpGatewayApiKey: process.env.MCP_GATEWAY_API_KEY, // MCP Gateway API key
     };
   },
 

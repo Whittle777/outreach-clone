@@ -5,6 +5,7 @@ const DnsManager = require('../services/dnsManager');
 const config = require('../config');
 const logger = require('../services/logger');
 const TemporalStateManager = require('../services/temporalStateManager');
+const MCPGateway = require('../services/mcpGateway');
 
 class PredictionService {
   constructor(apiKey, bento) {
@@ -13,6 +14,7 @@ class PredictionService {
     this.apiUrl = 'https://api.example.com/predict'; // Replace with actual API URL
     this.dnsManager = new DnsManager(config.getConfig().dnsApiKey, bento);
     this.temporalStateManager = new TemporalStateManager();
+    this.mcpGateway = new MCPGateway(config.getConfig().mcpGatewayUrl, config.getConfig().mcpGatewayApiKey, 'your-secret-key');
   }
 
   async predict(quarterData) {
@@ -124,6 +126,36 @@ class PredictionService {
     } catch (error) {
       console.error('Failed to update NGOE task queue', error);
       throw new Error('Failed to update NGOE task queue');
+    }
+  }
+
+  async sendToMcpGateway(data) {
+    try {
+      const response = await this.mcpGateway.sendData(data);
+      if (response.success) {
+        logger.info('Data sent to MCP Gateway successfully', { data });
+      } else {
+        logger.error('Failed to send data to MCP Gateway', { data, error: response.error });
+      }
+      return response;
+    } catch (error) {
+      console.error('Error sending data to MCP Gateway', error);
+      throw new Error('Failed to send data to MCP Gateway');
+    }
+  }
+
+  async receiveFromMcpGateway() {
+    try {
+      const response = await this.mcpGateway.receiveData();
+      if (response.success) {
+        logger.info('Data received from MCP Gateway successfully', { data: response.data });
+      } else {
+        logger.error('Failed to receive data from MCP Gateway', { error: response.error });
+      }
+      return response;
+    } catch (error) {
+      console.error('Error receiving data from MCP Gateway', error);
+      throw new Error('Failed to receive data from MCP Gateway');
     }
   }
 }
