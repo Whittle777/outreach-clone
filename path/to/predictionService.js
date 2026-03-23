@@ -4,6 +4,7 @@ const axios = require('axios');
 const DnsManager = require('../services/dnsManager');
 const config = require('../config');
 const logger = require('../services/logger');
+const TemporalStateManager = require('../services/temporalStateManager');
 
 class PredictionService {
   constructor(apiKey, bento) {
@@ -11,6 +12,7 @@ class PredictionService {
     this.bento = bento;
     this.apiUrl = 'https://api.example.com/predict'; // Replace with actual API URL
     this.dnsManager = new DnsManager(config.getConfig().dnsApiKey, bento);
+    this.temporalStateManager = new TemporalStateManager();
   }
 
   async predict(quarterData) {
@@ -55,6 +57,17 @@ class PredictionService {
           throw new Error('Failed to update SPF record after max retries');
         }
       }
+    }
+  }
+
+  async handleHardBounce(prospectId) {
+    try {
+      // Set the state to 'Failed' for the prospect
+      this.temporalStateManager.saveState(`prospect_${prospectId}`, { status: 'Failed' });
+      logger.info('Prospect status updated to Failed', { prospectId });
+    } catch (error) {
+      console.error('Failed to update prospect status to Failed', error);
+      throw new Error('Failed to update prospect status to Failed');
     }
   }
 }
