@@ -24,6 +24,7 @@ module.exports = {
       dnsApiUrl: process.env.DNS_API_URL || 'https://api.example.com/dns', // Default DNS API URL
       dkimPrivateKey: process.env.DKIM_PRIVATE_KEY || generateDkimPrivateKey(),
       dkimSelector: process.env.DKIM_SELECTOR || 'default',
+      dmarcPolicy: process.env.DMARC_POLICY || 'none', // Default DMARC policy
     };
   },
 

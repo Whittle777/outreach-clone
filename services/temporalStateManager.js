@@ -72,7 +72,6 @@ class TemporalStateManager {
   }
 
   loadDetectionResult(transcriptionId) {
-    const key = `detectionResult_${transcriptionId}`;
     return this.loadState(transcriptionId);
   }
 
@@ -87,7 +86,6 @@ class TemporalStateManager {
   }
 
   loadIntentHandlingState(intent) {
-    const key = `intentHandling_${intent}`;
     return this.loadState(intent);
   }
 
@@ -146,7 +144,6 @@ class TemporalStateManager {
   }
 
   loadMicrosoftTeamsCallState(callId) {
-    const key = `microsoftTeamsCall_${callId}`;
     return this.loadState(callId);
   }
 
@@ -204,7 +201,6 @@ class TemporalStateManager {
   }
 
   loadGeographicRoutingState(prospectId) {
-    const key = `geographicRouting_${prospectId}`;
     return this.loadState(key);
   }
 
@@ -220,12 +216,26 @@ class TemporalStateManager {
   }
 
   loadSpfRecordState(domain) {
-    const key = `spfRecord_${domain}`;
     return this.loadState(key);
   }
 
   clearSpfRecordState(domain) {
     const key = `spfRecord_${domain}`;
+    this.clearState(key);
+  }
+
+  // DMARC Record state management
+  saveDmarcRecordState(domain, dmarcPolicy) {
+    const key = `dmarcRecord_${domain}`;
+    this.saveState(key, dmarcPolicy);
+  }
+
+  loadDmarcRecordState(domain) {
+    return this.loadState(key);
+  }
+
+  clearDmarcRecordState(domain) {
+    const key = `dmarcRecord_${domain}`;
     this.clearState(key);
   }
 }
