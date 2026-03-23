@@ -1,4 +1,4 @@
-const prisma = require('../prismaClient');
+const prisma = require('../services/database');
 
 class Prospect {
   static async create(prospectData) {
