@@ -10,6 +10,7 @@ const UnsubscribeEvent = require('../models/unsubscribeEvent'); // Added for uns
 const AIGenerator = require('../services/aiGenerator'); // Added for AI-generated email content
 const logger = require('../services/logger'); // Added for logging
 const dkim = require('nodemailer-dkim');
+const TrackingPixelEvents = require('../models/TrackingPixelEvents'); // Added for tracking pixel events
 
 // Create a transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport(smtpConfig);
@@ -56,6 +57,10 @@ async function sendScheduledEmails() {
         // Update the email status to 'sent' in the database
         await Email.update(prospect.email, { status: 'sent' });
         logger.emailSent(`Email sent to ${prospect.email}`, { emailOptions });
+        // Create a tracking pixel event
+        const trackingPixelEvent = await TrackingPixelEvents.create({ email: prospect.email, prospectId: prospect.id, timestamp: new Date() });
+        // Link tracking pixel event to email activity
+        await EmailActivities.linkTrackingPixelEvent(prospect.email, trackingPixelEvent.id);
       } catch (error) {
         if (error.response && error.response.status === 421) { // Soft bounce
           retryCount++;
@@ -174,6 +179,10 @@ async function sendEmail(emailData) {
       // Update the email status to 'sent' in the database
       await Email.update(emailData.to, { status: 'sent' });
       logger.emailSent(`Email sent to ${emailData.to}`, { emailOptions });
+      // Create a tracking pixel event
+      const trackingPixelEvent = await TrackingPixelEvents.create({ email: emailData.to, prospectId: emailData.prospectId, timestamp: new Date() });
+      // Link tracking pixel event to email activity
+      await EmailActivities.linkTrackingPixelEvent(emailData.to, trackingPixelEvent.id);
     } catch (error) {
       if (error.response && error.response.status === 421) { // Soft bounce
         retryCount++;
