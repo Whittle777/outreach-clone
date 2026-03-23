@@ -3,9 +3,9 @@ const rateLimit = require('./middleware/rateLimiter');
 const config = require('./config');
 
 const app = express();
-const { refillRate, bucketCapacity } = config.getConfig();
+const { rateLimitRefillRate, rateLimitBucketCapacity } = config.getConfig();
 
-app.use(rateLimit(refillRate, bucketCapacity));
+app.use(rateLimit(rateLimitRefillRate, rateLimitBucketCapacity));
 
 // Other routes and middleware
 

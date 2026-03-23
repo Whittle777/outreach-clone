@@ -311,4 +311,17 @@ module.exports = {
     microsoftTeamsIntegration.sendNotification(`STIR/SHAKEN Compliance: ${message}`);
     kafkaProducer.sendToTopic('stir-shaken-compliance', { message, data });
   },
+  rateLimitExceeded: (message, data) => {
+    logger.warn(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'rateLimitExceeded', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'rateLimitExceeded', data: { message, data } });
+    temporalStateManager.saveState('rateLimitExceeded', { message, data });
+    slackIntegration.sendNotification(`Rate Limit Exceeded: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Rate Limit Exceeded: ${message}`);
+    kafkaProducer.sendToTopic('rateLimitExceeded', { message, data });
+  },
 };

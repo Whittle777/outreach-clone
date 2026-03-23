@@ -29,6 +29,8 @@ module.exports = (limit, duration) => {
     const count = await rateLimiter.incrementCount(key);
 
     if (count > rateLimiter.limit) {
+      const logger = require('../services/logger');
+      logger.rateLimitExceeded(`Rate limit exceeded for ${key}`, { count, limit, duration });
       res.status(429).json({ message: 'Too many requests' });
     } else {
       next();
