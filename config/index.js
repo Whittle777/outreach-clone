@@ -25,6 +25,9 @@ module.exports = {
       dkimPrivateKey: process.env.DKIM_PRIVATE_KEY || generateDkimPrivateKey(),
       dkimSelector: process.env.DKIM_SELECTOR || 'default',
       dmarcPolicy: process.env.DMARC_POLICY || 'none', // Default DMARC policy
+      crmSyncEnabled: process.env.CRM_SYNC_ENABLED || false, // Enable CRM synchronization
+      crmSyncUrl: process.env.CRM_SYNC_URL, // CRM synchronization API URL
+      crmSyncApiKey: process.env.CRM_SYNC_API_KEY, // CRM synchronization API key
     };
   },
 
