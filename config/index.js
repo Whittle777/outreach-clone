@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 dotenv.config();
+const redis = require('redis');
 
 module.exports = {
   getConfig: () => {
@@ -53,6 +54,17 @@ module.exports = {
         headerName: process.env.HEADER_BASED_SYNC_HEADER_NAME || 'X-Sync-Header',
         headerValue: process.env.HEADER_BASED_SYNC_HEADER_VALUE || 'sync-value',
       },
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT) || 6379,
+      },
     };
+  },
+  getRedisClient: () => {
+    const config = module.exports.getConfig();
+    return redis.createClient({
+      host: config.redis.host,
+      port: config.redis.port,
+    });
   },
 };

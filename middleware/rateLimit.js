@@ -9,6 +9,7 @@ const { getTeamsResourceAccount } = require('../services/teamsResourceAccount');
 const { uploadAudioFile } = require('../services/audioFileStorage');
 const { AudioFile } = require('../models/AudioFile');
 const MessageBroker = require('../messageBroker');
+const config = require('../config');
 
 async function rateLimit(req, res, next) {
   const { prospectId, bento, trackingPixelData } = req.query;
@@ -25,41 +26,62 @@ async function rateLimit(req, res, next) {
     return res.status(403).json({ message: 'Abuse complaint detected' });
   }
 
-  // Call Go microservice for rate limiting
-  const isAllowed = await callGoMicroservice(prospectId, bento);
+  // Check rate limit using Redis
+  const redis = config.getRedisClient();
+  const key = `rate_limit:${prospectId}:${bento}`;
+  const limit = 100; // Example limit
+  const duration = 60; // Example duration in seconds
 
-  if (isAllowed) {
-    // Check if the request is for a voice agent call
-    if (req.path === '/voice-agent/call') {
-      try {
-        const callResponse = await makeOutboundCall(prospectId, bento);
-        req.callResponse = callResponse;
-        next();
-      } catch (error) {
-        return res.status(500).json({ message: 'Failed to make outbound call' });
-      }
-    } else if (req.path === '/teams-resource-account') {
-      // Check if the request is for a Teams Resource Account operation
-      const teamsResourceAccount = await getTeamsResourceAccount(req.userId, bento);
-      if (!teamsResourceAccount) {
-        return res.status(404).json({ message: 'Teams Resource Account not found' });
-      }
-      next();
-    } else if (req.path === '/upload-audio-file') {
-      // Handle audio file upload
-      if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-      }
-      const fileUrl = await uploadAudioFile(req.file.originalname, req.file.path);
-      const audioFile = await AudioFile.create(req.file, { fileUrl });
-      res.status(201).json(audioFile);
-    } else {
-      next();
+  redis.incr(key, async (err, count) => {
+    if (err) {
+      return res.status(500).json({ message: 'Failed to check rate limit' });
     }
-  } else {
-    handleRateLimitError(prospectId, bento);
-    return res.status(429).json({ message: 'Rate limit exceeded' });
-  }
+
+    if (count === 1) {
+      redis.expire(key, duration);
+    }
+
+    if (count > limit) {
+      handleRateLimitError(prospectId, bento);
+      return res.status(429).json({ message: 'Rate limit exceeded' });
+    }
+
+    // Call Go microservice for rate limiting
+    const isAllowed = await callGoMicroservice(prospectId, bento);
+
+    if (isAllowed) {
+      // Check if the request is for a voice agent call
+      if (req.path === '/voice-agent/call') {
+        try {
+          const callResponse = await makeOutboundCall(prospectId, bento);
+          req.callResponse = callResponse;
+          next();
+        } catch (error) {
+          return res.status(500).json({ message: 'Failed to make outbound call' });
+        }
+      } else if (req.path === '/teams-resource-account') {
+        // Check if the request is for a Teams Resource Account operation
+        const teamsResourceAccount = await getTeamsResourceAccount(req.userId, bento);
+        if (!teamsResourceAccount) {
+          return res.status(404).json({ message: 'Teams Resource Account not found' });
+        }
+        next();
+      } else if (req.path === '/upload-audio-file') {
+        // Handle audio file upload
+        if (!req.file) {
+          return res.status(400).json({ message: 'No file uploaded' });
+        }
+        const fileUrl = await uploadAudioFile(req.file.originalname, req.file.path);
+        const audioFile = await AudioFile.create(req.file, { fileUrl });
+        res.status(201).json(audioFile);
+      } else {
+        next();
+      }
+    } else {
+      handleRateLimitError(prospectId, bento);
+      return res.status(429).json({ message: 'Rate limit exceeded' });
+    }
+  });
 }
 
 module.exports = rateLimit;
