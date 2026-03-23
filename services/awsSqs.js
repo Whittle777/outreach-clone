@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const config = require('../config');
 
 class AwsSqs {
   constructor(queueUrl, accessKeyId, secretAccessKey, region) {
@@ -28,4 +29,9 @@ class AwsSqs {
   }
 }
 
-module.exports = AwsSqs;
+module.exports = new AwsSqs(
+  config.getConfig().awsSqsUrl,
+  config.getConfig().awsAccessKeyId,
+  config.getConfig().awsSecretAccessKey,
+  config.getConfig().geographicRouting.enabled ? config.getConfig().geographicRouting.region : config.getConfig().awsRegion
+);

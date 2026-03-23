@@ -196,6 +196,22 @@ class TemporalStateManager {
   clearConversionRates() {
     this.clearState('conversionRates');
   }
+
+  // Geographic Routing state management
+  saveGeographicRoutingState(prospectId, region) {
+    const key = `geographicRouting_${prospectId}`;
+    this.saveState(key, region);
+  }
+
+  loadGeographicRoutingState(prospectId) {
+    const key = `geographicRouting_${prospectId}`;
+    return this.loadState(key);
+  }
+
+  clearGeographicRoutingState(prospectId) {
+    const key = `geographicRouting_${prospectId}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;

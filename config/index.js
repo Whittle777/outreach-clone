@@ -22,6 +22,10 @@ module.exports = {
         numberOfShards: parseInt(process.env.NUMBER_OF_SHARDS) || 10,
         shardKey: process.env.SHARD_KEY || 'bento',
       },
+      geographicRouting: {
+        enabled: process.env.GEOGRAPHIC_ROUTING_ENABLED === 'true',
+        region: process.env.GEOGRAPHIC_ROUTING_REGION || 'us-west-2',
+      },
     };
   },
 };

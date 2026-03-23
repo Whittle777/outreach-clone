@@ -1,7 +1,7 @@
 const { CallAutomationClient } = require('@azure/communication-callingserver');
 const { ServiceBusClient } = require('@azure/service-bus');
 const logger = require('../services/logger');
-const config = require('../services/config');
+const config = require('../config');
 
 class AzureAcsCallAutomation {
   constructor(connectionString, queueName) {
@@ -50,4 +50,7 @@ class AzureAcsCallAutomation {
   }
 }
 
-module.exports = new AzureAcsCallAutomation(config.azureAcsConnectionString, config.azureAcsQueueName);
+module.exports = new AzureAcsCallAutomation(
+  config.getConfig().azureAcsConnectionString,
+  config.getConfig().azureAcsQueueName
+);
