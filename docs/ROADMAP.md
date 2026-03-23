@@ -9,7 +9,7 @@ Master list of all planned features.
 ## New Features
 
 1. [x] Database Migration: Migrating from MongoDB to PostgreSQL with Prisma ORM
-2. [ ] API Design: RESTful endpoints for CRUD operations on Users, Prospects, and Sequences
+2. [x] API Design: RESTful endpoints for CRUD operations on Users, Prospects, and Sequences
 3. [ ] Multi-Tenant Infrastructure (Phase 2):
    - [x] Cell-Based Sharding
    - [x] Schema Tagging
