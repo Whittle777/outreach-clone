@@ -182,17 +182,29 @@ while True:
             print("\n[SPRINT EMPTY] Tech Lead is extrapolating next feature into Sprint tasks...")
             
             target_feature = ""
+            target_line_idx = -1
+            
+            # 1. READ the roadmap and identify the target without mutating it yet
             with open(ROADMAP_FILE, 'r') as f:
                 lines = f.readlines()
                 
-            with open(ROADMAP_FILE, 'w') as f:
-                task_checked = False
-                for line in lines:
-                    if "- [ ]" in line and not task_checked:
-                        target_feature = line.replace("- [ ]", "").strip() 
-                        line = line.replace("- [ ]", "- [x]", 1)
-                        task_checked = True
-                    f.write(line)
+            for idx, line in enumerate(lines):
+                if "- [ ]" in line:
+                    # Extract the feature and ignore empty checkboxes
+                    extracted = line.replace("- [ ]", "").strip()
+                    if extracted:
+                        target_feature = extracted
+                        target_line_idx = idx
+                        break
+                    else:
+                        # Auto-clear blank tasks so we don't get stuck on them
+                        lines[idx] = line.replace("- [ ]", "- [x]", 1)
+
+            # Save if we cleared any blank tasks, then loop back
+            if target_feature == "":
+                with open(ROADMAP_FILE, 'w') as f:
+                    f.writelines(lines)
+                continue
                     
             print(f"Target Feature: {target_feature}")
             
@@ -201,8 +213,23 @@ while True:
             1. Extrapolate this single feature into a checklist of 3 to 5 highly specific, granular coding micro-tasks.
             2. Write these micro-tasks into SPRINT.md as an unchecked list '- [ ]'.
             DO NOT write application code.
+            CRITICAL: Do not ask for clarification or acknowledge this message. Output the tasks directly to the file immediately.
             """
             run_aider("execution_cluster", planner_prompt, read_files=["docs/ARCHITECTURE.md", ROADMAP_FILE], edit_files=[SPRINT_FILE])
+            
+            # 2. VERIFY the LLM actually did its job before updating the roadmap
+            if check_sprint_has_tasks():
+                print(f"\n[SUCCESS] Tasks generated for: {target_feature}")
+                # Now it is safe to check off the roadmap item
+                lines[target_line_idx] = lines[target_line_idx].replace("- [ ]", "- [x]", 1)
+                
+                with open(ROADMAP_FILE, 'w') as f:
+                    f.writelines(lines)
+                    
+                commit_to_git(f"Roadmap -> Sprint: {target_feature}")
+            else:
+                print("\n[TECH LEAD FAILED] AI failed to generate sprint tasks. Keeping task on roadmap and retrying...")
+                
             continue
             
         # TRIGGER 3: THE CODER

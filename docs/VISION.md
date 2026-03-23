@@ -378,3 +378,7 @@ Thoroughly test ALL features!!!
 Detail all UI Navigation paths in a Read Me!!
 
 Test all features!!
+
+Read all files and make sure they are complete!
+
+Create a README that details how to launce and use app!!!!

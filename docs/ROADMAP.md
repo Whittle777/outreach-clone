@@ -128,3 +128,5 @@ Master list of all planned features.
 - [x] Top Opportunities: Prioritized list of high-value deals nearing close dates
 - [x] Win/Loss Modeling: Conversion rates analyzed by sales stage or forecast category
 - [x] AI Projections: Machine learning models predicting quarterly performance based on historical win rates and seasonality
+
+- [x] Detailed README explaining how to test the application and all application functionality
