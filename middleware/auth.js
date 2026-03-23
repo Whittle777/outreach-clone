@@ -94,4 +94,25 @@ async function authenticateWebhook(req, res, next) {
   next();
 }
 
-module.exports = { authenticateToken, authenticateGoogleWorkspaceToken, authenticateMicrosoftToken, authenticateWebhook };
+function isProtectedRoute(route) {
+  // Define your protected routes here
+  const protectedRoutes = [
+    '/api/users',
+    '/api/prospects',
+    '/api/sequences',
+    // Add other protected routes as needed
+  ];
+  return protectedRoutes.includes(route);
+}
+
+function applyAuthenticationMiddleware(app) {
+  app.use((req, res, next) => {
+    if (isProtectedRoute(req.path)) {
+      authenticateToken(req, res, next);
+    } else {
+      next();
+    }
+  });
+}
+
+module.exports = { authenticateToken, authenticateGoogleWorkspaceToken, authenticateMicrosoftToken, authenticateWebhook, applyAuthenticationMiddleware };

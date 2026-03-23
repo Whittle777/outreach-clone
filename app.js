@@ -13,6 +13,7 @@ const constraintsRouter = require('./routes/constraints');
 const winLossRoutes = require('./routes/winLossRoutes');
 const quarterlyPerformanceRoutes = require('./routes/quarterlyPerformance'); // New routes for quarterly performance
 const jwtValidation = require('./middleware/jwtValidation'); // Import JWT validation middleware
+const authMiddleware = require('./middleware/auth'); // Import auth middleware
 
 const app = express();
 
@@ -45,6 +46,9 @@ app.get('/api/predictions/quarterly', jwtValidation, quarterlyPerformancePredict
 app.post('/call', callRateLimiting, (req, res) => {
   res.json({ message: 'Call allowed' });
 });
+
+// Apply authentication middleware to all protected routes
+authMiddleware.applyAuthenticationMiddleware(app);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
