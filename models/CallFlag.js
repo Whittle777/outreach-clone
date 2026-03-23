@@ -1,5 +1,5 @@
-module.exports = {
-  CallFlag: {
+module.exports = (prisma) => {
+  return {
     async create(data) {
       return await prisma.callFlag.create({ data });
     },
@@ -9,5 +9,5 @@ module.exports = {
     async findUnique(where) {
       return await prisma.callFlag.findUnique({ where });
     },
-  },
+  };
 };

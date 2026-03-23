@@ -18,6 +18,10 @@ module.exports = {
       prisma: {
         url: process.env.DATABASE_URL,
       },
+      sharding: {
+        numberOfShards: parseInt(process.env.NUMBER_OF_SHARDS) || 10,
+        shardKey: process.env.SHARD_KEY || 'bento',
+      },
     };
   },
 };
