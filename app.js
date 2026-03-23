@@ -1,5 +1,5 @@
 const express = require('express');
-const rateLimit = require('./middleware/rateLimit');
+const rateLimit = require('./middleware/rateLimiter');
 const config = require('./config');
 
 const app = express();
