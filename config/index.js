@@ -44,6 +44,10 @@ module.exports = {
         tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
         userInfoUrl: 'https://graph.microsoft.com/oidc/userinfo',
       },
+      webhook: {
+        port: process.env.WEBHOOK_PORT || 3001,
+        path: process.env.WEBHOOK_PATH || '/webhook',
+      },
     };
   },
 };
