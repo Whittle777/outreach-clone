@@ -1,5 +1,6 @@
 const kafka = require('kafka-node');
 const config = require('../config').getConfig();
+const Broadway = require('broadway');
 
 const client = new kafka.KafkaClient({ kafkaHost: config.kafkaHost });
 const producer = new kafka.Producer(client);
@@ -10,6 +11,29 @@ producer.on('ready', () => {
 
 producer.on('error', (err) => {
   console.error('Kafka producer error:', err);
+});
+
+const consumer = new kafka.Consumer(client, [{ topic: 'log', partition: 0 }], {
+  autoCommit: false
+});
+
+const broadway = new Broadway({
+  consumer,
+  processor: (message, done) => {
+    console.log('Processing message:', message.value);
+    // Add your processing logic here
+    done();
+  },
+  batchSize: 10,
+  batchTimeout: 1000
+});
+
+broadway.on('error', (err) => {
+  console.error('Broadway error:', err);
+});
+
+broadway.on('processed', (message) => {
+  console.log('Message processed:', message.value);
 });
 
 module.exports = {
