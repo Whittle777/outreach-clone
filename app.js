@@ -12,6 +12,7 @@ const callRateLimiting = require('./middleware/callRateLimiting');
 const constraintsRouter = require('./routes/constraints');
 const winLossRoutes = require('./routes/winLossRoutes');
 const quarterlyPerformanceRoutes = require('./routes/quarterlyPerformance'); // New routes for quarterly performance
+const jwtValidation = require('./middleware/jwtValidation'); // Import JWT validation middleware
 
 const app = express();
 
@@ -30,14 +31,15 @@ app.use(bodyParser.json());
 // Use data residency middleware
 app.use(dataResidencyMiddleware);
 
-app.use('/api/tts', ttsRoutes);
-app.use('/api/mcpGateway', mcpGatewayRoutes);
-app.use('/constraints', constraintsRouter);
-app.use('/api/winloss', winLossRoutes);
-app.use('/api/quarterlyPerformance', quarterlyPerformanceRoutes); // New routes for quarterly performance
+// Apply JWT validation middleware to protected routes
+app.use('/api/tts', jwtValidation, ttsRoutes);
+app.use('/api/mcpGateway', jwtValidation, mcpGatewayRoutes);
+app.use('/constraints', jwtValidation, constraintsRouter);
+app.use('/api/winloss', jwtValidation, winLossRoutes);
+app.use('/api/quarterlyPerformance', jwtValidation, quarterlyPerformanceRoutes); // New routes for quarterly performance
 
 // New route for quarterly performance predictions
-app.get('/api/predictions/quarterly', quarterlyPerformancePrediction.getPredictions);
+app.get('/api/predictions/quarterly', jwtValidation, quarterlyPerformancePrediction.getPredictions);
 
 // New route for call rate limit enforcement
 app.post('/call', callRateLimiting, (req, res) => {
