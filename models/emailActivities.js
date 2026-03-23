@@ -44,6 +44,20 @@ class EmailActivities {
       return [];
     }
   }
+
+  static async trackLinkClick(email, url) {
+    try {
+      await prisma.emailActivities.create({
+        data: {
+          email,
+          url,
+          clickedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      console.error(`Error tracking link click for ${email}:`, error);
+    }
+  }
 }
 
 module.exports = EmailActivities;

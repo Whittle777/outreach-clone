@@ -35,7 +35,7 @@ async function sendScheduledEmails() {
       from: smtpConfig.auth.user,
       to: prospect.email,
       subject: 'Follow-up from Your Company',
-      html: emailContent,
+      html: wrapLinks(emailContent, prospect.email),
     };
 
     let retryCount = 0;
@@ -153,7 +153,7 @@ async function sendEmail(emailData) {
     from: smtpConfig.auth.user,
     to: emailData.to,
     subject: emailData.subject,
-    html: emailData.html,
+    html: wrapLinks(emailData.html, emailData.to),
   };
 
   let retryCount = 0;
@@ -201,6 +201,14 @@ async function sendEmail(emailData) {
     await Email.update(emailData.to, { status: 'bounced' });
     logger.emailFailed(`Failed to send email to ${emailData.to} after ${retryCount} retries.`, { emailOptions, retryCount });
   }
+}
+
+function wrapLinks(html, email) {
+  const linkPattern = /<a href="([^"]+)">/g;
+  return html.replace(linkPattern, (match, url) => {
+    const wrappedUrl = `${config.getConfig().linkTrackingUrl}?url=${encodeURIComponent(url)}&email=${encodeURIComponent(email)}`;
+    return `<a href="${wrappedUrl}">`;
+  });
 }
 
 module.exports = {
