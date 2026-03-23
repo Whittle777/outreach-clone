@@ -3,12 +3,13 @@ const axios = require('axios');
 class MicrosoftTeamsIntegration {
   constructor(config) {
     this.webhookUrl = config.microsoftTeams.webhookUrl;
+    this.bento = config.bento;
   }
 
   async sendNotification(message) {
     try {
       const response = await axios.post(this.webhookUrl, {
-        text: message
+        text: `${this.bento}: ${message}`
       });
       console.log('Microsoft Teams notification sent successfully:', response.data);
     } catch (error) {
@@ -20,7 +21,7 @@ class MicrosoftTeamsIntegration {
     try {
       const response = await axios.post(this.webhookUrl, {
         channel: channel,
-        text: message,
+        text: `${this.bento}: ${message}`,
         attachments: [{
           contentType: 'application/vnd.microsoft.card.adaptive',
           content: {
@@ -30,7 +31,7 @@ class MicrosoftTeamsIntegration {
             body: [
               {
                 type: 'TextBlock',
-                text: message,
+                text: `${this.bento}: ${message}`,
                 wrap: true
               }
             ],

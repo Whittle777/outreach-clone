@@ -26,6 +26,9 @@ module.exports = {
         enabled: process.env.GEOGRAPHIC_ROUTING_ENABLED === 'true',
         region: process.env.GEOGRAPHIC_ROUTING_REGION || 'us-west-2',
       },
+      tenantIsolation: {
+        enabled: process.env.TENANT_ISOLATION_ENABLED === 'true',
+      },
     };
   },
 };

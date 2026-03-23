@@ -4,6 +4,7 @@ const userService = require('../services/userService');
 const oauthService = require('../services/oauthService'); // New import
 const axios = require('axios');
 const crypto = require('crypto');
+const config = require('../services/config').getConfig();
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];

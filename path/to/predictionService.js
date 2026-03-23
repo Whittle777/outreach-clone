@@ -3,14 +3,15 @@
 const axios = require('axios');
 
 class PredictionService {
-  constructor(apiKey) {
+  constructor(apiKey, bento) {
     this.apiKey = apiKey;
+    this.bento = bento;
     this.apiUrl = 'https://api.example.com/predict'; // Replace with actual API URL
   }
 
   async predict(quarterData) {
     try {
-      const response = await axios.post(this.apiUrl, quarterData, {
+      const response = await axios.post(this.apiUrl, { ...quarterData, bento: this.bento }, {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json'
