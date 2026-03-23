@@ -324,4 +324,17 @@ module.exports = {
     microsoftTeamsIntegration.sendNotification(`Rate Limit Exceeded: ${message}`);
     kafkaProducer.sendToTopic('rateLimitExceeded', { message, data });
   },
+  trackingPixelEvent: (message, data) => {
+    logger.info(message, data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'trackingPixelEvent', data: { message, data } }));
+      }
+    });
+    doubleWriteStrategy.write({ type: 'trackingPixelEvent', data: { message, data } });
+    temporalStateManager.saveState('trackingPixelEvent', { message, data });
+    slackIntegration.sendNotification(`Tracking Pixel Event: ${message}`);
+    microsoftTeamsIntegration.sendNotification(`Tracking Pixel Event: ${message}`);
+    kafkaProducer.sendToTopic('trackingPixelEvent', { message, data });
+  },
 };

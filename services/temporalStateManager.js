@@ -238,6 +238,22 @@ class TemporalStateManager {
     const key = `dmarcRecord_${domain}`;
     this.clearState(key);
   }
+
+  // Tracking Pixel Event state management
+  saveTrackingPixelEvent(prospectId, event) {
+    const key = `trackingPixelEvent_${prospectId}`;
+    this.saveState(key, event);
+  }
+
+  loadTrackingPixelEvent(prospectId) {
+    const key = `trackingPixelEvent_${prospectId}`;
+    return this.loadState(key);
+  }
+
+  clearTrackingPixelEvent(prospectId) {
+    const key = `trackingPixelEvent_${prospectId}`;
+    this.clearState(key);
+  }
 }
 
 module.exports = TemporalStateManager;

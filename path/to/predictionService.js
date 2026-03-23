@@ -70,6 +70,20 @@ class PredictionService {
       throw new Error('Failed to update prospect status to Failed');
     }
   }
+
+  async recordTrackingPixelEvent(prospectId, event) {
+    try {
+      // Save the tracking pixel event to the state manager
+      this.temporalStateManager.saveTrackingPixelEvent(prospectId, event);
+      logger.trackingPixelEvent('Tracking pixel event recorded', { prospectId, event });
+
+      // Send the tracking pixel event to Kafka
+      await kafkaProducer.sendTrackingPixelEventMessage({ prospectId, event });
+    } catch (error) {
+      console.error('Failed to record tracking pixel event', error);
+      throw new Error('Failed to record tracking pixel event');
+    }
+  }
 }
 
 module.exports = PredictionService;

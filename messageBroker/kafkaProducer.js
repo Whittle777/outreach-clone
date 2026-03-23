@@ -67,5 +67,8 @@ module.exports = {
   },
   sendStirShakenComplianceMessage: (message) => {
     return module.exports.sendToTopic('stir-shaken-compliance', message);
+  },
+  sendTrackingPixelEventMessage: (message) => {
+    return module.exports.sendToTopic('trackingPixelEvent', message);
   }
 };
