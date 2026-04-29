@@ -26,9 +26,11 @@ const cron = require('node-cron');
 const { runDueSequenceEmails } = require('./services/sequenceMailer');
 const { runReplyDetection } = require('./services/replyDetector');
 
+const http = require('http');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const prisma = new PrismaClient();
+const server = http.createServer(app);
 
 // Middleware
 app.use(cors());
@@ -68,20 +70,23 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Attach WebSocket to the same HTTP server (shares PORT — required for Railway)
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
+});
+
 // Start Server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`WebSocket server attached on same port`);
 });
 
 // Start consuming messages from SQS
 consumeMessages({
   connectionString: process.env.SERVICE_BUS_CONNECTION_STRING,
   queueName: process.env.SERVICE_BUS_QUEUE_NAME,
-});
-
-// Start the WebSocket server
-wss.on('listening', () => {
-  console.log('WebSocket server is running on ws://localhost:8080');
 });
 
 // ── Sequence email scheduler ─────────────────────────────────────────────────
