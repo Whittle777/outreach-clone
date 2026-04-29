@@ -33,14 +33,9 @@ exports.createSequence = [
   enforceSchemaTag,
   async (req, res) => {
     try {
-      const { userId, name, interval, nextRun } = req.body;
+      const { name } = req.body;
       const sequence = await prisma.sequence.create({
-        data: {
-          userId: userId || 1,
-          name,
-          interval,
-          nextRun,
-        },
+        data: { name, userId: req.userId, schemaTag: req.body.schemaTag || 'default' },
       });
       res.status(201).json(sequence);
     } catch (error) {

@@ -2,23 +2,34 @@ import React, { useState } from 'react';
 import api from '../services/api';
 
 const Login = () => {
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
+  const [mode, setMode]           = useState('login');
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [name, setName]           = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState('');
+  const [success, setSuccess]     = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
-      if (res.data?.token) {
-        localStorage.setItem('token', res.data.token);
-        window.location.href = '/';
+      if (mode === 'login') {
+        const res = await api.post('/auth/login', { email, password });
+        if (res.data?.token) {
+          localStorage.setItem('token', res.data.token);
+          window.location.href = '/';
+        }
+      } else {
+        await api.post('/auth/register', { email, password, name });
+        setSuccess('Account created! You can now sign in.');
+        setMode('login');
+        setName('');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password.');
+      setError(err.response?.data?.message || (mode === 'login' ? 'Invalid email or password.' : 'Registration failed.'));
     } finally {
       setLoading(false);
     }
@@ -56,11 +67,22 @@ const Login = () => {
           }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%)' }} />
           </div>
-          <h2 style={{ marginBottom: 4 }}>Welcome back</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>Sign in to Outreach.ai</p>
+          <h2 style={{ marginBottom: 4 }}>
+            {mode === 'login' ? 'Welcome back' : 'Create account'}
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
+            {mode === 'login' ? 'Sign in to Outreach.ai' : 'Join Outreach.ai'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {mode === 'register' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Full name <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span></label>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" style={{ width: '100%' }} autoComplete="name" />
+            </div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" required style={{ width: '100%' }} autoComplete="email" />
@@ -68,7 +90,7 @@ const Login = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={{ width: '100%' }} autoComplete="current-password" />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={{ width: '100%' }} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
           </div>
 
           {error && (
@@ -77,14 +99,36 @@ const Login = () => {
             </div>
           )}
 
+          {success && (
+            <div style={{ padding: '10px 14px', background: 'var(--status-success-dim)', border: '1px solid var(--status-success-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-success)', fontSize: '0.85rem' }}>
+              {success}
+            </div>
+          )}
+
           <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', fontSize: '0.95rem', fontWeight: 700, marginTop: 6, opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Signing in…' : 'Sign In →'}
+            {loading
+              ? (mode === 'login' ? 'Signing in…' : 'Creating account…')
+              : (mode === 'login' ? 'Sign In →' : 'Create Account →')
+            }
           </button>
         </form>
 
         <p style={{ textAlign: 'center', marginTop: 20, fontSize: '0.8rem', color: 'var(--text-muted)', position: 'relative' }}>
-          No account?{' '}
-          <a href="#" style={{ color: 'var(--accent-light)', fontWeight: 600 }}>Request access</a>
+          {mode === 'login' ? (
+            <>
+              No account?{' '}
+              <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setSuccess(''); setMode('register'); }} style={{ color: 'var(--accent-light)', fontWeight: 600 }}>
+                Create one
+              </a>
+            </>
+          ) : (
+            <>
+              Already have an account?{' '}
+              <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setSuccess(''); setMode('login'); }} style={{ color: 'var(--accent-light)', fontWeight: 600 }}>
+                Sign in
+              </a>
+            </>
+          )}
         </p>
       </div>
     </div>

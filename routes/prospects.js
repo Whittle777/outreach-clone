@@ -3,7 +3,10 @@ const router = express.Router();
 const { GoogleGenAI } = require('@google/genai');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { authenticateToken } = require('../middleware/auth');
 const { createProspect, createProspectsBulk, getProspectById, getAllProspects, updateProspect, deleteProspect, getFilterChips, filterProspects, getTopOpportunities, recordWin, recordLoss, handleListUnsubscribe } = require('../controllers/prospectsController');
+
+router.use(authenticateToken);
 
 // ── IMPORTANT: specific paths BEFORE generic /:id ────────────────────────────
 
@@ -64,7 +67,7 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const prospect = await createProspect(req.body);
+    const prospect = await createProspect({ ...req.body, ownedById: req.userId });
     res.status(201).json(prospect);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -87,7 +90,8 @@ router.post('/bulk', async (req, res) => {
     if (!prospects || !Array.isArray(prospects)) {
       return res.status(400).json({ message: 'Invalid prospects array' });
     }
-    const result = await createProspectsBulk(prospects);
+    const prospectsWithOwner = prospects.map(p => ({ ...p, ownedById: req.userId }));
+    const result = await createProspectsBulk(prospectsWithOwner);
     res.status(201).json(result);
   } catch (error) {
     res.status(400).json({ message: error.message });

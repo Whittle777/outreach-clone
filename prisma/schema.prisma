@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,100 +10,99 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id             Int                    @id @default(autoincrement())
+  username       String                 @unique
+  email          String                 @unique
+  password       String
+  name           String?
+  createdAt      DateTime               @default(now())
+  sequences      Sequence[]
+  ownedProspects Prospect[]             @relation("ProspectOwner")
+  ownedAccounts  Account[]
+}
+
+model Account {
+  id          Int        @id @default(autoincrement())
+  name        String
+  domain      String?
+  website     String?
+  industry    String?
+  subIndustry String?
+  revenue     String?    // e.g. "$10M–$50M"
+  employees   String?    // e.g. "100–500"
+  country     String?
+  region      String?
+  city        String?
+  description String?
+  notes       String?
+  status      String     @default("prospect") // prospect | customer | churned | partner
+  tier        String?    // enterprise | mid-market | smb
+  techStack   String?
+  tags        String?    // JSON array
+  linkedInUrl String?
+  twitterUrl  String?
+  foundedYear Int?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  prospects   Prospect[]
+  owners      User[]
+}
+
+model Prospect {
+  id                  Int                  @id @default(autoincrement())
+  firstName           String
+  lastName            String
+  email               String               @unique
+  companyName         String?
+  title               String?
+  phone               String?
+  enrichmentStatus    String               @default("pending")
+  status              String               @default("Uncontacted")
+  notes               String?
+  country             String?
+  region              String?
+  techStack           String?
+  tags                String?   // JSON array of strings e.g. '["enterprise","Q2-target"]'
+  trackingPixelData   String?   // JSON string — legacy enrichment data (phone, linkedIn, timezone)
+  accountId           Int?
+  account             Account?             @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  ownedById           Int?
+  owner               User?                @relation("ProspectOwner", fields: [ownedById], references: [id], onDelete: SetNull)
+  createdAt           DateTime             @default(now())
+  sequenceEnrollments SequenceEnrollment[]
+  emailActivities     EmailActivity[]
+  callActivities      CallActivity[]
+  replyActivities     ReplyActivity[]
+  meetingActivities   MeetingActivity[]
+}
+
 model Sequence {
   id                  Int                  @id @default(autoincrement())
-  userId              Int
   name                String
-  bento               String
-  schemaTag           String               @default("default")
-  interval            Int?
-  nextRun             DateTime?
+  userId              Int
+  user                User                 @relation(fields: [userId], references: [id])
   steps               SequenceStep[]
   prospectEnrollments SequenceEnrollment[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  schemaTag           String               @default("default")
 }
 
 model SequenceStep {
-  id            Int             @id @default(autoincrement())
-  sequenceId    Int
-  order         Int
-  delayDays     Int
-  subject       String
-  body          String
-  bento         String
-  schemaTag     String          @default("default")
-  scheduledTime DateTime?
-  state         String          @default("pending")
-  sequence      Sequence        @relation(fields: [sequenceId], references: [id])
-  activities    EmailActivity[]
-}
-
-model Prospect {
-  id           Int       @id @default(autoincrement())
-  firstName    String
-  lastName     String
-  email        String
-  companyName  String
-  title        String?   // New field for job title
-  techStack    String?   // New field for technology stack (comma separated)
-  enrichmentStatus String @default("pending") // New field for ZoomInfo scrape state
-  status       String
-  bento        String
-  dmarcPolicy  String    @default("none")
-  trackingPixelData Json? // New field for tracking pixel data
-  country      String?   // New field for country
-  region       String?   // New field for region
-  notes        String?   // Research and call notes (call notes are appended here)
-  lists               ProspectList[]
-  emailActivities     EmailActivity[]
-  voiceAgentCalls     VoiceAgentCall[]
-  sequenceEnrollments SequenceEnrollment[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-}
-
-model ProspectList {
-  id          Int        @id @default(autoincrement())
-  title       String
-  description String?
-  prospects   Prospect[] 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
-
-model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
-  password     String
-  accessToken  String?
-  refreshToken String?
-  microsoftAccessToken String?
-  microsoftRefreshToken String?
-  sequences    Sequence[]
-  prospects    Prospect[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-}
-
-model EmailActivity {
-  id             Int                 @id @default(autoincrement())
-  prospectId     Int
-  sequenceStepId Int
-  enrollmentId   Int?
-  status         String              // queued | sent | opened | clicked | replied | bounced | failed
-  subject        String?
-  bento          String
-  sentAt         DateTime?
-  openedAt       DateTime?
-  clickedAt      DateTime?
-  repliedAt      DateTime?
-  bouncedAt      DateTime?
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  prospect       Prospect            @relation(fields: [prospectId], references: [id])
-  sequenceStep   SequenceStep        @relation(fields: [sequenceStepId], references: [id])
-  enrollment     SequenceEnrollment? @relation(fields: [enrollmentId], references: [id])
+  id              Int             @id @default(autoincrement())
+  sequenceId      Int
+  sequence        Sequence        @relation(fields: [sequenceId], references: [id])
+  order           Int
+  stepType        String          @default("AUTO_EMAIL")
+  delayDays       Int
+  subject         String          @default("")
+  body            String          @default("")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  schemaTag       String          @default("default")
+  emailActivities EmailActivity[]
+  callActivities  CallActivity[]
 }
 
 model SequenceEnrollment {
@@ -109,70 +111,112 @@ model SequenceEnrollment {
   sequenceId       Int
   currentStepOrder Int             @default(0)
   status           String          @default("active")
-  // status: active | paused | completed | opted_out | replied | bounced | failed
-  enrolledAt       DateTime        @default(now())
-  lastContactedAt  DateTime?
   nextStepDue      DateTime?
+  lastContactedAt  DateTime?
   completedAt      DateTime?
   optedOutAt       DateTime?
   pausedAt         DateTime?
   pausedReason     String?
-  prospect         Prospect        @relation(fields: [prospectId], references: [id], onDelete: Cascade)
-  sequence         Sequence        @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
-  activities       EmailActivity[]
+  resumeAt         DateTime?
+  enrolledAt       DateTime        @default(now())
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
+  emailActivities   EmailActivity[]
+  callActivities    CallActivity[]
+  replyActivities   ReplyActivity[]
+  meetingActivities MeetingActivity[]
+
+  prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  sequence Sequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
 
   @@unique([prospectId, sequenceId])
 }
 
-model TrackingPixelEvent {
+model EmailActivity {
+  id                Int       @id @default(autoincrement())
+  prospectId        Int
+  sequenceStepId    Int
+  enrollmentId      Int
+  status            String    @default("sent")  // sent | opened | failed | cancelled
+  subject           String    @default("")
+  scheduledFor      DateTime?
+  sentAt            DateTime?
+  openedAt          DateTime?
+  failureReason     String?
+  externalMessageId String?   // Nodemailer Message-ID for In-Reply-To matching
+  createdAt         DateTime  @default(now())
+
+  prospect     Prospect           @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  sequenceStep SequenceStep       @relation(fields: [sequenceStepId], references: [id], onDelete: Cascade)
+  enrollment   SequenceEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+}
+
+model CallActivity {
+  id             Int       @id @default(autoincrement())
+  prospectId     Int
+  sequenceStepId Int?
+  enrollmentId   Int?
+  // planned | completed | skipped | no_answer | voicemail | connected | cancelled
+  status         String    @default("planned")
+  scheduledFor   DateTime?
+  completedAt    DateTime?
+  durationSecs   Int?
+  notes          String?
+  outcome        String?   // connected | voicemail | no_answer | left_message
+  createdAt      DateTime  @default(now())
+
+  prospect     Prospect            @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  sequenceStep SequenceStep?       @relation(fields: [sequenceStepId], references: [id], onDelete: SetNull)
+  enrollment   SequenceEnrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+}
+
+model ReplyActivity {
+  id                Int       @id @default(autoincrement())
+  prospectId        Int
+  enrollmentId      Int
+  sequenceId        Int
+  fromEmail         String
+  subject           String
+  bodySnippet       String?
+  // ooo | genuine_reply | bounce | unsubscribe | unknown
+  classification    String
+  oooReturnDate     DateTime?
+  externalMessageId String?   // Message-ID of the reply, for deduplication
+  receivedAt        DateTime
+  processedAt       DateTime?
+  createdAt         DateTime  @default(now())
+
+  prospect   Prospect           @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  enrollment SequenceEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+}
+
+model MeetingActivity {
   id           Int       @id @default(autoincrement())
   prospectId   Int
-  bento        String
-  trackingPixelData Json
+  enrollmentId Int?
+  title        String    @default("Meeting")
+  scheduledFor DateTime
+  durationMins Int?
+  outcome      String?   // completed | no_show | rescheduled | cancelled
+  notes        String?
+  source       String    @default("manual") // manual | call_outcome
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  prospect     Prospect  @relation(fields: [prospectId], references: [id])
+
+  prospect   Prospect            @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  enrollment SequenceEnrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
 }
 
-model Deal {
-  id         Int       @id @default(autoincrement())
-  value      Float
-  closeDate  DateTime
-  status     String
-  bento      String
-  schemaTag  String    @default("default")
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-}
+model IntegrationCredential {
+  id           Int      @id @default(autoincrement())
+  provider     String
+  clientId     String
+  clientSecret String
+  refreshToken String?
+  email        String?
+  userId       Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-model VoiceAgentCall {
-  id                     Int       @id @default(autoincrement())
-  prospectId             Int
-  callStatus             String
-  preGeneratedScript     String
-  ttsAudioFileUrl        String
-  callTranscript         String
-  bento                  String
-  ipAddress              String
-  teamsResourceAccountObjectId String
-  hasResistanceOrRegulatoryFlag Boolean @default(false)
-  callNotes              String?   // Rep notes entered after the call
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
-  prospect               Prospect  @relation(fields: [prospectId], references: [id])
-}
-
-model TimeBlockConfig {
-  id                     Int       @id @default(autoincrement())
-  startTime              DateTime
-  endTime                DateTime
-  daysOfWeek             String[]  // Array of days of the week (e.g., ["Monday", "Tuesday"])
-  holidayExclusions      String[]  // Array of holiday names or dates
-  userOrTeamAssociation  String    // User or team identifier
-  bento                  String
-  activeStatus           Boolean   @default(true)
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  @@unique([provider, userId])
 }

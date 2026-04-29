@@ -1,14 +1,12 @@
-/** @type {import('vite').UserConfig} */
-module.exports = {
-  build: {
-    chunkSizeWarningLimit: 600,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-data': ['axios', 'papaparse'],
-        },
-      },
-    },
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
   },
-};
+  build: {
+    outDir: 'dist',
+  },
+})

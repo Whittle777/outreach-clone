@@ -5,14 +5,14 @@ const Anthropic = require('@anthropic-ai/sdk');
 const nodemailer = require('nodemailer');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { authenticateToken } = require('../middleware/auth');
 
-// Note: Using a hardcoded userId = 1 for the prototype just like sequences
-const USER_ID = 1; 
+router.use(authenticateToken);
 
 router.get('/', async (req, res) => {
   try {
     const creds = await prisma.integrationCredential.findMany({
-      where: { userId: USER_ID }
+      where: { userId: req.userId }
     });
     res.json(creds);
   } catch (err) {
@@ -74,9 +74,9 @@ router.post('/', async (req, res) => {
   // PROCEED TO SAVE
   try {
     const cred = await prisma.integrationCredential.upsert({
-      where: { provider_userId: { provider, userId: USER_ID } },
+      where: { provider_userId: { provider, userId: req.userId } },
       update: { clientId, clientSecret, refreshToken, email },
-      create: { provider, clientId, clientSecret, refreshToken, email, userId: USER_ID }
+      create: { provider, clientId, clientSecret, refreshToken, email, userId: req.userId }
     });
     res.json(cred);
   } catch (err) {
@@ -88,7 +88,7 @@ router.delete('/:provider', async (req, res) => {
   const { provider } = req.params;
   try {
     await prisma.integrationCredential.delete({
-      where: { provider_userId: { provider, userId: USER_ID } }
+      where: { provider_userId: { provider, userId: req.userId } }
     });
     res.json({ success: true });
   } catch (err) {

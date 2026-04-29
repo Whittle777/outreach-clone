@@ -23,6 +23,15 @@ import TourOverlay, { useTourAutoStart, TOUR_LS_KEY } from './components/TourOve
 import DemoMode from './components/DemoMode';
 import api from './services/api';
 
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = '/login';
+    return null;
+  }
+  return children;
+};
+
 // ─── localStorage keys — must match PowerDialerView.jsx ────────────────────
 // CALL_TS_KEY is written by PowerDialerView every time a dial is initiated and
 // read here to compute the "calls today" progress bar in the sidebar.
@@ -532,6 +541,13 @@ function AppInner() {
             >
               🎬 Demo
             </button>
+            <button
+              onClick={() => { localStorage.removeItem('token'); window.location.href = '/login'; }}
+              style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '6px 12px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem' }}
+              title="Sign out"
+            >
+              Sign out
+            </button>
           </div>
         </div>
       </nav>
@@ -580,22 +596,22 @@ function AppInner() {
 
         <div className={`page-content${isFullHeight ? ' full-height' : ''}`}>
           <Routes>
-            <Route path="/"                 element={<Dashboard />} />
             <Route path="/login"            element={<Login />} />
-            <Route path="/prospects"        element={<Prospects />} />
-            <Route path="/sequence-steps"   element={<SequenceSteps />} />
-            <Route path="/ws"               element={<WebsocketViewer />} />
-            <Route path="/dialer"           element={<PowerDialerView />} />
-            <Route path="/sequence-manager" element={<SequenceManager />} />
-            <Route path="/integrations"     element={<Integrations />} />
-            <Route path="/hitl"             element={<HITLReviewView />} />
-            <Route path="/analytics"        element={<AnalyticsDashboard />} />
-            <Route path="/deliverability"   element={<DeliverabilityGate />} />
-            <Route path="/voice-fleet"      element={<VoiceFleetCommand />} />
-            <Route path="/tasks"            element={<TaskInbox />} />
-            <Route path="/success-plans"    element={<SuccessPlans />} />
-            <Route path="/voice-agent"      element={<VoiceAgentLanding />} />
-            <Route path="/accounts"         element={<Accounts />} />
+            <Route path="/"                 element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/prospects"        element={<ProtectedRoute><Prospects /></ProtectedRoute>} />
+            <Route path="/sequence-steps"   element={<ProtectedRoute><SequenceSteps /></ProtectedRoute>} />
+            <Route path="/ws"               element={<ProtectedRoute><WebsocketViewer /></ProtectedRoute>} />
+            <Route path="/dialer"           element={<ProtectedRoute><PowerDialerView /></ProtectedRoute>} />
+            <Route path="/sequence-manager" element={<ProtectedRoute><SequenceManager /></ProtectedRoute>} />
+            <Route path="/integrations"     element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
+            <Route path="/hitl"             element={<ProtectedRoute><HITLReviewView /></ProtectedRoute>} />
+            <Route path="/analytics"        element={<ProtectedRoute><AnalyticsDashboard /></ProtectedRoute>} />
+            <Route path="/deliverability"   element={<ProtectedRoute><DeliverabilityGate /></ProtectedRoute>} />
+            <Route path="/voice-fleet"      element={<ProtectedRoute><VoiceFleetCommand /></ProtectedRoute>} />
+            <Route path="/tasks"            element={<ProtectedRoute><TaskInbox /></ProtectedRoute>} />
+            <Route path="/success-plans"    element={<ProtectedRoute><SuccessPlans /></ProtectedRoute>} />
+            <Route path="/voice-agent"      element={<ProtectedRoute><VoiceAgentLanding /></ProtectedRoute>} />
+            <Route path="/accounts"         element={<ProtectedRoute><Accounts /></ProtectedRoute>} />
           </Routes>
         </div>
       </main>

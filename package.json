@@ -6,9 +6,13 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "build": "echo 'Build script executed'",
+    "build": "cd frontend && npm install && npm run build",
+    "railway:deploy": "npm run build && npx prisma migrate deploy",
     "postinstall": "prisma generate",
     "test": "dotenv -e .env.test -- npx prisma db push --skip-generate && dotenv -e .env.test -- jest"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",

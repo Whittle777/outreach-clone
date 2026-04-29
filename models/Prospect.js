@@ -11,7 +11,7 @@ class Prospect {
     const ALLOWED_FIELDS = new Set([
       'firstName', 'lastName', 'email', 'companyName', 'title', 'phone',
       'enrichmentStatus', 'status', 'notes', 'country', 'region',
-      'techStack', 'tags', 'trackingPixelData',
+      'techStack', 'tags', 'trackingPixelData', 'ownedById',
     ]);
     const sanitized = prospectsArray.map(p =>
       Object.fromEntries(Object.entries(p).filter(([k]) => ALLOWED_FIELDS.has(k)))
@@ -34,7 +34,8 @@ class Prospect {
       include: {
         _count: {
           select: { sequenceEnrollments: true }
-        }
+        },
+        owner: { select: { id: true, name: true, email: true } },
       }
     });
   }
@@ -50,7 +51,8 @@ class Prospect {
             replyActivities:     true,
             meetingActivities:   true,
           }
-        }
+        },
+        owner: { select: { id: true, name: true, email: true } },
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -69,19 +71,6 @@ class Prospect {
     });
   }
 
-  static async markProspectAsFailed(email, bento) {
-    return await prisma.prospect.update({
-      where: { email },
-      data: { status: 'failed', bento },
-    });
-  }
-
-  static async updateScore(id, score) {
-    return await prisma.prospect.update({
-      where: { id: parseInt(id) },
-      data: { score },
-    });
-  }
 }
 
 module.exports = Prospect;

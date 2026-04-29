@@ -1,16 +1,21 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const userService = require('../services/userService');
-const oauthService = require('../services/oauthService'); // New import
 const axios = require('axios');
 const crypto = require('crypto');
 const config = require('../config/index').getConfig();
 const { GoogleOAuth2, MicrosoftOAuth2 } = require('../auth/oauth2');
 
 function authenticateToken(req, res, next) {
-  // BYPASS AUTH FOR LOCAL PROTOTYPING
-  req.userId = 1;
-  next();
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Authentication required' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.userId;
+    next();
+  } catch {
+    return res.status(403).json({ message: 'Invalid or expired token' });
+  }
 }
 
 async function authenticateGoogleWorkspaceToken(req, res, next) {

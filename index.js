@@ -55,9 +55,18 @@ app.use('/reply-activities', replyActivitiesRouter);
 app.use('/meeting-activities', meetingActivitiesRouter);
 app.use('/accounts', accountsRouter);
 
-app.get('/', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Outreach Clone API' });
 });
+
+// Serve built frontend in production
+const path = require('path');
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'frontend/dist')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/dist/index.html'));
+  });
+}
 
 // Start Server
 app.listen(PORT, () => {

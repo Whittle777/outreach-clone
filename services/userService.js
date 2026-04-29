@@ -1,14 +1,27 @@
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const prisma = require('../prismaClient');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
-async function registerUser(email, password, bento) {
+async function registerUser(email, password, name) {
   const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Auto-generate username from the email local part
+  let baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '');
+  let username = baseUsername;
+
+  // Append a random 4-digit suffix if the username is already taken
+  const existing = await prisma.user.findUnique({ where: { username } });
+  if (existing) {
+    const suffix = Math.floor(1000 + Math.random() * 9000);
+    username = `${baseUsername}${suffix}`;
+  }
+
   const user = await prisma.user.create({
     data: {
       email,
       password: hashedPassword,
-      bento,
+      username,
+      name: name || null,
     },
   });
   return user;
@@ -28,77 +41,10 @@ async function loginUser(email, password) {
     return null;
   }
 
-  const token = jwt.sign({ userId: user.id, bento: user.bento }, 'your-secret-key', { expiresIn: '1h' });
-  return { user, token };
-}
-
-async function getAllUsers() {
-  return await prisma.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      createdAt: true,
-      bento: true,
-    },
-  });
-}
-
-async function getUserById(id) {
-  return await prisma.user.findUnique({
-    where: { id: parseInt(id) },
-    select: {
-      id: true,
-      email: true,
-      createdAt: true,
-      bento: true,
-    },
-  });
-}
-
-async function updateUser(id, email, password, bento) {
-  const existingUser = await prisma.user.findUnique({ where: { id: parseInt(id) } });
-  if (!existingUser) {
-    return null;
-  }
-
-  // Check if email is already taken by another user
-  if (email && email !== existingUser.email) {
-    const emailExists = await prisma.user.findUnique({ where: { email } });
-    if (emailExists) {
-      return null;
-    }
-  }
-
-  // Hash new password if provided
-  let hashedPassword = existingUser.password;
-  if (password) {
-    hashedPassword = await bcrypt.hash(password, 10);
-  }
-
-  return await prisma.user.update({
-    where: { id: parseInt(id) },
-    data: { email, password: hashedPassword, bento },
-  });
-}
-
-async function deleteUser(id) {
-  const existingUser = await prisma.user.findUnique({ where: { id: parseInt(id) } });
-  if (!existingUser) {
-    return null;
-  }
-
-  await prisma.user.delete({
-    where: { id: parseInt(id) },
-  });
-
-  return existingUser;
+  return user;
 }
 
 module.exports = {
   registerUser,
   loginUser,
-  getAllUsers,
-  getUserById,
-  updateUser,
-  deleteUser,
 };

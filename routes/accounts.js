@@ -23,6 +23,7 @@ const accountIncludes = {
     orderBy: { createdAt: 'desc' },
   },
   _count: { select: { prospects: true } },
+  owners: { select: { id: true, name: true, email: true } },
 };
 
 // GET /accounts — list all with prospect count
@@ -31,6 +32,7 @@ router.get('/', async (req, res) => {
     const accounts = await prisma.account.findMany({
       include: {
         _count: { select: { prospects: true } },
+        owners: { select: { id: true, name: true, email: true } },
       },
       orderBy: { name: 'asc' },
     });
@@ -60,10 +62,43 @@ router.post('/', async (req, res) => {
   if (!data.name) return res.status(400).json({ message: 'name is required' });
   try {
     const account = await prisma.account.create({
-      data,
+      data: {
+        ...data,
+        owners: { connect: [{ id: req.userId }] },
+      },
       include: accountIncludes,
     });
     res.status(201).json(account);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// POST /accounts/:id/owners — add an owner
+router.post('/:id/owners', async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ message: 'userId required' });
+  try {
+    const account = await prisma.account.update({
+      where: { id: parseInt(req.params.id) },
+      data: { owners: { connect: { id: parseInt(userId) } } },
+      include: accountIncludes,
+    });
+    res.json(account);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// DELETE /accounts/:id/owners/:ownerId — remove an owner
+router.delete('/:id/owners/:ownerId', async (req, res) => {
+  try {
+    const account = await prisma.account.update({
+      where: { id: parseInt(req.params.id) },
+      data: { owners: { disconnect: { id: parseInt(req.params.ownerId) } } },
+      include: accountIncludes,
+    });
+    res.json(account);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

@@ -103,7 +103,7 @@ router.post('/load', async (req, res) => {
     // 3. Create prospects
     const createdProspects = [];
     for (const p of PROSPECTS) {
-      const prospect = await prisma.prospect.create({ data: p });
+      const prospect = await prisma.prospect.create({ data: { ...p, ownedById: req.userId } });
       createdProspects.push(prospect);
     }
 
@@ -113,7 +113,7 @@ router.post('/load', async (req, res) => {
       const seq = await prisma.sequence.create({
         data: {
           name: seqDef.name,
-          userId: user.id,
+          userId: req.userId,
           steps: { create: seqDef.steps },
         },
         include: { steps: { orderBy: { order: 'asc' } } },
