@@ -1,4 +1,4 @@
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const moment = require('moment');
 
 const callRateLimiting = (req, res, next) => {

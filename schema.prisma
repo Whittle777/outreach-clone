@@ -1,53 +1,216 @@
 // This is your Prisma schema file,
-// learn more about it in the Prisma docs: https://pris.ly/d/prisma-schema
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
+  id        Int        @id @default(autoincrement())
+  username  String     @unique
+  email     String     @unique
   password  String
-  createdAt DateTime @default(now())
+  createdAt DateTime   @default(now())
+  sequences Sequence[]
+}
+
+model Account {
+  id            Int        @id @default(autoincrement())
+  name          String
+  domain        String?
+  website       String?
+  industry      String?
+  subIndustry   String?
+  revenue       String?    // e.g. "$10M–$50M"
+  employees     String?    // e.g. "100–500"
+  country       String?
+  region        String?
+  city          String?
+  description   String?
+  notes         String?
+  status        String     @default("prospect") // prospect | customer | churned | partner
+  tier          String?    // enterprise | mid-market | smb
+  techStack     String?
+  tags          String?    // JSON array
+  linkedInUrl   String?
+  twitterUrl    String?
+  foundedYear   Int?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  prospects     Prospect[]
 }
 
 model Prospect {
-  id          Int      @id @default(autoincrement())
-  firstName   String
-  lastName    String
-  email       String   @unique
-  companyName String?
-  status      String   @default("Uncontacted")
-  createdAt   DateTime @default(now())
+  id                  Int                  @id @default(autoincrement())
+  firstName           String
+  lastName            String
+  email               String               @unique
+  companyName         String?
+  title               String?
+  phone               String?
+  enrichmentStatus    String               @default("pending")
+  status              String               @default("Uncontacted")
+  notes               String?
+  country             String?
+  region              String?
+  techStack           String?
+  tags                String?   // JSON array of strings e.g. '["enterprise","Q2-target"]'
+  trackingPixelData   String?   // JSON string — legacy enrichment data (phone, linkedIn, timezone)
+  accountId           Int?
+  account             Account?             @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  createdAt           DateTime             @default(now())
+  sequenceEnrollments SequenceEnrollment[]
+  emailActivities     EmailActivity[]
+  callActivities      CallActivity[]
+  replyActivities     ReplyActivity[]
+  meetingActivities   MeetingActivity[]
 }
 
 model Sequence {
-  id          Int          @id @default(autoincrement())
-  name        String
-  userId      Int
-  user        User         @relation(fields: [userId], references: [id])
-  steps       SequenceStep []
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  schemaTag   String       @default("default")
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  userId              Int
+  user                User                 @relation(fields: [userId], references: [id])
+  steps               SequenceStep[]
+  prospectEnrollments SequenceEnrollment[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  schemaTag           String               @default("default")
 }
 
 model SequenceStep {
-  id          Int          @id @default(autoincrement())
-  sequenceId  Int
-  sequence    Sequence     @relation(fields: [sequenceId], references: [id])
-  order       Int
-  delayDays   Int
-  subject     String
-  body        String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  schemaTag   String       @default("default")
+  id              Int             @id @default(autoincrement())
+  sequenceId      Int
+  sequence        Sequence        @relation(fields: [sequenceId], references: [id])
+  order           Int
+  stepType        String          @default("AUTO_EMAIL")
+  delayDays       Int
+  subject         String          @default("")
+  body            String          @default("")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  schemaTag       String          @default("default")
+  emailActivities EmailActivity[]
+  callActivities  CallActivity[]
+}
+
+model SequenceEnrollment {
+  id               Int             @id @default(autoincrement())
+  prospectId       Int
+  sequenceId       Int
+  currentStepOrder Int             @default(0)
+  status           String          @default("active")
+  nextStepDue      DateTime?
+  lastContactedAt  DateTime?
+  completedAt      DateTime?
+  optedOutAt       DateTime?
+  pausedAt         DateTime?
+  pausedReason     String?
+  resumeAt         DateTime?
+  enrolledAt       DateTime        @default(now())
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  emailActivities   EmailActivity[]
+  callActivities    CallActivity[]
+  replyActivities   ReplyActivity[]
+  meetingActivities MeetingActivity[]
+
+  prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  sequence Sequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+
+  @@unique([prospectId, sequenceId])
+}
+
+model EmailActivity {
+  id             Int       @id @default(autoincrement())
+  prospectId     Int
+  sequenceStepId Int
+  enrollmentId   Int
+  status         String    @default("sent")  // sent | opened | failed | cancelled
+  subject        String    @default("")
+  scheduledFor   DateTime?
+  sentAt         DateTime?
+  openedAt       DateTime?
+  failureReason     String?
+  externalMessageId String?   // Nodemailer Message-ID for In-Reply-To matching
+  createdAt         DateTime  @default(now())
+
+  prospect     Prospect           @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  sequenceStep SequenceStep       @relation(fields: [sequenceStepId], references: [id], onDelete: Cascade)
+  enrollment   SequenceEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+}
+
+model CallActivity {
+  id             Int       @id @default(autoincrement())
+  prospectId     Int
+  sequenceStepId Int?
+  enrollmentId   Int?
+  // planned | completed | skipped | no_answer | voicemail | connected | cancelled
+  status         String    @default("planned")
+  scheduledFor   DateTime?
+  completedAt    DateTime?
+  durationSecs   Int?
+  notes          String?
+  outcome        String?   // connected | voicemail | no_answer | left_message
+  createdAt      DateTime  @default(now())
+
+  prospect     Prospect            @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  sequenceStep SequenceStep?       @relation(fields: [sequenceStepId], references: [id], onDelete: SetNull)
+  enrollment   SequenceEnrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+}
+
+model ReplyActivity {
+  id                Int       @id @default(autoincrement())
+  prospectId        Int
+  enrollmentId      Int
+  sequenceId        Int
+  fromEmail         String
+  subject           String
+  bodySnippet       String?
+  // ooo | genuine_reply | bounce | unsubscribe | unknown
+  classification    String
+  oooReturnDate     DateTime?
+  externalMessageId String?   // Message-ID of the reply, for deduplication
+  receivedAt        DateTime
+  processedAt       DateTime?
+  createdAt         DateTime  @default(now())
+
+  prospect   Prospect           @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  enrollment SequenceEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+}
+
+model MeetingActivity {
+  id           Int       @id @default(autoincrement())
+  prospectId   Int
+  enrollmentId Int?
+  title        String    @default("Meeting")
+  scheduledFor DateTime
+  durationMins Int?
+  outcome      String?   // completed | no_show | rescheduled | cancelled
+  notes        String?
+  source       String    @default("manual") // manual | call_outcome
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  prospect   Prospect            @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  enrollment SequenceEnrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+}
+
+model IntegrationCredential {
+  id           Int      @id @default(autoincrement())
+  provider     String
+  clientId     String
+  clientSecret String
+  refreshToken String?
+  email        String?
+  userId       Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([provider, userId])
 }

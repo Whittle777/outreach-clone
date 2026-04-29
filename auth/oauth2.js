@@ -1,7 +1,7 @@
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const config = require('../services/config').getConfig();
+const config = require('../config/index').getConfig();
 
 class OAuth2 {
   constructor(provider) {

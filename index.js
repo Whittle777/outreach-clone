@@ -1,20 +1,39 @@
 require('dotenv').config();
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
 const prospectsRoutes = require('./routes/prospects');
 const sequencesRouter = require('./routes/sequences');
 const sequenceStepsRouter = require('./routes/sequenceSteps');
+const integrationsRouter = require('./routes/integrations');
+const orchestrationRouter = require('./routes/orchestration');
+const listsRouter = require('./routes/lists');
+const voiceRouter = require('./routes/voice');
+const hitlRouter = require('./routes/hitl');
+const voiceAgentRouter = require('./routes/voiceAgent');
 const consumeMessages = require('./awsSqsConsumer');
 const wss = require('./websocketServer');
+const microsoftOAuthRouter = require('./routes/microsoftOAuth');
+const emailActivitiesRouter = require('./routes/emailActivities');
+const callActivitiesRouter = require('./routes/callActivities');
+const demoRouter = require('./routes/demo');
+const replyActivitiesRouter = require('./routes/replyActivities');
+const meetingActivitiesRouter = require('./routes/meetingActivities');
+const accountsRouter = require('./routes/accounts');
+const cron = require('node-cron');
+const { runDueSequenceEmails } = require('./services/sequenceMailer');
+const { runReplyDetection } = require('./services/replyDetector');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const prisma = new PrismaClient();
 
 // Middleware
-app.use(express.json());
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Routes
 app.use('/auth', authRoutes);
@@ -22,6 +41,19 @@ app.use('/users', usersRoutes);
 app.use('/prospects', prospectsRoutes);
 app.use('/sequences', sequencesRouter);
 app.use('/sequenceSteps', sequenceStepsRouter);
+app.use('/integrations', integrationsRouter);
+app.use('/orchestration', orchestrationRouter);
+app.use('/lists', listsRouter);
+app.use('/voice', voiceRouter);
+app.use('/hitl', hitlRouter);
+app.use('/voice-agent', voiceAgentRouter);
+app.use('/auth/microsoft', microsoftOAuthRouter);
+app.use('/email-activities', emailActivitiesRouter);
+app.use('/call-activities', callActivitiesRouter);
+app.use('/demo', demoRouter);
+app.use('/reply-activities', replyActivitiesRouter);
+app.use('/meeting-activities', meetingActivitiesRouter);
+app.use('/accounts', accountsRouter);
 
 app.get('/', (req, res) => {
   res.json({ status: 'OK', message: 'Outreach Clone API' });
@@ -41,6 +73,29 @@ consumeMessages({
 // Start the WebSocket server
 wss.on('listening', () => {
   console.log('WebSocket server is running on ws://localhost:8080');
+});
+
+// ── Sequence email scheduler ─────────────────────────────────────────────────
+// Runs every 15 minutes — sends any sequence step emails that are due.
+cron.schedule('*/15 * * * *', async () => {
+  try {
+    const results = await runDueSequenceEmails();
+    if (results.sent > 0 || results.failed > 0) {
+      console.log(`[Sequence Mailer] Sent: ${results.sent}, Failed: ${results.failed}`);
+    }
+  } catch (err) {
+    console.error('[Sequence Mailer] Cron error:', err.message);
+  }
+});
+
+// ── Reply detection + OOO auto-resumer ───────────────────────────────────────
+// Runs every 10 minutes — polls inbox for replies, resumes OOO-paused enrollments.
+cron.schedule('*/10 * * * *', async () => {
+  try {
+    await runReplyDetection();
+  } catch (err) {
+    console.error('[Reply Detector] Cron error:', err.message);
+  }
 });
 
 // Graceful shutdown

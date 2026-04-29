@@ -1,5 +1,5 @@
 const VoiceAgentCall = require('../services/voiceAgentCall');
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const AzureAcsCallAutomation = require('../services/azureAcsCallAutomation');
 const TtsService = require('../services/ttsService');
 const logger = require('../services/logger');

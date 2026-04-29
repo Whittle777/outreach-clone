@@ -1,27 +1,182 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const {
   getAllSequences,
   getSequenceById,
   createSequence,
   updateSequence,
   deleteSequence,
-  updateSequenceState,
 } = require('../controllers/sequences');
+
+const {
+  enrollProspects,
+  unenrollProspect,
+  optOutProspect,
+  pauseEnrollment,
+  resumeEnrollment,
+  getProspectEnrollments,
+} = require('../services/enrollmentService');
 
 router.use(authenticateToken);
 
-router.get('/', getAllSequences);
+// ── IMPORTANT: specific paths BEFORE generic /:id ────────────────────────────
 
-router.get('/:id', getSequenceById);
+// Get all enrollments for a specific prospect (must come before /:id)
+router.get('/enrollments/prospect/:prospectId', async (req, res) => {
+  try {
+    const enrollments = await getProspectEnrollments(parseInt(req.params.prospectId));
+    res.json(enrollments);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
-router.post('/', createSequence);
-
-router.put('/:id', updateSequence);
-
+// ── CRUD ──────────────────────────────────────────────────────────────────────
+router.get('/',     getAllSequences);
+router.get('/:id',  getSequenceById);
+router.post('/',    createSequence);
+router.put('/:id',  updateSequence);
 router.delete('/:id', deleteSequence);
 
-router.patch('/:id/state', updateSequenceState);
+// ── Enrollment actions ────────────────────────────────────────────────────────
+
+// Enroll one or more prospects
+router.post('/:id/enroll', async (req, res) => {
+  const sequenceId = parseInt(req.params.id);
+  const { prospectIds } = req.body;
+  if (!Array.isArray(prospectIds) || prospectIds.length === 0) {
+    return res.status(400).json({ message: 'prospectIds array required' });
+  }
+  try {
+    const enrollments = await enrollProspects(sequenceId, prospectIds.map(Number));
+    res.json(enrollments);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Unenroll a single prospect
+router.delete('/:id/enroll/:prospectId', async (req, res) => {
+  try {
+    await unenrollProspect(parseInt(req.params.id), parseInt(req.params.prospectId));
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Opt out (stops emails, marks prospect Not Interested)
+router.post('/:id/opt-out/:prospectId', async (req, res) => {
+  try {
+    const enrollment = await optOutProspect(parseInt(req.params.id), parseInt(req.params.prospectId));
+    res.json(enrollment);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Pause a single enrollment
+router.post('/:id/pause/:prospectId', async (req, res) => {
+  try {
+    const enrollment = await pauseEnrollment(
+      parseInt(req.params.id),
+      parseInt(req.params.prospectId),
+      req.body.reason || null
+    );
+    res.json(enrollment);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Resume a paused enrollment
+router.post('/:id/resume/:prospectId', async (req, res) => {
+  try {
+    const enrollment = await resumeEnrollment(
+      parseInt(req.params.id),
+      parseInt(req.params.prospectId)
+    );
+    res.json(enrollment);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Pause ALL active enrollments in a sequence at once
+router.post('/:id/pause-all', async (req, res) => {
+  const sequenceId = parseInt(req.params.id);
+  try {
+    const active = await prisma.sequenceEnrollment.findMany({
+      where: { sequenceId, status: 'active' },
+    });
+    await Promise.all(
+      active.map(e => pauseEnrollment(sequenceId, e.prospectId, 'Paused by sequence manager'))
+    );
+    res.json({ paused: active.length });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Resume ALL paused enrollments in a sequence at once
+router.post('/:id/resume-all', async (req, res) => {
+  const sequenceId = parseInt(req.params.id);
+  try {
+    const paused = await prisma.sequenceEnrollment.findMany({
+      where: { sequenceId, status: 'paused' },
+    });
+    await Promise.all(
+      paused.map(e => resumeEnrollment(sequenceId, e.prospectId))
+    );
+    res.json({ resumed: paused.length });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Clone a sequence (copies steps, no enrollments)
+router.post('/:id/clone', async (req, res) => {
+  const sequenceId = parseInt(req.params.id);
+  try {
+    const original = await prisma.sequence.findUnique({
+      where: { id: sequenceId },
+      include: { steps: { orderBy: { order: 'asc' } } },
+    });
+    if (!original) return res.status(404).json({ message: 'Sequence not found' });
+
+    const clone = await prisma.sequence.create({
+      data: {
+        name: `Copy of ${original.name}`,
+        userId: original.userId,
+        schemaTag: original.schemaTag,
+      },
+    });
+
+    if (original.steps.length > 0) {
+      await prisma.sequenceStep.createMany({
+        data: original.steps.map(s => ({
+          sequenceId: clone.id,
+          order:      s.order,
+          stepType:   s.stepType,
+          delayDays:  s.delayDays,
+          subject:    s.subject,
+          body:       s.body,
+          schemaTag:  s.schemaTag,
+        })),
+      });
+    }
+
+    const full = await prisma.sequence.findUnique({
+      where: { id: clone.id },
+      include: { steps: { orderBy: { order: 'asc' } }, prospectEnrollments: true },
+    });
+    res.status(201).json(full);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 module.exports = router;

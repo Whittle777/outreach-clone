@@ -1,6 +1,6 @@
 const assert = require('assert');
 const DoubleWriteStrategy = require('../services/doubleWriteStrategy');
-const config = require('../services/config');
+const config = require("../config/index");
 const logger = require('../services/logger');
 
 describe('MigrationTest', function() {

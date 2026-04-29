@@ -9,7 +9,7 @@ const UserInputComponent = () => {
 
   const handleTTSConversion = () => {
     // Trigger TTS conversion logic here
-    console.log('TTS Conversion Triggered');
+    // TTS conversion logic placeholder
   };
 
   return (

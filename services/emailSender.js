@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 const logger = require('../services/logger');
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const TrackingPixelEvents = require('../services/trackingPixelEvents');
 const AbuseComplaints = require('../services/abuseComplaints');
 const BounceHandler = require('../services/bounceHandler');

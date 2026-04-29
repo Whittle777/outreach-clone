@@ -1,5 +1,5 @@
 const WebSocket = require('ws');
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const logger = require('../services/logger');
 
 const wss = new WebSocket.Server({ port: config.webSocket.port });

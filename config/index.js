@@ -2,6 +2,21 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const dkim = require('nodemailer-dkim');
 
+const generateDkimPrivateKey = () => {
+  const key = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: {
+      type: 'spki',
+      format: 'pem'
+    },
+    privateKeyEncoding: {
+      type: 'pkcs8',
+      format: 'pem'
+    }
+  });
+  return key.privateKey;
+};
+
 module.exports = {
   getConfig: () => {
     return {
@@ -32,19 +47,5 @@ module.exports = {
       mcpGatewayApiKey: process.env.MCP_GATEWAY_API_KEY, // MCP Gateway API key
     };
   },
-
-  generateDkimPrivateKey: () => {
-    const key = crypto.generateKeyPairSync('rsa', {
-      modulusLength: 2048,
-      publicKeyEncoding: {
-        type: 'spki',
-        format: 'pem'
-      },
-      privateKeyEncoding: {
-        type: 'pkcs8',
-        format: 'pem'
-      }
-    });
-    return key.privateKey;
-  }
+  generateDkimPrivateKey
 };

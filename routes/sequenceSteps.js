@@ -1,20 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
-const {
-  createSequenceStep,
-  getSequenceStepsBySequenceId,
-  updateSequenceStep,
-  deleteSequenceStep,
-} = require('../models/SequenceStep');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 router.use(authenticateToken);
 
 router.post('/', async (req, res) => {
-  const { sequenceId, order, delayDays, subject, body } = req.body;
+  const { sequenceId, order, delayDays, subject, body, stepType } = req.body;
   try {
-    const step = await createSequenceStep(sequenceId, order, delayDays, subject, body);
+    const step = await prisma.sequenceStep.create({
+      data: {
+        sequenceId,
+        order,
+        stepType: stepType ?? 'AUTO_EMAIL',
+        delayDays: delayDays ?? 0,
+        subject: subject ?? '',
+        body: body ?? '',
+      }
+    });
     res.status(201).json(step);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get('/', async (req, res) => {
+  try {
+    const steps = await prisma.sequenceStep.findMany();
+    res.json(steps);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -23,7 +37,7 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const step = await getSequenceStepById(id);
+    const step = await prisma.sequenceStep.findUnique({ where: { id: parseInt(id) } });
     if (step) {
       res.json(step);
     } else {
@@ -36,9 +50,12 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { order, delayDays, subject, body } = req.body;
+  const { order, delayDays, subject, body, stepType } = req.body;
   try {
-    const step = await updateSequenceStep(id, order, delayDays, subject, body);
+    const step = await prisma.sequenceStep.update({
+      where: { id: parseInt(id) },
+      data: { order, delayDays, subject, body, ...(stepType && { stepType }) }
+    });
     res.json(step);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -48,7 +65,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await deleteSequenceStep(id);
+    await prisma.sequenceStep.delete({ where: { id: parseInt(id) } });
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: error.message });

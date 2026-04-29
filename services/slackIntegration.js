@@ -1,5 +1,5 @@
 const axios = require('axios');
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const kafkaProducer = require('../messageBroker/kafkaProducer');
 
 class SlackIntegration {

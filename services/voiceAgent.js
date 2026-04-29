@@ -1,5 +1,5 @@
 const RabbitMQService = require('../rabbitmq/rabbitmqService');
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const logger = require('../services/logger');
 const callRateLimiter = require('../services/callRateLimiter');
 

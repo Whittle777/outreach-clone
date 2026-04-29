@@ -8,30 +8,32 @@ datasource db {
 }
 
 model Sequence {
-  id         Int       @id @default(autoincrement())
-  userId     Int
-  name       String
-  bento      String
-  schemaTag  String    @default("default")
-  interval   Int?      // New scheduling field
-  nextRun    DateTime? // New scheduling field
-  steps      SequenceStep[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id                  Int                  @id @default(autoincrement())
+  userId              Int
+  name                String
+  bento               String
+  schemaTag           String               @default("default")
+  interval            Int?
+  nextRun             DateTime?
+  steps               SequenceStep[]
+  prospectEnrollments SequenceEnrollment[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 model SequenceStep {
-  id         Int       @id @default(autoincrement())
-  sequenceId Int
-  order      Int
-  delayDays  Int
-  subject    String
-  body       String
-  bento      String
-  schemaTag  String    @default("default")
+  id            Int             @id @default(autoincrement())
+  sequenceId    Int
+  order         Int
+  delayDays     Int
+  subject       String
+  body          String
+  bento         String
+  schemaTag     String          @default("default")
   scheduledTime DateTime?
-  state      String    @default("pending")
-  sequence   Sequence  @relation(fields: [sequenceId], references: [id])
+  state         String          @default("pending")
+  sequence      Sequence        @relation(fields: [sequenceId], references: [id])
+  activities    EmailActivity[]
 }
 
 model Prospect {
@@ -40,14 +42,31 @@ model Prospect {
   lastName     String
   email        String
   companyName  String
+  title        String?   // New field for job title
+  techStack    String?   // New field for technology stack (comma separated)
+  enrichmentStatus String @default("pending") // New field for ZoomInfo scrape state
   status       String
   bento        String
   dmarcPolicy  String    @default("none")
   trackingPixelData Json? // New field for tracking pixel data
   country      String?   // New field for country
   region       String?   // New field for region
+  notes        String?   // Research and call notes (call notes are appended here)
+  lists               ProspectList[]
+  emailActivities     EmailActivity[]
+  voiceAgentCalls     VoiceAgentCall[]
+  sequenceEnrollments SequenceEnrollment[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model ProspectList {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  prospects   Prospect[] 
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model User {
@@ -65,15 +84,46 @@ model User {
 }
 
 model EmailActivity {
-  id           Int       @id @default(autoincrement())
-  prospectId   Int
+  id             Int                 @id @default(autoincrement())
+  prospectId     Int
   sequenceStepId Int
-  status       String
-  bento        String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  prospect     Prospect  @relation(fields: [prospectId], references: [id])
-  sequenceStep SequenceStep @relation(fields: [sequenceStepId], references: [id])
+  enrollmentId   Int?
+  status         String              // queued | sent | opened | clicked | replied | bounced | failed
+  subject        String?
+  bento          String
+  sentAt         DateTime?
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  repliedAt      DateTime?
+  bouncedAt      DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  prospect       Prospect            @relation(fields: [prospectId], references: [id])
+  sequenceStep   SequenceStep        @relation(fields: [sequenceStepId], references: [id])
+  enrollment     SequenceEnrollment? @relation(fields: [enrollmentId], references: [id])
+}
+
+model SequenceEnrollment {
+  id               Int             @id @default(autoincrement())
+  prospectId       Int
+  sequenceId       Int
+  currentStepOrder Int             @default(0)
+  status           String          @default("active")
+  // status: active | paused | completed | opted_out | replied | bounced | failed
+  enrolledAt       DateTime        @default(now())
+  lastContactedAt  DateTime?
+  nextStepDue      DateTime?
+  completedAt      DateTime?
+  optedOutAt       DateTime?
+  pausedAt         DateTime?
+  pausedReason     String?
+  prospect         Prospect        @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  sequence         Sequence        @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  activities       EmailActivity[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([prospectId, sequenceId])
 }
 
 model TrackingPixelEvent {
@@ -108,6 +158,7 @@ model VoiceAgentCall {
   ipAddress              String
   teamsResourceAccountObjectId String
   hasResistanceOrRegulatoryFlag Boolean @default(false)
+  callNotes              String?   // Rep notes entered after the call
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
   prospect               Prospect  @relation(fields: [prospectId], references: [id])

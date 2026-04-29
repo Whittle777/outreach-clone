@@ -1,7 +1,7 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const app = require('../app'); // Assuming the main app file is named app.js
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const session = require('express-session');
 
 chai.use(chaiHttp);

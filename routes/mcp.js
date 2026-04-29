@@ -1,6 +1,6 @@
 const express = require('express');
 const MCPGateway = require('../services/mcpGateway');
-const config = require('../services/config');
+const config = require("../config/index");
 
 const router = express.Router();
 const mcpGateway = new MCPGateway(config.getConfig().mcpGateway.apiUrl, config.getConfig().mcpGateway.apiKey);

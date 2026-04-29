@@ -1,6 +1,6 @@
 const amqplib = require('amqplib');
 const axios = require('axios');
-const config = require('../services/config');
+const config = require("../config/index");
 const logger = require('../services/logger');
 const jwt = require('jsonwebtoken');
 const RateLimiter = require('../services/rateLimiter');

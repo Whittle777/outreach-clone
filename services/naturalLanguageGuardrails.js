@@ -1,4 +1,4 @@
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const doubleWriteStrategy = require('./doubleWriteStrategy');
 const logger = require('../services/logger');
 

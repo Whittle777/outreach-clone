@@ -1,77 +1,61 @@
 const axios = require('axios');
-const crypto = require('crypto');
-const prisma = require('../models/prisma'); // Assuming you have a Prisma client
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 async function getOAuthToken(provider, userId) {
+  // Try to find a valid standard token record if one was established previously
   const tokenRecord = await prisma.oauthToken.findUnique({
-    where: {
-      provider_userId: {
-        provider,
-        userId,
-      },
-    },
+    where: { provider_userId: { provider, userId } },
   });
 
   if (tokenRecord && !isTokenExpired(tokenRecord.expiry)) {
     return tokenRecord.token;
   }
 
+  // Generate a fresh one using the User's explicitly supplied credentials
   const newToken = await fetchNewToken(provider, userId);
-  await prisma.oauthToken.create({
-    data: {
-      provider,
-      userId,
-      token: newToken,
-      expiry: calculateExpiry(newToken),
-    },
+  
+  await prisma.oauthToken.upsert({
+    where: { provider_userId: { provider, userId } },
+    update: { token: newToken, expiry: calculateExpiry() },
+    create: { provider, userId, token: newToken, expiry: calculateExpiry() }
   });
 
   return newToken;
 }
 
 function isTokenExpired(expiry) {
-  const now = new Date().getTime();
-  return now > expiry;
+  return new Date().getTime() > expiry;
 }
 
 async function fetchNewToken(provider, userId) {
-  // Implement token fetching logic for each provider
+  const cred = await prisma.integrationCredential.findUnique({
+    where: { provider_userId: { provider, userId } }
+  });
+  if (!cred) throw new Error(`Integration configuration missing for ${provider}`);
+
   if (provider === 'google') {
-    return fetchGoogleToken(userId);
+    const response = await axios.post('https://oauth2.googleapis.com/token', {
+      client_id: cred.clientId,
+      client_secret: cred.clientSecret,
+      refresh_token: cred.refreshToken,
+      grant_type: 'refresh_token',
+    });
+    return response.data.access_token;
   } else if (provider === 'microsoft') {
-    return fetchMicrosoftToken(userId);
+    const response = await axios.post('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+      client_id: cred.clientId,
+      client_secret: cred.clientSecret,
+      refresh_token: cred.refreshToken,
+      grant_type: 'refresh_token',
+    });
+    return response.data.access_token;
   }
   throw new Error('Unsupported provider');
 }
 
-async function fetchGoogleToken(userId) {
-  // Example implementation for Google
-  const response = await axios.post('https://oauth2.googleapis.com/token', {
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    client_secret: process.env.GOOGLE_CLIENT_SECRET,
-    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-    grant_type: 'refresh_token',
-  });
-
-  return response.data.access_token;
-}
-
-async function fetchMicrosoftToken(userId) {
-  // Example implementation for Microsoft
-  const response = await axios.post('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
-    client_id: process.env.MICROSOFT_CLIENT_ID,
-    client_secret: process.env.MICROSOFT_CLIENT_SECRET,
-    refresh_token: process.env.MICROSOFT_REFRESH_TOKEN,
-    grant_type: 'refresh_token',
-  });
-
-  return response.data.access_token;
-}
-
-function calculateExpiry(token) {
-  // Implement logic to calculate expiry time from token
-  // This is a placeholder implementation
-  return new Date().getTime() + 3600 * 1000; // 1 hour expiry
+function calculateExpiry() {
+  return new Date().getTime() + 3600 * 1000;
 }
 
 module.exports = { getOAuthToken };

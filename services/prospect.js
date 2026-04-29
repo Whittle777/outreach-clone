@@ -1,5 +1,5 @@
 const axios = require('axios');
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const SentimentAnalysis = require('../services/sentimentAnalysis');
 const logger = require('../services/logger');
 

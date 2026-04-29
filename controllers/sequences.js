@@ -5,7 +5,9 @@ const scheduling = require('../services/scheduling');
 
 exports.getAllSequences = async (req, res) => {
   try {
-    const sequences = await prisma.sequence.findMany();
+    const sequences = await prisma.sequence.findMany({
+      include: { prospectEnrollments: { include: { prospect: true } } }
+    });
     res.json(sequences);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch sequences' });
@@ -31,20 +33,18 @@ exports.createSequence = [
   enforceSchemaTag,
   async (req, res) => {
     try {
-      const { userId, name, bento, interval, nextRun } = req.body;
+      const { userId, name, interval, nextRun } = req.body;
       const sequence = await prisma.sequence.create({
         data: {
-          userId,
+          userId: userId || 1,
           name,
-          bento,
-          schemaTag: req.schemaTag,
           interval,
           nextRun,
         },
       });
       res.status(201).json(sequence);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to create sequence' });
+      res.status(500).json({ error: 'Failed to create sequence', details: error.message, stack: error.stack });
     }
   }
 ];
@@ -53,10 +53,10 @@ exports.updateSequence = [
   enforceSchemaTag,
   async (req, res) => {
     try {
-      const { name, bento, interval, nextRun } = req.body;
+      const { name, interval, nextRun } = req.body;
       const sequence = await prisma.sequence.update({
         where: { id: parseInt(req.params.id) },
-        data: { name, bento, schemaTag: req.schemaTag, interval, nextRun },
+        data: { name, interval, nextRun },
       });
       res.json(sequence);
     } catch (error) {

@@ -1,4 +1,4 @@
-const config = require('../services/config').getConfig();
+const config = require("../config/index").getConfig();
 const logger = require('../services/logger');
 
 class CallRateLimiter {

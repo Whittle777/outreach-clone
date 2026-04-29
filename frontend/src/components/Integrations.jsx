@@ -1,0 +1,871 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import api from '../services/api';
+import { useToast } from './Toast';
+
+const CLAUDE_MODELS = [
+  { value: 'claude-opus-4-6',          label: 'Claude Opus 4.6 — Most capable' },
+  { value: 'claude-sonnet-4-6',        label: 'Claude Sonnet 4.6 — Balanced' },
+  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 — Fastest' },
+];
+
+const AI_PROVIDERS = [
+  {
+    key: 'claude',
+    name: 'Anthropic Claude',
+    description: 'Power the AI Command Center, NLQ queries, and email drafting with Claude. Sign in with your Anthropic enterprise account.',
+    accentColor: '#d97706',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M13.827 3.52l8.01 14.222a.9.9 0 0 1-.778 1.35H2.94a.9.9 0 0 1-.778-1.35L10.173 3.52a.9.9 0 0 1 1.556 0l2.098 3.72" stroke="#d97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 15.5v.5" stroke="#d97706" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M12 9v4" stroke="#d97706" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ),
+    fields: [
+      { key: 'clientId',     label: 'API Key',                  type: 'password', placeholder: 'sk-ant-api03-…', required: true },
+      { key: 'clientSecret', label: 'Default Model',            type: 'select',   options: CLAUDE_MODELS },
+      { key: 'email',        label: 'Workspace ID (optional)',  type: 'text',     placeholder: 'Enterprise org / workspace ID' },
+    ],
+    envNote: 'Or set ANTHROPIC_API_KEY in your .env file. Your key is validated against the Anthropic API before saving.',
+    badge: 'Recommended',
+  },
+  {
+    key: 'gemini',
+    name: 'Google Gemini',
+    description: 'Alternative AI provider for NLQ queries and email drafting. Requires a Gemini API key.',
+    icon: <span style={{ fontSize: '1.2rem' }}>✦</span>,
+    fields: [{ key: 'clientId', label: 'API Key', type: 'password', placeholder: 'AIza…', required: true }],
+    envNote: 'Or set GEMINI_API_KEY in your .env file.',
+  },
+];
+
+const PROVIDERS = [
+  {
+    key: 'google',
+    name: 'Google Workspace / Gmail',
+    description: 'Send sequence emails via Gmail using a one-time App Password. No OAuth app required.',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'microsoft',
+    name: 'Microsoft 365',
+    description: 'Send mail and make Teams PSTN calls via Microsoft Graph API. Requires an Azure app registration.',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 23 23" fill="none">
+        <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
+        <rect x="12" y="1"  width="10" height="10" fill="#7FBA00"/>
+        <rect x="1"  y="12" width="10" height="10" fill="#00A4EF"/>
+        <rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
+      </svg>
+    ),
+  },
+];
+
+const FIELD = ({ label, children }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+    <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{label}</label>
+    {children}
+  </div>
+);
+
+// ── Step pill used inside walkthrough guides ──────────────────────────────────
+const Step = ({ n, title, children }) => (
+  <div style={{ display: 'flex', gap: 12, paddingBottom: 14, borderBottom: '1px solid var(--border-subtle)', marginBottom: 2 }}>
+    <div style={{
+      flexShrink: 0, width: 22, height: 22, borderRadius: '50%',
+      background: 'var(--accent-dim)', border: '1px solid var(--border-accent)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: '0.65rem', fontWeight: 800, color: 'var(--accent-light)', marginTop: 1,
+    }}>{n}</div>
+    <div style={{ flex: 1 }}>
+      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{title}</div>
+      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{children}</div>
+    </div>
+  </div>
+);
+
+const Code = ({ children }) => (
+  <code style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '1px 5px', fontSize: '0.8em', color: 'var(--accent-light)', fontFamily: 'monospace' }}>
+    {children}
+  </code>
+);
+
+// ── Google App Password walkthrough form ──────────────────────────────────────
+const GoogleSetupForm = ({ onSave, onCancel, loading, error }) => {
+  const [email, setEmail] = useState('');
+  const [appPass, setAppPass] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({ email, clientId: email, clientSecret: appPass.replace(/\s/g, '') });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>
+      {/* Walkthrough */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 18 }}>
+        <Step n={1} title='Enable 2-Step Verification'>
+          Go to <a href='https://myaccount.google.com/security' target='_blank' rel='noreferrer' style={{ color: 'var(--accent-secondary)' }}>myaccount.google.com/security</a> and make sure <strong>2-Step Verification</strong> is turned on. App Passwords won't appear without it.
+        </Step>
+        <Step n={2} title='Generate an App Password'>
+          Go to <a href='https://myaccount.google.com/apppasswords' target='_blank' rel='noreferrer' style={{ color: 'var(--accent-secondary)' }}>myaccount.google.com/apppasswords</a>. Under "Select app" choose <strong>Mail</strong>, under "Select device" choose <strong>Other</strong> and name it <em>Outreach.ai</em>. Click <strong>Generate</strong> and copy the 16-character password shown.
+        </Step>
+        <Step n={3} title='Paste your credentials below'>
+          Enter your Gmail address and the App Password (spaces are fine — they'll be stripped automatically).
+        </Step>
+      </div>
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <FIELD label='Gmail Address'>
+          <input type='email' required style={{ width: '100%' }} value={email} onChange={e => setEmail(e.target.value)} placeholder='you@gmail.com or you@yourcompany.com' />
+        </FIELD>
+        <FIELD label='App Password (16 characters)'>
+          <input type='password' required style={{ width: '100%' }} value={appPass} onChange={e => setAppPass(e.target.value)} placeholder='xxxx xxxx xxxx xxxx' maxLength={19} />
+        </FIELD>
+        {error && (
+          <div style={{ padding: '8px 12px', background: 'var(--status-danger-dim)', border: '1px solid var(--status-danger-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-danger)', fontSize: '0.82rem' }}>{error}</div>
+        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type='submit' disabled={loading} style={{ flex: 1, padding: '9px' }}>{loading ? 'Verifying connection…' : 'Save & Verify'}</button>
+          <button type='button' className='secondary' onClick={onCancel} style={{ padding: '9px 14px' }}>Cancel</button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+// ── Microsoft Azure walkthrough form ─────────────────────────────────────────
+const MicrosoftSetupForm = ({ onCancel, onConnected, error: externalError }) => {
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [authorizing, setAuthorizing] = useState(false);
+  const [localError, setLocalError] = useState(null);
+
+  const error = localError || externalError;
+
+  const REDIRECT_URI = 'http://localhost:3000/auth/microsoft/callback';
+
+  const handleAuthorize = async () => {
+    if (!clientId.trim() || !clientSecret.trim()) {
+      setLocalError('Enter your Application (Client) ID and Client Secret first.');
+      return;
+    }
+    setAuthorizing(true);
+    setLocalError(null);
+    try {
+      const res = await api.post('/auth/microsoft/start', { clientId: clientId.trim(), clientSecret: clientSecret.trim() });
+      // Redirect the current window — Microsoft requires same-window for localhost
+      window.location.href = res.data.url;
+    } catch (err) {
+      setLocalError(err.response?.data?.message || 'Failed to start authorization flow.');
+      setAuthorizing(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>
+      {/* Walkthrough */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 18 }}>
+        <Step n={1} title='Open Azure Portal → App Registrations'>
+          Go to <a href='https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade' target='_blank' rel='noreferrer' style={{ color: 'var(--accent-secondary)' }}>portal.azure.com → Entra ID → App registrations</a> and click <strong>New registration</strong>.
+          <br/>Name it anything (e.g. <em>Outreach.ai</em>). Under "Supported account types" choose <strong>Accounts in any organizational directory and personal Microsoft accounts</strong>. Click <strong>Register</strong>.
+        </Step>
+        <Step n={2} title='Add a Redirect URI'>
+          In your new app's page: <strong>Authentication → Add a platform → Web</strong>. Set the Redirect URI to:<br/>
+          <Code>{REDIRECT_URI}</Code><br/>
+          Check <strong>Access tokens</strong> and <strong>ID tokens</strong>, then save.
+        </Step>
+        <Step n={3} title='Add API Permissions'>
+          Go to <strong>API permissions → Add a permission → Microsoft Graph → Delegated permissions</strong>. Add:<br/>
+          <Code>Mail.Send</Code> &nbsp;<Code>User.Read</Code> &nbsp;<Code>offline_access</Code><br/>
+          Then click <strong>Grant admin consent</strong> (or ask your admin to do so).
+        </Step>
+        <Step n={4} title='Copy your Application (Client) ID'>
+          On the <strong>Overview</strong> page, copy the <strong>Application (client) ID</strong> — a UUID like <Code>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</Code>.
+        </Step>
+        <Step n={5} title='Create a Client Secret'>
+          Go to <strong>Certificates &amp; secrets → New client secret</strong>. Set any expiry (12 or 24 months). Copy the <strong>Value</strong> immediately — it won't be shown again.
+        </Step>
+        <Step n={6} title='Paste credentials and authorize'>
+          Enter both values below, then click <strong>Authorize with Microsoft</strong>. You'll sign in once and we'll store your token automatically.
+        </Step>
+      </div>
+
+      {/* Form */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <FIELD label='Application (Client) ID'>
+          <input
+            type='text'
+            style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.85rem' }}
+            value={clientId}
+            onChange={e => setClientId(e.target.value)}
+            placeholder='xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+          />
+        </FIELD>
+        <FIELD label='Client Secret Value'>
+          <input
+            type='password'
+            style={{ width: '100%' }}
+            value={clientSecret}
+            onChange={e => setClientSecret(e.target.value)}
+            placeholder='Client secret value (not the secret ID)'
+          />
+        </FIELD>
+
+        {error && (
+          <div style={{ padding: '9px 13px', background: 'var(--status-danger-dim)', border: '1px solid var(--status-danger-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-danger)', fontSize: '0.82rem', lineHeight: 1.5 }}>
+            {error}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            type='button'
+            disabled={authorizing}
+            onClick={handleAuthorize}
+            style={{ flex: 1, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+          >
+            <svg width="16" height="16" viewBox="0 0 23 23" fill="none" style={{ flexShrink: 0 }}>
+              <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+              <rect x="12" y="1" width="10" height="10" fill="#7FBA00"/>
+              <rect x="1" y="12" width="10" height="10" fill="#00A4EF"/>
+              <rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
+            </svg>
+            {authorizing ? 'Redirecting to Microsoft…' : 'Authorize with Microsoft'}
+          </button>
+          <button type='button' className='secondary' onClick={onCancel} style={{ padding: '10px 16px' }}>Cancel</button>
+        </div>
+
+        <p style={{ margin: 0, fontSize: '0.73rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          You'll be redirected to Microsoft's login page. After signing in you'll be brought straight back here with the connection confirmed.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// ─── Voice (Beta) section — collapsed by default ──────────────────────────
+const VoiceSection = ({ integrations, onUpdate, toast }) => {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ clientId: '', email: '' });
+  const [connecting, setConnecting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const eleven = integrations.find(i => i.provider === 'elevenlabs');
+  const connected = !!eleven?.clientId;
+
+  const handleConnect = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await api.post('/integrations', { provider: 'elevenlabs', clientId: form.clientId, email: form.email, clientSecret: '', refreshToken: '' });
+      await onUpdate();
+      setConnecting(false);
+      toast('ElevenLabs connected', 'success');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid API key');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await api.delete('/integrations/elevenlabs');
+      await onUpdate();
+      toast('ElevenLabs disconnected', 'warning');
+    } catch {
+      toast('Disconnect failed', 'error');
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: 28 }}>
+      {/* Section toggle */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+          background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 12px',
+          color: 'var(--text-muted)',
+        }}
+      >
+        <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Voice (Beta)</span>
+        <span style={{ fontSize: '0.7rem', transition: 'transform 0.15s', display: 'inline-block', transform: open ? 'rotate(90deg)' : 'rotate(0)' }}>▶</span>
+        {connected && <span style={{ fontSize: '0.62rem', padding: '1px 7px', background: 'var(--status-success-dim)', color: 'var(--status-success)', border: '1px solid var(--status-success-border)', borderRadius: 'var(--radius-full)', fontWeight: 700, marginLeft: 4 }}>Connected</span>}
+      </button>
+
+      {open && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 16 }}>
+          <div style={{
+            background: 'var(--bg-elevated)',
+            border: `1px solid ${connected ? 'rgba(139,92,246,0.3)' : 'var(--border-color)'}`,
+            borderTop: `3px solid ${connected ? '#8b5cf6' : 'var(--border-color)'}`,
+            borderRadius: 'var(--radius-lg)', padding: 20,
+            display: 'flex', flexDirection: 'column', gap: 14,
+            boxShadow: connected ? '0 4px 20px rgba(139,92,246,0.1)' : 'var(--shadow-md)',
+            transition: 'all var(--transition-fast)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>
+                  🎙
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <h3 style={{ margin: 0, fontSize: '0.95rem' }}>ElevenLabs</h3>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '2px 6px', borderRadius: 'var(--radius-full)', background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.25)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Voice</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.78rem', marginTop: 2, color: 'var(--text-secondary)' }}>
+                    Real-time voice synthesis and STT for AI-powered outbound calls.
+                  </p>
+                </div>
+              </div>
+              {connected && !connecting && (
+                <span style={{ padding: '4px 10px', flexShrink: 0, background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 'var(--radius-full)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  ● Active
+                </span>
+              )}
+            </div>
+
+            {connecting ? (
+              <form onSubmit={handleConnect} style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--border-color)', paddingTop: 14 }}>
+                <FIELD label="API Key">
+                  <input type="password" required style={{ width: '100%' }} value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))} placeholder="sk_…" />
+                </FIELD>
+                <FIELD label="Default Voice ID (optional)">
+                  <input type="text" style={{ width: '100%' }} value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="21m00Tcm4TlvDq8ikWAM" />
+                </FIELD>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  Get your key at elevenlabs.io/settings/api-keys. Voice ID is optional — leave blank to use Rachel (default).
+                </p>
+                {error && <div style={{ padding: '8px 12px', background: 'var(--status-danger-dim)', border: '1px solid var(--status-danger-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-danger)', fontSize: '0.82rem' }}>{error}</div>}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="submit" disabled={loading} style={{ flex: 1, padding: '9px', background: 'linear-gradient(135deg, #7c3aed, #8b5cf6)' }}>{loading ? 'Verifying…' : 'Connect'}</button>
+                  <button type="button" className="secondary" onClick={() => setConnecting(false)} style={{ padding: '9px 14px' }}>Cancel</button>
+                </div>
+              </form>
+            ) : (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="secondary" style={{ flex: 1, padding: '9px', borderStyle: connected ? 'solid' : 'dashed' }} onClick={() => { setConnecting(true); setForm({ clientId: '', email: '' }); }}>
+                  {connected ? '⚙ Reconfigure' : '+ Connect ElevenLabs'}
+                </button>
+                {connected && (
+                  <button className="danger" style={{ padding: '9px 14px' }} onClick={handleDisconnect}>Disconnect</button>
+                )}
+              </div>
+            )}
+
+            {connected && (
+              <a href="/voice-agent" style={{ fontSize: '0.75rem', color: 'var(--accent-secondary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }} onClick={e => { e.preventDefault(); window.history.pushState({}, '', '/voice-agent'); window.dispatchEvent(new PopStateEvent('popstate')); }}>
+                → Open Voice Agent
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Integrations = () => {
+  const [integrations, setIntegrations] = useState([]);
+  const [isConnecting, setIsConnecting] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMap, setErrorMap] = useState({});
+  const [form, setForm] = useState({ email: '', clientId: '', clientSecret: '', refreshToken: '' });
+  const toast = useToast();
+
+  const fetchIntegrations = useCallback(async () => {
+    try {
+      const res = await api.get('/integrations');
+      setIntegrations(res.data || []);
+    } catch (err) { console.error(err); }
+  }, []);
+
+  // Handle OAuth callback params (?ms_connected=1 or ?ms_error=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const msConnected = params.get('ms_connected');
+    const msEmail = params.get('ms_email');
+    const msError = params.get('ms_error');
+
+    if (msConnected) {
+      fetchIntegrations();
+      toast(`Microsoft 365 connected${msEmail ? ` as ${msEmail}` : ''}`, 'success');
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (msError) {
+      setErrorMap(prev => ({ ...prev, microsoft: decodeURIComponent(msError) }));
+      setIsConnecting('microsoft');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []); // eslint-disable-line
+
+  useEffect(() => { fetchIntegrations(); }, [fetchIntegrations]);
+
+  const handleConnectStart = (provider) => {
+    setIsConnecting(provider);
+    setErrorMap(prev => ({ ...prev, [provider]: null }));
+    setForm({ email: '', clientId: '', clientSecret: '', refreshToken: '' });
+  };
+
+  const handleSave = async (e, provider) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMap(prev => ({ ...prev, [provider]: null }));
+    try {
+      await api.post('/integrations', { ...form, provider });
+      setIsConnecting(null);
+      await fetchIntegrations();
+      toast(`${[...AI_PROVIDERS, ...PROVIDERS].find(p => p.key === provider)?.name || provider} connected`, 'success');
+    } catch (err) {
+      setErrorMap(prev => ({ ...prev, [provider]: err.response?.data?.message || 'Handshake failed — check your credentials.' }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDisconnect = async (provider) => {
+    try {
+      await api.delete(`/integrations/${provider}`);
+      await fetchIntegrations();
+      toast(`${[...AI_PROVIDERS, ...PROVIDERS].find(p => p.key === provider)?.name || provider} disconnected`, 'warning');
+    } catch (err) {
+      console.error(err);
+      toast('Disconnect failed', 'error');
+    }
+  };
+
+  const setupSteps = [
+    {
+      step: 1,
+      provider: 'claude',
+      label: 'Connect Claude AI',
+      desc: 'Unlocks AI Command Center, email drafting, and data enrichment.',
+      icon: '✦',
+      color: '#d97706',
+      action: () => handleConnectStart('claude'),
+    },
+    {
+      step: 2,
+      provider: 'google',
+      label: 'Connect Google Workspace',
+      desc: 'Unlocks email sequences and Gmail-powered cadences.',
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57C21.36 18.09 22.56 15.27 22.56 12.25z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+      ),
+      color: '#4285F4',
+      action: () => handleConnectStart('google'),
+    },
+    {
+      step: 3,
+      provider: 'microsoft',
+      label: 'Connect Microsoft 365',
+      desc: 'Unlocks Teams calling and the power dialer.',
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 23 23" fill="none">
+          <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+          <rect x="12" y="1" width="10" height="10" fill="#7FBA00"/>
+          <rect x="1" y="12" width="10" height="10" fill="#00A4EF"/>
+          <rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
+        </svg>
+      ),
+      color: '#00A4EF',
+      action: () => handleConnectStart('microsoft'),
+    },
+  ];
+
+  const setupComplete = setupSteps.every(s => integrations.some(i => i.provider === s.provider));
+
+  return (
+    <div style={{ maxWidth: 900 }}>
+      {/* Page header */}
+      <div className="page-header">
+        <div>
+          <h1 style={{ marginBottom: 4 }}>Integrations</h1>
+          <p className="page-header-meta">Connect email, telephony, and AI providers</p>
+        </div>
+      </div>
+
+      {/* ── Setup Guide ──────────────────────────────────────────────────────── */}
+      <div style={{
+        marginBottom: 32,
+        background: setupComplete ? 'var(--status-success-dim)' : 'var(--bg-elevated)',
+        border: `1px solid ${setupComplete ? 'var(--status-success-border)' : 'var(--border-accent)'}`,
+        borderRadius: 'var(--radius-lg)',
+        padding: '18px 22px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: setupComplete ? 0 : 16 }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: 2 }}>
+              {setupComplete ? '✓ You\'re all set up' : 'Quick Setup'}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+              {setupComplete
+                ? 'All integrations are connected. Features are fully unlocked.'
+                : 'Complete these steps to unlock all features. Buttons will be greyed out until each is connected.'}
+            </div>
+          </div>
+          {setupComplete && (
+            <span style={{ fontSize: '1.4rem' }}>🎉</span>
+          )}
+        </div>
+
+        {!setupComplete && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {setupSteps.map(s => {
+              const done = integrations.some(i => i.provider === s.provider);
+              return (
+                <div key={s.provider} style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '12px 16px',
+                  background: done ? 'var(--status-success-dim)' : 'var(--bg-primary)',
+                  border: `1px solid ${done ? 'var(--status-success-border)' : 'var(--border-color)'}`,
+                  borderRadius: 'var(--radius-md)',
+                  transition: 'all 0.2s',
+                }}>
+                  {/* Step number or checkmark */}
+                  <div style={{
+                    width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: done ? 'var(--status-success)' : `${s.color}22`,
+                    border: `1px solid ${done ? 'var(--status-success)' : `${s.color}44`}`,
+                    fontSize: done ? '0.8rem' : '0.72rem',
+                    fontWeight: 700,
+                    color: done ? '#fff' : s.color,
+                  }}>
+                    {done ? '✓' : s.step}
+                  </div>
+
+                  {/* Icon */}
+                  <div style={{ flexShrink: 0, opacity: done ? 0.5 : 1 }}>
+                    {typeof s.icon === 'string'
+                      ? <span style={{ fontSize: '1rem', color: s.color }}>{s.icon}</span>
+                      : s.icon}
+                  </div>
+
+                  {/* Text */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: done ? 'var(--text-muted)' : 'var(--text-primary)', textDecoration: done ? 'line-through' : 'none' }}>
+                      {s.label}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 1 }}>
+                      {s.desc}
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  {!done ? (
+                    <button
+                      onClick={s.action}
+                      style={{
+                        flexShrink: 0, fontSize: '0.78rem', padding: '6px 14px',
+                        background: `${s.color}22`, color: s.color,
+                        border: `1px solid ${s.color}44`,
+                        borderRadius: 'var(--radius-sm)', fontWeight: 600, cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Connect →
+                    </button>
+                  ) : (
+                    <span style={{ flexShrink: 0, fontSize: '0.72rem', color: 'var(--status-success)', fontWeight: 700 }}>
+                      Connected
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* AI Providers */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>AI Models</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 16 }}>
+          {AI_PROVIDERS.map((p) => {
+            const connected = !!integrations.find(i => i.provider === p.key);
+            const editing = isConnecting === p.key;
+            const accent = p.accentColor || 'var(--accent-primary)';
+            const accentDim = p.accentColor ? `${p.accentColor}22` : 'var(--accent-dim)';
+            const accentBorder = p.accentColor ? `${p.accentColor}40` : 'var(--border-accent)';
+            return (
+              <div key={p.key} style={{
+                background: 'var(--bg-elevated)',
+                border: `1px solid ${connected ? accentBorder : 'var(--border-color)'}`,
+                borderTop: `3px solid ${connected ? accent : 'var(--border-color)'}`,
+                borderRadius: 'var(--radius-lg)',
+                padding: 20,
+                display: 'flex', flexDirection: 'column', gap: 14,
+                boxShadow: connected ? `0 4px 20px ${accentDim}` : 'var(--shadow-md)',
+                transition: 'all var(--transition-fast)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 42, height: 42, borderRadius: 10,
+                      background: accentDim,
+                      border: `1px solid ${accentBorder}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}>
+                      {p.icon}
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                        <h3 style={{ margin: 0, fontSize: '0.95rem' }}>{p.name}</h3>
+                        {p.badge && (
+                          <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '2px 6px', borderRadius: 'var(--radius-full)', background: accentDim, color: accent, border: `1px solid ${accentBorder}`, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                            {p.badge}
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.78rem', marginTop: 2, color: 'var(--text-secondary)' }}>{p.description}</p>
+                    </div>
+                  </div>
+                  {connected && !editing && (
+                    <span style={{
+                      padding: '4px 10px', flexShrink: 0,
+                      background: `${accent}22`, color: accent,
+                      border: `1px solid ${accentBorder}`,
+                      borderRadius: 'var(--radius-full)',
+                      fontSize: '0.7rem', fontWeight: 700,
+                      letterSpacing: '0.05em', textTransform: 'uppercase',
+                    }}>
+                      ● Active
+                    </span>
+                  )}
+                </div>
+                {editing ? (
+                  <form onSubmit={(e) => handleSave(e, p.key)} style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--border-color)', paddingTop: 14 }}>
+                    {p.fields.map(f => (
+                      <FIELD key={f.key} label={f.label}>
+                        {f.type === 'select' ? (
+                          <select style={{ width: '100%' }} value={form[f.key] || ''} onChange={e => setForm({ ...form, [f.key]: e.target.value })}>
+                            <option value="">Choose a model…</option>
+                            {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                          </select>
+                        ) : (
+                          <input
+                            type={f.type}
+                            required={f.required}
+                            style={{ width: '100%' }}
+                            value={form[f.key] || ''}
+                            onChange={e => setForm({ ...form, [f.key]: e.target.value })}
+                            placeholder={f.placeholder}
+                          />
+                        )}
+                      </FIELD>
+                    ))}
+                    {p.envNote && <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{p.envNote}</p>}
+                    {errorMap[p.key] && (
+                      <div style={{ padding: '8px 12px', background: 'var(--status-danger-dim)', border: '1px solid var(--status-danger-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-danger)', fontSize: '0.82rem' }}>{errorMap[p.key]}</div>
+                    )}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="submit" disabled={loading} style={{ flex: 1, padding: '9px', background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}>
+                        {loading ? 'Verifying…' : 'Connect'}
+                      </button>
+                      <button type="button" className="secondary" onClick={() => setIsConnecting(null)} style={{ padding: '9px 14px' }}>Cancel</button>
+                    </div>
+                  </form>
+                ) : (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      className="secondary"
+                      style={{ flex: 1, padding: '9px', borderStyle: connected ? 'solid' : 'dashed' }}
+                      onClick={() => {
+                        setIsConnecting(p.key);
+                        setForm(connected ? {} : { clientSecret: p.key === 'claude' ? 'claude-opus-4-6' : '' });
+                      }}
+                    >
+                      {connected ? '⚙ Reconfigure' : `+ Connect ${p.name}`}
+                    </button>
+                    {connected && (
+                      <button
+                        className="danger"
+                        style={{ padding: '9px 14px' }}
+                        onClick={() => handleDisconnect(p.key)}
+                        title="Disconnect"
+                      >
+                        Disconnect
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Email / Telephony Providers */}
+      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Email &amp; Telephony</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 16 }}>
+        {PROVIDERS.map((p) => {
+          const integration = integrations.find(i => i.provider === p.key);
+          const connected = !!integration;
+          const editing = isConnecting === p.key;
+
+          return (
+            <div key={p.key} style={{
+              background: 'var(--bg-elevated)',
+              border: `1px solid ${connected ? 'var(--status-success-border)' : 'var(--border-color)'}`,
+              borderTop: connected ? '3px solid var(--status-success)' : '3px solid var(--border-accent)',
+              borderRadius: 'var(--radius-lg)',
+              padding: 20,
+              display: 'flex', flexDirection: 'column', gap: 14,
+              boxShadow: connected ? '0 4px 20px var(--status-success-dim)' : 'var(--shadow-md)',
+              transition: 'all var(--transition-fast)',
+            }}>
+              {/* Card header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{
+                    width: 46, height: 46, borderRadius: 12,
+                    background: 'var(--bg-tertiary)',
+                    border: '1px solid var(--border-color)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    {p.icon}
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1rem' }}>{p.name}</h3>
+                    <p style={{ margin: 0, fontSize: '0.8rem', marginTop: 3, color: 'var(--text-secondary)' }}>{p.description}</p>
+                  </div>
+                </div>
+                {connected && !editing && (
+                  <span style={{
+                    padding: '4px 10px',
+                    background: 'var(--status-success-dim)',
+                    color: 'var(--status-success)',
+                    border: '1px solid var(--status-success-border)',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '0.7rem', fontWeight: 700,
+                    letterSpacing: '0.05em', textTransform: 'uppercase',
+                    flexShrink: 0,
+                  }}>
+                    ● Connected
+                  </span>
+                )}
+              </div>
+
+              {/* Editing form — provider-specific */}
+              {editing ? (
+                p.key === 'google' ? (
+                  <GoogleSetupForm
+                    loading={loading}
+                    error={errorMap[p.key]}
+                    onCancel={() => setIsConnecting(null)}
+                    onSave={async (data) => {
+                      setLoading(true);
+                      setErrorMap(prev => ({ ...prev, google: null }));
+                      try {
+                        await api.post('/integrations', { ...data, provider: 'google' });
+                        setIsConnecting(null);
+                        await fetchIntegrations();
+                        toast('Gmail connected', 'success');
+                      } catch (err) {
+                        setErrorMap(prev => ({ ...prev, google: err.response?.data?.message || 'Verification failed — check your App Password.' }));
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                  />
+                ) : p.key === 'microsoft' ? (
+                  <MicrosoftSetupForm
+                    error={errorMap[p.key]}
+                    onCancel={() => { setIsConnecting(null); setErrorMap(prev => ({ ...prev, microsoft: null })); }}
+                    onConnected={async () => { await fetchIntegrations(); setIsConnecting(null); }}
+                  />
+                ) : (
+                  <form onSubmit={(e) => handleSave(e, p.key)} style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>
+                    <FIELD label="Email Address">
+                      <input type="email" required style={{ width: '100%' }} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="sender@yourcompany.com" />
+                    </FIELD>
+                    <FIELD label="Client ID">
+                      <input type="password" required style={{ width: '100%' }} value={form.clientId} onChange={e => setForm({ ...form, clientId: e.target.value })} placeholder="••••••••" />
+                    </FIELD>
+                    <FIELD label="Client Secret">
+                      <input type="password" required style={{ width: '100%' }} value={form.clientSecret} onChange={e => setForm({ ...form, clientSecret: e.target.value })} placeholder="••••••••" />
+                    </FIELD>
+                    {errorMap[p.key] && (
+                      <div style={{ padding: '9px 13px', background: 'var(--status-danger-dim)', border: '1px solid var(--status-danger-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-danger)', fontSize: '0.83rem' }}>{errorMap[p.key]}</div>
+                    )}
+                    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                      <button type="submit" disabled={loading} style={{ flex: 1, padding: '10px' }}>{loading ? 'Validating…' : 'Save & Verify'}</button>
+                      <button type="button" className="secondary" onClick={() => setIsConnecting(null)} style={{ padding: '10px 16px' }}>Cancel</button>
+                    </div>
+                  </form>
+                )
+              ) : connected ? (
+                /* Connected state */
+                <div style={{ background: 'var(--bg-tertiary)', padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <div className="tl-dot tl-green" />
+                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{integration.email || 'Configured'}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button className="ghost" style={{ fontSize: '0.8rem', padding: '5px 10px', color: 'var(--text-secondary)' }}
+                      onClick={() => {
+                        setIsConnecting(p.key);
+                        setForm({ email: integration.email || '', clientId: '', clientSecret: '', refreshToken: '' });
+                      }}>
+                      Edit
+                    </button>
+                    <button className="ghost" style={{ fontSize: '0.8rem', padding: '5px 10px', color: 'var(--status-danger)' }} onClick={() => handleDisconnect(p.key)}>
+                      Disconnect
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Not connected */
+                <button
+                  className="secondary"
+                  style={{ width: '100%', padding: '10px', fontWeight: 600, borderStyle: 'dashed' }}
+                  onClick={() => handleConnectStart(p.key)}
+                >
+                  {p.key === 'google' ? '+ Connect Gmail (App Password)' : p.key === 'microsoft' ? '+ Connect Microsoft 365' : `+ Configure ${p.name}`}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Voice — collapsed section */}
+      <VoiceSection integrations={integrations} onUpdate={fetchIntegrations} toast={toast} />
+
+      {/* Help notes */}
+      <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ padding: '12px 16px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Sequence emails</strong> are sent automatically every 15 minutes once Gmail is connected. Emails respect the delay days configured on each step.
+        </div>
+        <div style={{ padding: '12px 16px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Microsoft 365 Power Dialer:</strong> For PSTN calling, your Azure Entra app also needs{' '}
+          <Code>Calls.InitiateGroupCall.All</Code> and <Code>Calls.AccessMedia.All</Code> permissions (Application type).
+        </div>
+        <div style={{ padding: '12px 16px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Claude API keys:</strong> Get yours at{' '}
+          <a href="https://console.anthropic.com" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-secondary)' }}>console.anthropic.com</a>. Enterprise plans require a workspace admin to generate API keys under Settings → API Keys.
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Integrations;
