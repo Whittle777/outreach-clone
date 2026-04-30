@@ -273,29 +273,17 @@ For type "action":
       });
     }
 
-    // type === 'action' — build and persist a call list
+    // type === 'action' — build and return a call list
     const targetIds = parsed.targetProspectIds || [];
     const reasoningLogs = parsed.reasoningLogs || ['Generated constraints successfully'];
     const listTitle = parsed.listTitle || 'Agentic Task Pipeline';
-
-    let createdList = null;
-    if (targetIds.length > 0) {
-      createdList = await prisma.prospectList.create({
-        data: {
-          title: listTitle,
-          description: prompt,
-          prospects: { connect: targetIds.map(id => ({ id })) },
-        },
-      });
-    }
-
     const filteredProspects = prospects.filter(p => targetIds.includes(p.id));
 
     res.json({
       type: 'action',
       reasoningLogs,
       playlist: {
-        id: createdList ? createdList.id : null,
+        id: null,
         title: listTitle,
         items: filteredProspects,
         estimatedTime: `${Math.ceil(filteredProspects.length * 3)} mins`,
