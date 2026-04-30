@@ -376,10 +376,13 @@ const Prospects = () => {
         try {
           const res = await api.post('/prospects/bulk', { prospects: mappedProspects });
           const added = res.data?.count ?? mappedProspects.length;
+          const accountsCreated = res.data?.accountsCreated ?? 0;
           const skipped = mappedProspects.length - added;
-          const msg = skipped > 0
-            ? `${added} imported, ${skipped} skipped (already exist)`
-            : `${added} prospect${added !== 1 ? 's' : ''} imported`;
+          const parts = [];
+          if (added > 0) parts.push(`${added} prospect${added !== 1 ? 's' : ''} imported`);
+          if (skipped > 0) parts.push(`${skipped} skipped (already exist)`);
+          if (accountsCreated > 0) parts.push(`${accountsCreated} account${accountsCreated !== 1 ? 's' : ''} created`);
+          const msg = parts.join(' · ');
           setUploadStats({ success: msg });
           fetchProspects();
           toast(msg, 'success');

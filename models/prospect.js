@@ -11,7 +11,7 @@ class Prospect {
     const ALLOWED_FIELDS = new Set([
       'firstName', 'lastName', 'email', 'companyName', 'title', 'phone',
       'enrichmentStatus', 'status', 'notes', 'country', 'region',
-      'techStack', 'tags', 'trackingPixelData', 'ownedById',
+      'techStack', 'tags', 'trackingPixelData', 'ownedById', 'accountId',
     ]);
     const sanitized = prospectsArray.map(p =>
       Object.fromEntries(Object.entries(p).filter(([k]) => ALLOWED_FIELDS.has(k)))

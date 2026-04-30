@@ -90,9 +90,37 @@ router.post('/bulk', async (req, res) => {
     if (!prospects || !Array.isArray(prospects)) {
       return res.status(400).json({ message: 'Invalid prospects array' });
     }
-    const prospectsWithOwner = prospects.map(p => ({ ...p, ownedById: req.userId }));
+
+    // Upsert one Account per unique companyName in the batch
+    const uniqueCompanies = [...new Set(prospects.map(p => p.companyName).filter(Boolean))];
+    const accountMap = {}; // companyName -> accountId
+
+    for (const name of uniqueCompanies) {
+      const existing = await prisma.account.findFirst({ where: { name } });
+      if (existing) {
+        accountMap[name] = existing.id;
+      } else {
+        const sample = prospects.find(p => p.companyName === name);
+        const created = await prisma.account.create({
+          data: {
+            name,
+            country:   sample?.country   || null,
+            region:    sample?.region    || null,
+            techStack: sample?.techStack || null,
+          },
+        });
+        accountMap[name] = created.id;
+      }
+    }
+
+    const prospectsWithOwner = prospects.map(p => ({
+      ...p,
+      ownedById: req.userId,
+      accountId: p.companyName ? accountMap[p.companyName] : undefined,
+    }));
+
     const result = await createProspectsBulk(prospectsWithOwner);
-    res.status(201).json(result);
+    res.status(201).json({ ...result, accountsCreated: Object.keys(accountMap).length });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
