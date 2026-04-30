@@ -1208,7 +1208,7 @@ const PowerDialerView = () => {
   if(mode==='power')      return <PowerSession prospects={queue.prospects} settings={settings} onEnd={()=>setMode(null)}/>;
 
   return (
-    <div style={{ maxWidth:1100, padding:'22px 26px' }}>
+    <div style={{ maxWidth:1100, padding:'22px 26px', width:'100%', boxSizing:'border-box', overflowX:'hidden' }}>
       {panel==='settings' && <SettingsPanel settings={settings} onChange={setSettings} onClose={()=>setPanel(null)}/>}
       {panel==='vms'      && <VMManager onClose={()=>setPanel(null)}/>}
 
@@ -1287,7 +1287,7 @@ const PowerDialerView = () => {
       {/* Mode Cards */}
       <div style={{ marginBottom:10 }}>
         <div style={{ fontWeight:700, fontSize:'0.82rem', color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:12 }}>Select Dialing Mode</div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3, minmax(0,1fr))', gap:14 }}>
           <SetupTooltipBlock show={!microsoftReady} message="Microsoft 365 integration is required to make calls. Connect it in Integrations.">
             <ModeCard icon="☎" title="Manual" desc="Best for focused outreach. You control every call — dial, speak, hang up, and log the result before moving on." onSelect={()=>startSession('manual')} disabled={queue.prospects.length===0}/>
           </SetupTooltipBlock>
