@@ -17,6 +17,7 @@ import SuccessPlans from './components/SuccessPlans';
 import TaskInbox from './components/TaskInbox';
 import VoiceAgentLanding from './components/VoiceAgentLanding';
 import Accounts from './components/Accounts';
+import EmailSafety from './components/EmailSafety';
 import { ToastProvider } from './components/Toast';
 import { IntegrationProvider, useIntegrations } from './contexts/IntegrationContext';
 import TourOverlay, { useTourAutoStart, TOUR_LS_KEY } from './components/TourOverlay';
@@ -84,7 +85,8 @@ const NAV = [
   {
     label: 'Config',
     links: [
-      { path: '/integrations', label: 'Integrations', icon: '🔗', desc: 'CRM · Teams · Gmail · API keys' },
+      { path: '/integrations',  label: 'Integrations',  icon: '🔗', desc: 'CRM · Teams · Gmail · API keys' },
+      { path: '/email-safety',  label: 'Email Safety',  icon: '🛡️', desc: 'Sending limits, bounce rules & compliance' },
     ],
   },
   {
@@ -131,6 +133,7 @@ const NAV_ACTIONS = [
   { icon:'🏢', label:'Accounts',        path:'/accounts',         sub:'Company accounts & linked prospects' },
   { icon:'📊', label:'Analytics',       path:'/analytics',        sub:'Your pipeline health & activity metrics' },
   { icon:'🔗', label:'Integrations',    path:'/integrations',     sub:'CRM, Teams, Gmail config' },
+  { icon:'🛡️', label:'Email Safety',   path:'/email-safety',     sub:'Sending limits, bounce rules & compliance' },
   { icon:'✅', label:'Task Inbox',      path:'/tasks',            sub:'All due sequence tasks in one view' },
   { icon:'🤝', label:'Success Plans',   path:'/success-plans',    sub:'Mutual action plans with buyers' },
   { icon:'?',  label:'Take a tour',     path:null,                sub:'Guided walkthrough of the app' },
@@ -630,6 +633,7 @@ function AppInner() {
             <Route path="/success-plans"    element={<ProtectedRoute><SuccessPlans /></ProtectedRoute>} />
             <Route path="/voice-agent"      element={<ProtectedRoute><VoiceAgentLanding /></ProtectedRoute>} />
             <Route path="/accounts"         element={<ProtectedRoute><Accounts /></ProtectedRoute>} />
+            <Route path="/email-safety"     element={<ProtectedRoute><EmailSafety /></ProtectedRoute>} />
           </Routes>
         </div>
       </main>

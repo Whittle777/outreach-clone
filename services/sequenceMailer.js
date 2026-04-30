@@ -37,7 +37,7 @@ async function createTransport() {
   if (!user) {
     // Try reading from integrations DB (Google App Password flow)
     const cred = await prisma.integrationCredential.findFirst({
-      where: { provider: 'google', userId: 1 },
+      where: { provider: 'google' },
     });
     if (cred?.clientId && cred?.clientSecret) {
       user = cred.clientId;   // email address
@@ -88,12 +88,19 @@ async function sendStepEmail(enrollment, step) {
   // Inline tracking pixel — 1x1 transparent GIF
   const trackingUrl = `${process.env.APP_URL || 'http://localhost:3000'}/track/open?prospectId=${prospect.id}&stepId=${step.id}`;
 
+  const appUrl = process.env.APP_URL || 'http://localhost:3000';
+  const unsubscribeUrl = `${appUrl}/prospects/list-unsubscribe?email=${encodeURIComponent(prospect.email)}`;
+
   const info = await transporter.sendMail({
     from: `"${fromName}" <${fromAddress}>`,
     to: prospect.email,
     subject,
     html: `${body.replace(/\n/g, '<br/>')}<img src="${trackingUrl}" width="1" height="1" style="display:none" />`,
     text: body,
+    headers: {
+      'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 
   // Nodemailer returns a Message-ID (e.g. <abc123@domain>) — store it for reply matching
@@ -102,31 +109,93 @@ async function sendStepEmail(enrollment, step) {
   return recordStepSent(enrollment, step, externalMessageId);
 }
 
+// SMTP error codes / messages that indicate a permanent (hard) bounce.
+// These should pause the enrollment rather than retry.
+const HARD_BOUNCE_SIGNALS = [
+  /\b55[0-4]\b/,              // SMTP 550–554 permanent failure
+  /user (unknown|not found)/i,
+  /no such user/i,
+  /invalid (recipient|address)/i,
+  /address.*does not exist/i,
+  /mailbox.*unavailable/i,
+  /recipient.*rejected/i,
+];
+
+function isHardBounce(errMessage) {
+  return HARD_BOUNCE_SIGNALS.some(p => p.test(errMessage));
+}
+
 /**
  * Run all due enrollment steps. Called by cron or triggered manually.
  * Returns a summary of what was sent.
+ *
+ * Safety guardrails:
+ *   - MAX_EMAILS_PER_DAY  (env, default 200) — daily cap across all sequences
+ *   - EMAIL_SEND_DELAY_MS (env, default 2000) — pause between each send to avoid SMTP throttling
+ *   - Hard bounces pause the enrollment immediately
+ *   - 3+ failures on one enrollment in 7 days → paused
  */
 async function runDueSequenceEmails() {
+  const MAX_PER_DAY    = parseInt(process.env.MAX_EMAILS_PER_DAY   || '200');
+  const SEND_DELAY_MS  = parseInt(process.env.EMAIL_SEND_DELAY_MS  || '2000');
+
+  // Count emails already sent today
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const sentToday = await prisma.emailActivity.count({
+    where: { status: 'sent', sentAt: { gte: todayStart } },
+  });
+
+  if (sentToday >= MAX_PER_DAY) {
+    console.log(`[Sequence Mailer] Daily cap reached (${sentToday}/${MAX_PER_DAY}). Skipping run.`);
+    return { sent: 0, failed: 0, errors: [], limitReached: true };
+  }
+
+  const remaining = MAX_PER_DAY - sentToday;
   const dueEnrollments = await getDueEnrollments();
   const results = { sent: 0, failed: 0, errors: [] };
 
   for (const enrollment of dueEnrollments) {
+    if (results.sent >= remaining) {
+      console.log(`[Sequence Mailer] Reached daily cap mid-run. Stopping.`);
+      break;
+    }
+
+    // Pause enrollment if it has accumulated 3+ failures in the last 7 days
+    const recentFailures = await prisma.emailActivity.count({
+      where: {
+        enrollmentId: enrollment.id,
+        status: 'failed',
+        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+      },
+    });
+    if (recentFailures >= 3) {
+      await prisma.sequenceEnrollment.update({
+        where: { id: enrollment.id },
+        data: { status: 'paused', pausedAt: new Date(), pausedReason: 'max_failures', nextStepDue: null },
+      });
+      console.warn(`[Sequence Mailer] Paused enrollment ${enrollment.id} — ${recentFailures} failures in 7 days`);
+      continue;
+    }
+
     const steps = enrollment.sequence.steps;
-    // Find the next step to send (first step with order > currentStepOrder, or step 1 if currentStepOrder is 0)
     const nextStep = steps.find((s) =>
       enrollment.currentStepOrder === 0 ? s.order === 1 : s.order > enrollment.currentStepOrder
     );
-
     if (!nextStep) continue;
 
     try {
       await sendStepEmail(enrollment, nextStep);
       results.sent++;
+      // Throttle: wait between sends to avoid SMTP rate limiting
+      if (results.sent < remaining) {
+        await new Promise(r => setTimeout(r, SEND_DELAY_MS));
+      }
     } catch (err) {
       results.failed++;
       results.errors.push({ prospectId: enrollment.prospectId, error: err.message });
-      console.error(`Failed to send step ${nextStep.order} to prospect ${enrollment.prospectId}:`, err.message);
-      // Record the failure so it's visible in the Emails tab
+      console.error(`[Sequence Mailer] Failed step ${nextStep.order} for prospect ${enrollment.prospectId}:`, err.message);
+
       try {
         await prisma.emailActivity.create({
           data: {
@@ -139,6 +208,19 @@ async function runDueSequenceEmails() {
           },
         });
       } catch (_) { /* non-critical */ }
+
+      // Hard bounce: pause enrollment immediately, flag prospect
+      if (isHardBounce(err.message)) {
+        await prisma.sequenceEnrollment.update({
+          where: { id: enrollment.id },
+          data: { status: 'paused', pausedAt: new Date(), pausedReason: 'hard_bounce', nextStepDue: null },
+        });
+        await prisma.prospect.update({
+          where: { id: enrollment.prospectId },
+          data: { status: 'Bounced' },
+        });
+        console.warn(`[Sequence Mailer] Hard bounce for prospect ${enrollment.prospectId} — enrollment paused`);
+      }
     }
   }
 

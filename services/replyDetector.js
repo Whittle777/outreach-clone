@@ -236,8 +236,18 @@ async function processReply({ emailActivity, fromEmail, subject, body, receivedA
       await markReplied(enrollment.sequenceId, prospectId);
     } else if (classification.type === 'unsubscribe') {
       await optOutProspect(enrollment.sequenceId, prospectId);
+    } else if (classification.type === 'bounce') {
+      await prisma.sequenceEnrollment.update({
+        where: { id: enrollmentId },
+        data: { status: 'paused', pausedAt: new Date(), pausedReason: 'hard_bounce', nextStepDue: null },
+      });
+      await prisma.prospect.update({
+        where: { id: prospectId },
+        data: { status: 'Bounced' },
+      });
+      console.warn(`[Reply Detector] Hard bounce — paused enrollment ${enrollmentId}, flagged prospect ${prospectId}`);
     }
-    // bounce / unknown: log only, no enrollment change
+    // unknown: log only, no enrollment change
   } catch (err) {
     console.error(`[Reply Detector] Action failed for enrollment ${enrollmentId}:`, err.message);
   }
@@ -484,8 +494,8 @@ async function runReplyDetection() {
 
   // Detect new replies
   const [microsoftCred, googleCred] = await Promise.all([
-    prisma.integrationCredential.findFirst({ where: { provider: 'microsoft', userId: 1 } }),
-    prisma.integrationCredential.findFirst({ where: { provider: 'google', userId: 1 } }),
+    prisma.integrationCredential.findFirst({ where: { provider: 'microsoft' } }),
+    prisma.integrationCredential.findFirst({ where: { provider: 'google' } }),
   ]);
 
   if (microsoftCred?.refreshToken) {
