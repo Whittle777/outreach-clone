@@ -115,7 +115,7 @@ const GoogleSetupForm = ({ onSave, onCancel, loading, error }) => {
           Go to <a href='https://myaccount.google.com/security' target='_blank' rel='noreferrer' style={{ color: 'var(--accent-secondary)' }}>myaccount.google.com/security</a> and make sure <strong>2-Step Verification</strong> is turned on. App Passwords won't appear without it.
         </Step>
         <Step n={2} title='Generate an App Password'>
-          Go to <a href='https://myaccount.google.com/apppasswords' target='_blank' rel='noreferrer' style={{ color: 'var(--accent-secondary)' }}>myaccount.google.com/apppasswords</a>. Under "Select app" choose <strong>Mail</strong>, under "Select device" choose <strong>Other</strong> and name it <em>Outreach.ai</em>. Click <strong>Generate</strong> and copy the 16-character password shown.
+          Go to <a href='https://myaccount.google.com/apppasswords' target='_blank' rel='noreferrer' style={{ color: 'var(--accent-secondary)' }}>myaccount.google.com/apppasswords</a>. Under "Select app" choose <strong>Mail</strong>, under "Select device" choose <strong>Other</strong> and name it <em>Apex</em>. Click <strong>Generate</strong> and copy the 16-character password shown.
         </Step>
         <Step n={3} title='Paste your credentials below'>
           Enter your Gmail address and the App Password (spaces are fine — they'll be stripped automatically).
@@ -150,7 +150,9 @@ const MicrosoftSetupForm = ({ onCancel, onConnected, error: externalError }) => 
 
   const error = localError || externalError;
 
-  const REDIRECT_URI = 'http://localhost:3000/auth/microsoft/callback';
+  // Show the production URL — users must add both to their Azure app
+  const PROD_REDIRECT_URI = 'https://apex-bdr-production.up.railway.app/auth/microsoft/callback';
+  const DEV_REDIRECT_URI  = 'http://localhost:3000/auth/microsoft/callback';
 
   const handleAuthorize = async () => {
     if (!clientId.trim() || !clientSecret.trim()) {
@@ -173,19 +175,20 @@ const MicrosoftSetupForm = ({ onCancel, onConnected, error: externalError }) => 
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>
       {/* Walkthrough */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 18 }}>
-        <Step n={1} title='Open Azure Portal → App Registrations'>
-          Go to <a href='https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade' target='_blank' rel='noreferrer' style={{ color: 'var(--accent-secondary)' }}>portal.azure.com → Entra ID → App registrations</a> and click <strong>New registration</strong>.
-          <br/>Name it anything (e.g. <em>Outreach.ai</em>). Under "Supported account types" choose <strong>Accounts in any organizational directory and personal Microsoft accounts</strong>. Click <strong>Register</strong>.
+        <Step n={1} title='Configure your existing app registration'>
+          Go to <a href='https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade' target='_blank' rel='noreferrer' style={{ color: 'var(--accent-secondary)' }}>portal.azure.com → Entra ID → App registrations</a> and open your <strong>apex-bdr</strong> app.
+          <br/>Under <strong>Overview → Supported account types</strong>, ensure it is set to <strong>Accounts in any organizational directory (Multitenant)</strong>.
         </Step>
-        <Step n={2} title='Add a Redirect URI'>
-          In your new app's page: <strong>Authentication → Add a platform → Web</strong>. Set the Redirect URI to:<br/>
-          <Code>{REDIRECT_URI}</Code><br/>
+        <Step n={2} title='Add Redirect URIs'>
+          Go to <strong>Authentication → Add a platform → Web</strong>. Add <em>both</em> of these Redirect URIs:<br/>
+          <Code>{PROD_REDIRECT_URI}</Code><br/>
+          <Code>{DEV_REDIRECT_URI}</Code><br/>
           Check <strong>Access tokens</strong> and <strong>ID tokens</strong>, then save.
         </Step>
         <Step n={3} title='Add API Permissions'>
           Go to <strong>API permissions → Add a permission → Microsoft Graph → Delegated permissions</strong>. Add:<br/>
-          <Code>Mail.Send</Code> &nbsp;<Code>User.Read</Code> &nbsp;<Code>offline_access</Code><br/>
-          Then click <strong>Grant admin consent</strong> (or ask your admin to do so).
+          <Code>Mail.Send</Code> &nbsp;<Code>Mail.Read</Code> &nbsp;<Code>User.Read</Code> &nbsp;<Code>offline_access</Code><br/>
+          Then click <strong>Grant admin consent</strong> (or ask your org admin to do so).
         </Step>
         <Step n={4} title='Copy your Application (Client) ID'>
           On the <strong>Overview</strong> page, copy the <strong>Application (client) ID</strong> — a UUID like <Code>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</Code>.

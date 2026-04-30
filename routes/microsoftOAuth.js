@@ -10,9 +10,11 @@ const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-const BACKEND_PORT = process.env.PORT || 3000;
-const REDIRECT_URI = `http://localhost:${BACKEND_PORT}/auth/microsoft/callback`;
-const FRONTEND_URL = 'http://localhost:5175';
+// APP_URL must be set in production (e.g. https://apex-bdr-production.up.railway.app)
+const APP_URL = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+const REDIRECT_URI = `${APP_URL}/auth/microsoft/callback`;
+// In production the frontend is served from the same origin as the API
+const FRONTEND_URL = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:5175';
 const SCOPES = [
   'https://graph.microsoft.com/Mail.Send',
   'https://graph.microsoft.com/Mail.Read',   // Required for reply detection
