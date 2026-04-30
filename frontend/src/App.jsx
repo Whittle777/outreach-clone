@@ -32,6 +32,14 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const getInitials = (name, email) => {
+  if (name && name !== 'Guest') {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+  if (email) return email[0].toUpperCase();
+  return '?';
+};
+
 // ─── localStorage keys — must match PowerDialerView.jsx ────────────────────
 // CALL_TS_KEY is written by PowerDialerView every time a dial is initiated and
 // read here to compute the "calls today" progress bar in the sidebar.
@@ -288,6 +296,11 @@ function AppInner() {
   const [pendingTaskCount, setPendingTaskCount]   = useState(0);
   const [editingGoal, setEditingGoal]     = useState(false);
   const [goalDraft, setGoalDraft]         = useState('');
+  const [currentUser, setCurrentUser]     = useState(null);
+
+  useEffect(() => {
+    api.get('/auth/me').then(r => setCurrentUser(r.data)).catch(() => {});
+  }, []);
 
   // Fetch all prospects once on mount so the command palette can search them
   // without a network round-trip on every Cmd+K open. Errors are intentionally
@@ -502,16 +515,21 @@ function AppInner() {
           <Link to="/login" className="nav-link" style={{ gap: 10, marginBottom: 6 }}>
             <div style={{
               width: 28, height: 28, borderRadius: '50%',
-              background: 'var(--grad-brand)',
+              background: currentUser?.isGuest ? 'var(--bg-tertiary)' : 'var(--grad-brand)',
+              border: currentUser?.isGuest ? '1px solid var(--border-subtle)' : 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '0.62rem', fontWeight: 800, color: '#fff', flexShrink: 0,
               boxShadow: '0 0 10px rgba(14,165,233,0.25)',
             }}>
-              HW
+              {getInitials(currentUser?.name, currentUser?.email)}
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>Henry Whittle</div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>Admin · Henry@</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                {currentUser?.name || currentUser?.email || 'Loading…'}
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                {currentUser?.isGuest ? 'Guest session' : currentUser?.email || ''}
+              </div>
             </div>
           </Link>
 
@@ -590,7 +608,7 @@ function AppInner() {
               <span style={{ fontFamily:'monospace', fontSize:'0.9rem' }}>⌨</span>
             </button>
             <CallFlags />
-            <div className="avatar" title="Henry Whittle" />
+            <div className="avatar" title={currentUser?.name || currentUser?.email || 'Guest'} />
           </div>
         </header>
 

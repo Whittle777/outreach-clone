@@ -113,23 +113,49 @@ const Login = () => {
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: '0.8rem', color: 'var(--text-muted)', position: 'relative' }}>
-          {mode === 'login' ? (
-            <>
-              No account?{' '}
-              <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setSuccess(''); setMode('register'); }} style={{ color: 'var(--accent-light)', fontWeight: 600 }}>
-                Create one
-              </a>
-            </>
-          ) : (
-            <>
-              Already have an account?{' '}
-              <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setSuccess(''); setMode('login'); }} style={{ color: 'var(--accent-light)', fontWeight: 600 }}>
-                Sign in
-              </a>
-            </>
-          )}
-        </p>
+        <div style={{ position: 'relative', marginTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+            {mode === 'login' ? (
+              <>
+                No account?{' '}
+                <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setSuccess(''); setMode('register'); }} style={{ color: 'var(--accent-light)', fontWeight: 600 }}>
+                  Create one
+                </a>
+              </>
+            ) : (
+              <>
+                Already have an account?{' '}
+                <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setSuccess(''); setMode('login'); }} style={{ color: 'var(--accent-light)', fontWeight: 600 }}>
+                  Sign in
+                </a>
+              </>
+            )}
+          </p>
+
+          <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>or</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+          </div>
+
+          <button
+            type="button"
+            style={{ width: '100%', padding: '10px', fontSize: '0.88rem', background: 'none', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}
+            onClick={async () => {
+              try {
+                const res = await api.post('/auth/guest');
+                if (res.data?.token) {
+                  localStorage.setItem('token', res.data.token);
+                  window.location.href = '/';
+                }
+              } catch {
+                setError('Could not start guest session.');
+              }
+            }}
+          >
+            Continue as guest
+          </button>
+        </div>
       </div>
     </div>
   );

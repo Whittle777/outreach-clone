@@ -52,8 +52,21 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// POST /auth/guest — returns a short-lived guest JWT (userId: null)
+router.post('/guest', (req, res) => {
+  const token = jwt.sign(
+    { userId: null, isGuest: true },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+  res.json({ token, user: { id: null, name: 'Guest', email: null, username: 'guest', isGuest: true } });
+});
+
 // GET /auth/me
 router.get('/me', authenticateToken, async (req, res) => {
+  if (!req.userId) {
+    return res.json({ id: null, name: 'Guest', email: null, username: 'guest', isGuest: true });
+  }
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
