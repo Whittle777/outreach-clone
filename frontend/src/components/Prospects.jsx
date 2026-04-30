@@ -362,7 +362,7 @@ const Prospects = () => {
             techStack: industry || department,
             notes: linkedIn ? `LinkedIn: ${linkedIn}` : '',
             trackingPixelData: Object.keys(extra).length ? JSON.stringify(extra) : undefined,
-            enrichmentStatus: (title || phone) ? 'enriched' : 'pending',
+            enrichmentStatus: 'pending',
             status: 'Uncontacted',
           };
         }).filter(p => p.email);
