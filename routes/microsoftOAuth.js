@@ -10,9 +10,8 @@ const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-const BACKEND_PORT = process.env.PORT || 3000;
-const REDIRECT_URI = `http://localhost:${BACKEND_PORT}/auth/microsoft/callback`;
-const FRONTEND_URL = 'http://localhost:5175';
+const REDIRECT_URI = process.env.MICROSOFT_REDIRECT_URI || `http://localhost:${process.env.PORT || 3000}/auth/microsoft/callback`;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5175';
 const SCOPES = [
   'https://graph.microsoft.com/Mail.Send',
   'https://graph.microsoft.com/Mail.Read',   // Required for reply detection
