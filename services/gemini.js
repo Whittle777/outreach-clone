@@ -1,24 +1,13 @@
-const axios = require('axios');
-
-const GEMINI_API_URL = 'https://api.gemini.com/v1/sentiment';
+const { GoogleGenAI } = require('@google/genai');
 
 async function analyzeSentiment(text) {
-  try {
-    const response = await axios.post(GEMINI_API_URL, {
-      text: text,
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GEMINI_API_KEY}`,
-      },
-    });
-    return response.data.sentiment;
-  } catch (error) {
-    console.error('Error calling Gemini API:', error);
-    throw new Error('Failed to communicate with Gemini API');
-  }
+  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not set');
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const result = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: [{ role: 'user', parts: [{ text: `Classify the sentiment of this text as positive, neutral, or negative. Reply with one word only.\n\n${text}` }] }],
+  });
+  return result.text?.trim().toLowerCase() || 'neutral';
 }
 
-module.exports = {
-  analyzeSentiment,
-};
+module.exports = { analyzeSentiment };

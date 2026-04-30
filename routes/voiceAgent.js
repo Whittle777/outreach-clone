@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenAI } = require('@google/genai');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
@@ -177,38 +178,61 @@ router.post('/session', async (req, res) => {
 router.post('/llm', async (req, res) => {
   try {
     const { messages = [], system } = req.body;
-    const claudeKey = await getClaudeKey();
-    if (!claudeKey) return res.status(500).json({ error: 'Claude API key not configured.' });
-
-    const client = new Anthropic({ apiKey: claudeKey });
+    const systemPrompt = system || 'You are a concise AI SDR on a live call. Keep responses under 3 sentences.';
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const stream = client.messages.stream({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 256,
-      system: system || 'You are a concise AI SDR on a live call. Keep responses under 3 sentences.',
-      messages: messages.filter(m => m.role === 'user' || m.role === 'assistant'),
-    });
+    const claudeKey = await getClaudeKey();
 
-    stream.on('text', (text) => {
-      const chunk = {
-        id: `chatcmpl-${Date.now()}`,
-        object: 'chat.completion.chunk',
-        choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }],
-      };
-      res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-    });
+    if (claudeKey) {
+      // Claude path
+      const client = new Anthropic({ apiKey: claudeKey });
+      const stream = client.messages.stream({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 256,
+        system: systemPrompt,
+        messages: messages.filter(m => m.role === 'user' || m.role === 'assistant'),
+      });
+      stream.on('text', (text) => {
+        res.write(`data: ${JSON.stringify({ id: `chatcmpl-${Date.now()}`, object: 'chat.completion.chunk', choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }] })}\n\n`);
+      });
+      stream.on('finalMessage', () => {
+        res.write(`data: ${JSON.stringify({ object: 'chat.completion.chunk', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] })}\n\n`);
+        res.write('data: [DONE]\n\n');
+        res.end();
+      });
+      stream.on('error', (err) => { console.error('Claude stream error:', err); res.end(); });
+      return;
+    }
 
-    stream.on('finalMessage', () => {
+    if (process.env.GEMINI_API_KEY) {
+      // Gemini fallback — stream and reformat as OpenAI-compatible SSE
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const geminiMessages = messages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
+
+      const stream = await ai.models.generateContentStream({
+        model: 'gemini-2.5-flash',
+        contents: geminiMessages,
+        config: { maxOutputTokens: 256, systemInstruction: systemPrompt },
+      });
+
+      for await (const chunk of stream) {
+        const text = chunk.text;
+        if (text) {
+          res.write(`data: ${JSON.stringify({ id: `chatcmpl-${Date.now()}`, object: 'chat.completion.chunk', choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }] })}\n\n`);
+        }
+      }
       res.write(`data: ${JSON.stringify({ object: 'chat.completion.chunk', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] })}\n\n`);
       res.write('data: [DONE]\n\n');
       res.end();
-    });
+      return;
+    }
 
-    stream.on('error', (err) => { console.error('Claude stream error:', err); res.end(); });
+    res.status(500).json({ error: 'No AI provider configured. Add a Claude key in Integrations or set GEMINI_API_KEY in .env.' });
   } catch (err) {
     console.error('LLM route error:', err);
     res.status(500).json({ error: err.message });
