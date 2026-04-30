@@ -51,7 +51,7 @@ router.post('/:id/enroll', async (req, res) => {
     return res.status(400).json({ message: 'prospectIds array required' });
   }
   try {
-    const enrollments = await enrollProspects(sequenceId, prospectIds.map(Number));
+    const enrollments = await enrollProspects(sequenceId, prospectIds.map(Number), req.userId);
     res.json(enrollments);
   } catch (err) {
     res.status(500).json({ message: err.message });

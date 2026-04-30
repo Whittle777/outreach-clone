@@ -56,7 +56,7 @@ const PROVIDERS = [
   {
     key: 'microsoft',
     name: 'Microsoft 365',
-    description: 'Send mail and make Teams PSTN calls via Microsoft Graph API. Requires an Azure app registration.',
+    description: 'Send sequence emails from your own Outlook and read replies. Connected automatically when you sign in with Microsoft.',
     icon: (
       <svg width="22" height="22" viewBox="0 0 23 23" fill="none">
         <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
@@ -141,114 +141,47 @@ const GoogleSetupForm = ({ onSave, onCancel, loading, error }) => {
   );
 };
 
-// ── Microsoft Azure walkthrough form ─────────────────────────────────────────
-const MicrosoftSetupForm = ({ onCancel, onConnected, error: externalError }) => {
-  const [clientId, setClientId] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
-  const [authorizing, setAuthorizing] = useState(false);
-  const [localError, setLocalError] = useState(null);
+// ── Microsoft reconnect panel (shown when user clicks Reconfigure) ────────────
+const MicrosoftReconnectPanel = ({ onCancel, error }) => {
+  const [loading, setLoading] = useState(false);
 
-  const error = localError || externalError;
-
-  // Show the production URL — users must add both to their Azure app
-  const PROD_REDIRECT_URI = 'https://apex-bdr-production.up.railway.app/auth/microsoft/callback';
-  const DEV_REDIRECT_URI  = 'http://localhost:3000/auth/microsoft/callback';
-
-  const handleAuthorize = async () => {
-    if (!clientId.trim() || !clientSecret.trim()) {
-      setLocalError('Enter your Application (Client) ID and Client Secret first.');
-      return;
-    }
-    setAuthorizing(true);
-    setLocalError(null);
+  const handleReconnect = async () => {
+    setLoading(true);
     try {
-      const res = await api.post('/auth/microsoft/start', { clientId: clientId.trim(), clientSecret: clientSecret.trim() });
-      // Redirect the current window — Microsoft requires same-window for localhost
+      const res = await api.post('/auth/microsoft/start');
       window.location.href = res.data.url;
     } catch (err) {
-      setLocalError(err.response?.data?.message || 'Failed to start authorization flow.');
-      setAuthorizing(false);
+      setLoading(false);
+      alert(err.response?.data?.message || 'Failed to start sign-in.');
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>
-      {/* Walkthrough */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 18 }}>
-        <Step n={1} title='Configure your existing app registration'>
-          Go to <a href='https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade' target='_blank' rel='noreferrer' style={{ color: 'var(--accent-secondary)' }}>portal.azure.com → Entra ID → App registrations</a> and open your <strong>apex-bdr</strong> app.
-          <br/>Under <strong>Overview → Supported account types</strong>, ensure it is set to <strong>Accounts in any organizational directory (Multitenant)</strong>.
-        </Step>
-        <Step n={2} title='Add Redirect URIs'>
-          Go to <strong>Authentication → Add a platform → Web</strong>. Add <em>both</em> of these Redirect URIs:<br/>
-          <Code>{PROD_REDIRECT_URI}</Code><br/>
-          <Code>{DEV_REDIRECT_URI}</Code><br/>
-          Check <strong>Access tokens</strong> and <strong>ID tokens</strong>, then save.
-        </Step>
-        <Step n={3} title='Add API Permissions'>
-          Go to <strong>API permissions → Add a permission → Microsoft Graph → Delegated permissions</strong>. Add:<br/>
-          <Code>Mail.Send</Code> &nbsp;<Code>Mail.Read</Code> &nbsp;<Code>User.Read</Code> &nbsp;<Code>offline_access</Code><br/>
-          Then click <strong>Grant admin consent</strong> (or ask your org admin to do so).
-        </Step>
-        <Step n={4} title='Copy your Application (Client) ID'>
-          On the <strong>Overview</strong> page, copy the <strong>Application (client) ID</strong> — a UUID like <Code>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</Code>.
-        </Step>
-        <Step n={5} title='Create a Client Secret'>
-          Go to <strong>Certificates &amp; secrets → New client secret</strong>. Set any expiry (12 or 24 months). Copy the <strong>Value</strong> immediately — it won't be shown again.
-        </Step>
-        <Step n={6} title='Paste credentials and authorize'>
-          Enter both values below, then click <strong>Authorize with Microsoft</strong>. You'll sign in once and we'll store your token automatically.
-        </Step>
-      </div>
-
-      {/* Form */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <FIELD label='Application (Client) ID'>
-          <input
-            type='text'
-            style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.85rem' }}
-            value={clientId}
-            onChange={e => setClientId(e.target.value)}
-            placeholder='xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
-          />
-        </FIELD>
-        <FIELD label='Client Secret Value'>
-          <input
-            type='password'
-            style={{ width: '100%' }}
-            value={clientSecret}
-            onChange={e => setClientSecret(e.target.value)}
-            placeholder='Client secret value (not the secret ID)'
-          />
-        </FIELD>
-
-        {error && (
-          <div style={{ padding: '9px 13px', background: 'var(--status-danger-dim)', border: '1px solid var(--status-danger-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-danger)', fontSize: '0.82rem', lineHeight: 1.5 }}>
-            {error}
-          </div>
-        )}
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            type='button'
-            disabled={authorizing}
-            onClick={handleAuthorize}
-            style={{ flex: 1, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-          >
-            <svg width="16" height="16" viewBox="0 0 23 23" fill="none" style={{ flexShrink: 0 }}>
-              <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
-              <rect x="12" y="1" width="10" height="10" fill="#7FBA00"/>
-              <rect x="1" y="12" width="10" height="10" fill="#00A4EF"/>
-              <rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
-            </svg>
-            {authorizing ? 'Redirecting to Microsoft…' : 'Authorize with Microsoft'}
-          </button>
-          <button type='button' className='secondary' onClick={onCancel} style={{ padding: '10px 16px' }}>Cancel</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>
+      {error && (
+        <div style={{ padding: '9px 13px', background: 'var(--status-danger-dim)', border: '1px solid var(--status-danger-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-danger)', fontSize: '0.82rem', lineHeight: 1.5 }}>
+          {error}
         </div>
-
-        <p style={{ margin: 0, fontSize: '0.73rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          You'll be redirected to Microsoft's login page. After signing in you'll be brought straight back here with the connection confirmed.
-        </p>
+      )}
+      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+        Click below to re-authorize Apex with your Microsoft account. You'll be redirected to Microsoft and brought straight back.
+      </p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          type='button'
+          disabled={loading}
+          onClick={handleReconnect}
+          style={{ flex: 1, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+        >
+          <svg width="16" height="16" viewBox="0 0 23 23" fill="none" style={{ flexShrink: 0 }}>
+            <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+            <rect x="12" y="1" width="10" height="10" fill="#7FBA00"/>
+            <rect x="1" y="12" width="10" height="10" fill="#00A4EF"/>
+            <rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
+          </svg>
+          {loading ? 'Redirecting…' : 'Reconnect Microsoft Account'}
+        </button>
+        <button type='button' className='secondary' onClick={onCancel} style={{ padding: '10px 16px' }}>Cancel</button>
       </div>
     </div>
   );
@@ -488,7 +421,14 @@ const Integrations = () => {
         </svg>
       ),
       color: '#00A4EF',
-      action: () => handleConnectStart('microsoft'),
+      action: async () => {
+        try {
+          const res = await api.post('/auth/microsoft/start');
+          window.location.href = res.data.url;
+        } catch (err) {
+          alert(err.response?.data?.message || 'Failed to start Microsoft sign-in.');
+        }
+      },
     },
   ];
 
@@ -790,10 +730,9 @@ const Integrations = () => {
                     }}
                   />
                 ) : p.key === 'microsoft' ? (
-                  <MicrosoftSetupForm
+                  <MicrosoftReconnectPanel
                     error={errorMap[p.key]}
                     onCancel={() => { setIsConnecting(null); setErrorMap(prev => ({ ...prev, microsoft: null })); }}
-                    onConnected={async () => { await fetchIntegrations(); setIsConnecting(null); }}
                   />
                 ) : (
                   <form onSubmit={(e) => handleSave(e, p.key)} style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>

@@ -14,46 +14,101 @@
  *        SMTP_SECURE=false
  *        SMTP_USER=you@gmail.com
  *        SMTP_PASS=xxxx xxxx xxxx xxxx   (16-char app password)
- *        EMAIL_FROM_NAME="Henry from Outreach.ai"
+ *        EMAIL_FROM_NAME="Henry from Apex"
  */
 
 const nodemailer = require('nodemailer');
+const axios = require('axios');
+const crypto = require('crypto');
 const { getDueEnrollments, recordStepSent } = require('./enrollmentService');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 /**
- * Build SMTP transport. Priority:
- *   1. SMTP_USER env var (set in .env directly)
- *   2. 'google' integration credential stored in DB (via Integrations UI)
- * Throws a clear error if neither is configured.
+ * Get a fresh Microsoft Graph access token for a user.
+ * Uses the stored refresh token + shared Azure app credentials from env vars.
  */
-async function createTransport() {
+async function getMicrosoftAccessToken(userId) {
+  const cred = await prisma.integrationCredential.findUnique({
+    where: { provider_userId: { provider: 'microsoft', userId } },
+  });
+  if (!cred?.refreshToken) {
+    throw new Error(`User ${userId} has no Microsoft credential — they must sign in again.`);
+  }
+  const params = new URLSearchParams({
+    client_id:     process.env.MICROSOFT_CLIENT_ID,
+    client_secret: process.env.MICROSOFT_CLIENT_SECRET,
+    refresh_token: cred.refreshToken,
+    grant_type:    'refresh_token',
+    scope:         'https://graph.microsoft.com/Mail.Send offline_access',
+  });
+  const res = await axios.post(
+    'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+    params.toString(),
+    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+  );
+  // Persist the new refresh token if Microsoft rotated it
+  if (res.data.refresh_token && res.data.refresh_token !== cred.refreshToken) {
+    await prisma.integrationCredential.update({
+      where: { provider_userId: { provider: 'microsoft', userId } },
+      data: { refreshToken: res.data.refresh_token },
+    });
+  }
+  return { accessToken: res.data.access_token, fromEmail: cred.email };
+}
+
+/**
+ * Send an email via Microsoft Graph API (POST /me/sendMail).
+ * Returns a generated Message-ID for reply tracking.
+ */
+async function sendViaGraph(accessToken, fromEmail, toEmail, subject, htmlBody) {
+  const messageId = `<${crypto.randomUUID()}@apex-bdr>`;
+  await axios.post(
+    'https://graph.microsoft.com/v1.0/me/sendMail',
+    {
+      message: {
+        subject,
+        body: { contentType: 'HTML', content: htmlBody },
+        toRecipients: [{ emailAddress: { address: toEmail } }],
+        internetMessageHeaders: [
+          { name: 'Message-ID',              value: messageId },
+          { name: 'List-Unsubscribe',        value: `<${process.env.APP_URL || 'http://localhost:3000'}/prospects/list-unsubscribe?email=${encodeURIComponent(toEmail)}>` },
+          { name: 'List-Unsubscribe-Post',   value: 'List-Unsubscribe=One-Click' },
+        ],
+      },
+      saveToSentItems: true,
+    },
+    { headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }
+  );
+  return messageId;
+}
+
+/**
+ * Build SMTP transport for Google App Password fallback.
+ * Priority: SMTP_USER env var → 'google' credential in DB.
+ */
+async function createSmtpTransport(userId) {
   let user = process.env.SMTP_USER;
   let pass = process.env.SMTP_PASS;
-  let host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  let port = parseInt(process.env.SMTP_PORT || '587');
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port = parseInt(process.env.SMTP_PORT || '587');
 
-  if (!user) {
-    // Try reading from integrations DB (Google App Password flow)
-    const cred = await prisma.integrationCredential.findFirst({
-      where: { provider: 'google' },
+  if (!user && userId) {
+    const cred = await prisma.integrationCredential.findUnique({
+      where: { provider_userId: { provider: 'google', userId } },
     });
     if (cred?.clientId && cred?.clientSecret) {
-      user = cred.clientId;   // email address
-      pass = cred.clientSecret; // app password
+      user = cred.clientId;
+      pass = cred.clientSecret;
     }
   }
 
   if (!user || !pass) {
-    throw new Error(
-      'No email credentials configured. Set SMTP_USER/SMTP_PASS in .env or connect Google Workspace in Integrations.'
-    );
+    throw new Error('No email credentials configured for this user.');
   }
 
   return nodemailer.createTransport({
-    host,
-    port,
+    host, port,
     secure: process.env.SMTP_SECURE === 'true',
     auth: { user, pass },
   });
@@ -73,38 +128,49 @@ function interpolate(template, prospect) {
 
 /**
  * Send one sequence step email to one prospect.
+ * Uses the sequence owner's Microsoft credential via Graph API,
+ * falling back to Google SMTP if no Microsoft credential exists.
  * Returns the EmailActivity record created.
  */
 async function sendStepEmail(enrollment, step) {
   const { prospect } = enrollment;
+  const ownerId = enrollment.sequence?.userId;
   const subject = interpolate(step.subject, prospect);
-  const body = interpolate(step.body, prospect);
+  const body    = interpolate(step.body, prospect);
+  const appUrl  = process.env.APP_URL || 'http://localhost:3000';
+  const trackingUrl = `${appUrl}/track/open?prospectId=${prospect.id}&stepId=${step.id}`;
+  const htmlBody = `${body.replace(/\n/g, '<br/>')}<img src="${trackingUrl}" width="1" height="1" style="display:none" />`;
 
-  const transporter = await createTransport();
-  const smtpUser = transporter.options?.auth?.user || process.env.SMTP_USER || '';
-  const fromName = process.env.EMAIL_FROM_NAME || smtpUser;
-  const fromAddress = smtpUser;
+  let externalMessageId = null;
 
-  // Inline tracking pixel — 1x1 transparent GIF
-  const trackingUrl = `${process.env.APP_URL || 'http://localhost:3000'}/track/open?prospectId=${prospect.id}&stepId=${step.id}`;
-
-  const appUrl = process.env.APP_URL || 'http://localhost:3000';
-  const unsubscribeUrl = `${appUrl}/prospects/list-unsubscribe?email=${encodeURIComponent(prospect.email)}`;
-
-  const info = await transporter.sendMail({
-    from: `"${fromName}" <${fromAddress}>`,
-    to: prospect.email,
-    subject,
-    html: `${body.replace(/\n/g, '<br/>')}<img src="${trackingUrl}" width="1" height="1" style="display:none" />`,
-    text: body,
-    headers: {
-      'List-Unsubscribe': `<${unsubscribeUrl}>`,
-      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    },
-  });
-
-  // Nodemailer returns a Message-ID (e.g. <abc123@domain>) — store it for reply matching
-  const externalMessageId = info.messageId || null;
+  // Try Microsoft Graph first (preferred — sends from rep's own Outlook)
+  try {
+    const { accessToken, fromEmail } = await getMicrosoftAccessToken(ownerId);
+    externalMessageId = await sendViaGraph(accessToken, fromEmail, prospect.email, subject, htmlBody);
+  } catch (msErr) {
+    // Fall back to Google SMTP
+    try {
+      const transporter = await createSmtpTransport(ownerId);
+      const smtpUser = transporter.options?.auth?.user || process.env.SMTP_USER || '';
+      const fromName = process.env.EMAIL_FROM_NAME || smtpUser;
+      const unsubscribeUrl = `${appUrl}/prospects/list-unsubscribe?email=${encodeURIComponent(prospect.email)}`;
+      const info = await transporter.sendMail({
+        from: `"${fromName}" <${smtpUser}>`,
+        to: prospect.email,
+        subject,
+        html: htmlBody,
+        text: body,
+        headers: {
+          'List-Unsubscribe':      `<${unsubscribeUrl}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
+      });
+      externalMessageId = info.messageId || null;
+    } catch (smtpErr) {
+      // Both failed — throw the original Microsoft error so it's clear which credential is missing
+      throw new Error(`Microsoft: ${msErr.message} | SMTP: ${smtpErr.message}`);
+    }
+  }
 
   return recordStepSent(enrollment, step, externalMessageId);
 }

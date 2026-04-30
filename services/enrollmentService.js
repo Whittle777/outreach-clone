@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
  * Safe to call multiple times — uses upsert so re-enrolling a completed/opted-out
  * prospect reactivates them from step 0.
  */
-async function enrollProspects(sequenceId, prospectIds) {
+async function enrollProspects(sequenceId, prospectIds, enrolledById = null) {
   const seq = await prisma.sequence.findUnique({
     where: { id: sequenceId },
     include: { steps: { orderBy: { order: 'asc' } } },
@@ -14,9 +14,7 @@ async function enrollProspects(sequenceId, prospectIds) {
   if (!seq) throw new Error(`Sequence ${sequenceId} not found`);
 
   const firstStep = seq.steps[0];
-  const nextStepDue = firstStep
-    ? addDays(new Date(), firstStep.delayDays)
-    : null;
+  const nextStepDue = firstStep ? addDays(new Date(), firstStep.delayDays) : null;
 
   const results = await Promise.all(
     prospectIds.map((prospectId) =>
@@ -30,6 +28,7 @@ async function enrollProspects(sequenceId, prospectIds) {
           optedOutAt: null,
           pausedAt: null,
           pausedReason: null,
+          enrolledById,
         },
         create: {
           prospectId,
@@ -37,11 +36,33 @@ async function enrollProspects(sequenceId, prospectIds) {
           currentStepOrder: 0,
           status: 'active',
           nextStepDue,
+          enrolledById,
         },
         include: { prospect: true },
       })
     )
   );
+
+  // Add the enrolling rep (and sequence owner) as prospect owners
+  if (enrolledById) {
+    const ownerIds = [...new Set([enrolledById, seq.userId].filter(Boolean))];
+    await Promise.all(
+      prospectIds.flatMap((prospectId) =>
+        ownerIds.map((userId) =>
+          prisma.prospectOwner.upsert({
+            where: { prospectId_userId: { prospectId, userId } },
+            update: {},
+            create: { prospectId, userId },
+          })
+        )
+      )
+    );
+    // Update ownedById to the enrolling rep (most recent sequencer)
+    await prisma.prospect.updateMany({
+      where: { id: { in: prospectIds } },
+      data: { ownedById: enrolledById },
+    });
+  }
 
   return results;
 }

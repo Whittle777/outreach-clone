@@ -29,6 +29,25 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Handles the redirect back from Microsoft OAuth — stores JWT and sends to dashboard
+const MicrosoftAuthCallback = () => {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      localStorage.setItem('token', token);
+      window.location.replace('/');
+    } else {
+      window.location.replace('/login?ms_error=No+token+received.');
+    }
+  }, []);
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100%' }}>
+      <p style={{ color:'var(--text-muted)' }}>Signing you in…</p>
+    </div>
+  );
+};
+
 const getInitials = (name, email) => {
   if (name && name !== 'Guest') {
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -392,7 +411,7 @@ function AppInner() {
       <nav className="sidebar">
         <div className="sidebar-header">
           <div className="logo-icon" />
-          <h2>Outreach.ai</h2>
+          <h2>Apex</h2>
         </div>
 
         <div className="nav-links">
@@ -615,6 +634,7 @@ function AppInner() {
         <div className={`page-content${isFullHeight ? ' full-height' : ''}`}>
           <Routes>
             <Route path="/login"            element={<Login />} />
+            <Route path="/auth/callback"    element={<MicrosoftAuthCallback />} />
             <Route path="/"                 element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/prospects"        element={<ProtectedRoute><Prospects /></ProtectedRoute>} />
             <Route path="/sequence-steps"   element={<ProtectedRoute><SequenceSteps /></ProtectedRoute>} />

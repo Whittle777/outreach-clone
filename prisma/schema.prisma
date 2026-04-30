@@ -11,15 +11,17 @@ datasource db {
 }
 
 model User {
-  id             Int                    @id @default(autoincrement())
-  username       String                 @unique
-  email          String                 @unique
-  password       String
-  name           String?
-  createdAt      DateTime               @default(now())
-  sequences      Sequence[]
-  ownedProspects Prospect[]             @relation("ProspectOwner")
-  ownedAccounts  Account[]
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  sequences              Sequence[]
+  integrationCredentials IntegrationCredential[]
+  ownedProspects         Prospect[]              @relation("OwnedBy")
+  ownedAccounts          Account[]
+  prospectOwnerships     ProspectOwner[]
+  enrolledEnrollments    SequenceEnrollment[]    @relation("EnrolledBy")
 }
 
 model Account {
@@ -68,13 +70,24 @@ model Prospect {
   accountId           Int?
   account             Account?             @relation(fields: [accountId], references: [id], onDelete: SetNull)
   ownedById           Int?
-  owner               User?                @relation("ProspectOwner", fields: [ownedById], references: [id], onDelete: SetNull)
+  owner               User?                @relation("OwnedBy", fields: [ownedById], references: [id], onDelete: SetNull)
   createdAt           DateTime             @default(now())
   sequenceEnrollments SequenceEnrollment[]
   emailActivities     EmailActivity[]
   callActivities      CallActivity[]
   replyActivities     ReplyActivity[]
   meetingActivities   MeetingActivity[]
+  owners              ProspectOwner[]
+}
+
+model ProspectOwner {
+  prospectId Int
+  userId     Int
+  assignedAt DateTime @default(now())
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([prospectId, userId])
 }
 
 model Sequence {
@@ -121,7 +134,9 @@ model SequenceEnrollment {
   enrolledAt       DateTime        @default(now())
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  emailActivities   EmailActivity[]
+  enrolledById     Int?
+  enrolledBy       User?           @relation("EnrolledBy", fields: [enrolledById], references: [id], onDelete: SetNull)
+  emailActivities  EmailActivity[]
   callActivities    CallActivity[]
   replyActivities   ReplyActivity[]
   meetingActivities MeetingActivity[]
@@ -215,6 +230,7 @@ model IntegrationCredential {
   refreshToken String?
   email        String?
   userId       Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

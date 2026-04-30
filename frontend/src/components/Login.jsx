@@ -1,36 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 
 const Login = () => {
-  const [mode, setMode]           = useState('login');
-  const [email, setEmail]         = useState('');
-  const [password, setPassword]   = useState('');
-  const [name, setName]           = useState('');
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState('');
-  const [success, setSuccess]     = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const msError = params.get('ms_error');
+    if (msError) setError(decodeURIComponent(msError));
+  }, []);
+
+  const handleMicrosoftLogin = async () => {
     setError('');
-    setSuccess('');
     setLoading(true);
     try {
-      if (mode === 'login') {
-        const res = await api.post('/auth/login', { email, password });
-        if (res.data?.token) {
-          localStorage.setItem('token', res.data.token);
-          window.location.href = '/';
-        }
-      } else {
-        await api.post('/auth/register', { email, password, name });
-        setSuccess('Account created! You can now sign in.');
-        setMode('login');
-        setName('');
-      }
+      const res = await api.post('/auth/microsoft/start');
+      window.location.href = res.data.url;
     } catch (err) {
-      setError(err.response?.data?.message || (mode === 'login' ? 'Invalid email or password.' : 'Registration failed.'));
-    } finally {
+      setError(err.response?.data?.message || 'Failed to start sign-in. Please try again.');
       setLoading(false);
     }
   };
@@ -49,15 +37,15 @@ const Login = () => {
         boxShadow: 'var(--shadow-glass), var(--shadow-glow)',
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* Top ambient glow */}
+        {/* Ambient glow */}
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: 180,
           background: 'radial-gradient(ellipse 100% 80% at 50% -20%, rgba(14,165,233,0.2) 0%, transparent 70%)',
           pointerEvents: 'none',
         }} />
 
-        {/* Logo mark */}
-        <div style={{ textAlign: 'center', marginBottom: 32, position: 'relative' }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 36, position: 'relative' }}>
           <div style={{
             width: 52, height: 52, margin: '0 auto 16px',
             background: 'var(--grad-brand)',
@@ -67,95 +55,48 @@ const Login = () => {
           }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%)' }} />
           </div>
-          <h2 style={{ marginBottom: 4 }}>
-            {mode === 'login' ? 'Welcome back' : 'Create account'}
-          </h2>
+          <h2 style={{ marginBottom: 6 }}>Welcome to Apex</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
-            {mode === 'login' ? 'Sign in to Outreach.ai' : 'Join Outreach.ai'}
+            Sign in with your company Microsoft account
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {mode === 'register' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Full name <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span></label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" style={{ width: '100%' }} autoComplete="name" />
-            </div>
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" required style={{ width: '100%' }} autoComplete="email" />
+        {error && (
+          <div style={{
+            padding: '10px 14px', marginBottom: 20,
+            background: 'var(--status-danger-dim)',
+            border: '1px solid var(--status-danger-border)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--status-danger)', fontSize: '0.85rem', lineHeight: 1.5,
+          }}>
+            {error}
           </div>
+        )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={{ width: '100%' }} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
-          </div>
+        <button
+          type="button"
+          onClick={handleMicrosoftLogin}
+          disabled={loading}
+          style={{
+            width: '100%', padding: '13px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            fontSize: '0.95rem', fontWeight: 600,
+            opacity: loading ? 0.7 : 1,
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 23 23" fill="none" style={{ flexShrink: 0 }}>
+            <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
+            <rect x="12" y="1"  width="10" height="10" fill="#7FBA00"/>
+            <rect x="1"  y="12" width="10" height="10" fill="#00A4EF"/>
+            <rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
+          </svg>
+          {loading ? 'Redirecting to Microsoft…' : 'Sign in with Microsoft'}
+        </button>
 
-          {error && (
-            <div style={{ padding: '10px 14px', background: 'var(--status-danger-dim)', border: '1px solid var(--status-danger-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-danger)', fontSize: '0.85rem' }}>
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div style={{ padding: '10px 14px', background: 'var(--status-success-dim)', border: '1px solid var(--status-success-border)', borderRadius: 'var(--radius-sm)', color: 'var(--status-success)', fontSize: '0.85rem' }}>
-              {success}
-            </div>
-          )}
-
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', fontSize: '0.95rem', fontWeight: 700, marginTop: 6, opacity: loading ? 0.7 : 1 }}>
-            {loading
-              ? (mode === 'login' ? 'Signing in…' : 'Creating account…')
-              : (mode === 'login' ? 'Sign In →' : 'Create Account →')
-            }
-          </button>
-        </form>
-
-        <div style={{ position: 'relative', marginTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-            {mode === 'login' ? (
-              <>
-                No account?{' '}
-                <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setSuccess(''); setMode('register'); }} style={{ color: 'var(--accent-light)', fontWeight: 600 }}>
-                  Create one
-                </a>
-              </>
-            ) : (
-              <>
-                Already have an account?{' '}
-                <a href="#" onClick={(e) => { e.preventDefault(); setError(''); setSuccess(''); setMode('login'); }} style={{ color: 'var(--accent-light)', fontWeight: 600 }}>
-                  Sign in
-                </a>
-              </>
-            )}
-          </p>
-
-          <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>or</span>
-            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
-          </div>
-
-          <button
-            type="button"
-            style={{ width: '100%', padding: '10px', fontSize: '0.88rem', background: 'none', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}
-            onClick={async () => {
-              try {
-                const res = await api.post('/auth/guest');
-                if (res.data?.token) {
-                  localStorage.setItem('token', res.data.token);
-                  window.location.href = '/';
-                }
-              } catch {
-                setError('Could not start guest session.');
-              }
-            }}
-          >
-            Continue as guest
-          </button>
-        </div>
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          You'll be redirected to Microsoft to sign in with your work account.
+          First-time sign-in will ask you to grant Apex permission to send email on your behalf.
+        </p>
       </div>
     </div>
   );
