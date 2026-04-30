@@ -349,16 +349,18 @@ const SettingsPanel = ({ settings, onChange, onClose }) => (
 // ─────────────────────────────────────────────────────────
 // Shared session sub-components
 // ─────────────────────────────────────────────────────────
+const CARD_BASE = { whiteSpace:'normal', overflow:'visible', display:'block', textAlign:'left', cursor:'pointer', transition:'all 0.18s ease' };
+
 const SmartListCard = ({ list, selected, onSelect }) => (
-  <button onClick={()=>onSelect(list)} style={{ flexShrink:0, width:280, background:selected?'var(--accent-dim)':'var(--bg-tertiary)', border:`1px solid ${selected?'var(--accent-primary)':'var(--border-color)'}`, boxShadow:selected?'0 0 0 1px var(--accent-primary)':'none', borderRadius:'var(--radius-md)', padding:'12px 14px', textAlign:'left', cursor:'pointer', transition:'all 0.18s ease' }}>
+  <button onClick={()=>onSelect(list)} style={{ ...CARD_BASE, flexShrink:0, width:260, background:selected?'var(--accent-dim)':'var(--bg-tertiary)', border:`1px solid ${selected?'var(--accent-primary)':'var(--border-color)'}`, boxShadow:selected?'0 0 0 1px var(--accent-primary)':'none', borderRadius:'var(--radius-md)', padding:'12px 14px' }}>
     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
       <span style={{ fontSize:'1.1rem' }}>{list.icon}</span>
-      <span style={{ fontSize:'0.63rem', fontWeight:700, letterSpacing:'0.07em', textTransform:'uppercase', color:list.tagColor, background:`${list.tagColor}22`, border:`1px solid ${list.tagColor}44`, padding:'1px 6px', borderRadius:'var(--radius-full)', flexShrink:0 }}>{list.tag}</span>
+      <span style={{ fontSize:'0.63rem', fontWeight:700, letterSpacing:'0.07em', textTransform:'uppercase', color:list.tagColor, background:`${list.tagColor}22`, border:`1px solid ${list.tagColor}44`, padding:'1px 6px', borderRadius:'var(--radius-full)', flexShrink:0, whiteSpace:'nowrap' }}>{list.tag}</span>
     </div>
-    <div style={{ fontWeight:700, fontSize:'0.84rem', color:'var(--text-primary)', marginBottom:4, lineHeight:1.4 }}>{list.title}</div>
-    <div style={{ fontSize:'0.75rem', color:'var(--text-secondary)', lineHeight:1.5 }}>{list.desc}</div>
+    <div style={{ fontWeight:700, fontSize:'0.84rem', color:'var(--text-primary)', marginBottom:5, lineHeight:1.4 }}>{list.title}</div>
+    <div style={{ fontSize:'0.75rem', color:'var(--text-secondary)', lineHeight:1.55, fontWeight:400 }}>{list.desc}</div>
     <div style={{ marginTop:10 }}>
-      <span style={{ fontSize:'0.78rem', fontWeight:700, color:selected?'var(--accent-primary)':'var(--text-primary)', background:'var(--bg-primary)', padding:'2px 8px', borderRadius:'var(--radius-full)', border:'1px solid var(--border-color)' }}>
+      <span style={{ fontSize:'0.78rem', fontWeight:700, color:selected?'var(--accent-primary)':'var(--text-primary)', background:'var(--bg-primary)', padding:'2px 8px', borderRadius:'var(--radius-full)', border:'1px solid var(--border-color)', whiteSpace:'nowrap' }}>
         {list.prospects.length} contacts
       </span>
     </div>
@@ -366,12 +368,13 @@ const SmartListCard = ({ list, selected, onSelect }) => (
 );
 
 const ModeCard = ({ icon, title, desc, onSelect, disabled }) => (
-  <button onClick={onSelect} disabled={disabled} style={{ background:'var(--bg-tertiary)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', padding:'18px 16px', textAlign:'left', cursor:disabled?'not-allowed':'pointer', transition:'border-color 0.2s, box-shadow 0.2s', width:'100%', opacity:disabled?0.45:1 }}
+  <button onClick={onSelect} disabled={disabled}
+    style={{ ...CARD_BASE, background:'var(--bg-tertiary)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)', padding:'18px 16px', width:'100%', opacity:disabled?0.45:1, cursor:disabled?'not-allowed':'pointer' }}
     onMouseEnter={e=>{ if(!disabled){e.currentTarget.style.borderColor='var(--accent-primary)';e.currentTarget.style.boxShadow='0 0 0 1px var(--accent-primary)';} }}
     onMouseLeave={e=>{ e.currentTarget.style.borderColor='var(--border-color)';e.currentTarget.style.boxShadow='none'; }}>
-    <div style={{ fontSize:'1.3rem', marginBottom:6 }}>{icon}</div>
-    <div style={{ fontWeight:700, fontSize:'0.92rem', marginBottom:4, color:'var(--text-primary)' }}>{title}</div>
-    <div style={{ fontSize:'0.8rem', color:'var(--text-secondary)', lineHeight:1.5 }}>{desc}</div>
+    <div style={{ fontSize:'1.3rem', marginBottom:8 }}>{icon}</div>
+    <div style={{ fontWeight:700, fontSize:'0.92rem', marginBottom:6, color:'var(--text-primary)' }}>{title}</div>
+    <div style={{ fontSize:'0.8rem', color:'var(--text-secondary)', lineHeight:1.6, fontWeight:400 }}>{desc}</div>
   </button>
 );
 
