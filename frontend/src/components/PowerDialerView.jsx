@@ -350,13 +350,13 @@ const SettingsPanel = ({ settings, onChange, onClose }) => (
 // Shared session sub-components
 // ─────────────────────────────────────────────────────────
 const SmartListCard = ({ list, selected, onSelect }) => (
-  <button onClick={()=>onSelect(list)} style={{ flexShrink:0, width:250, background:selected?'var(--accent-dim)':'var(--bg-tertiary)', border:`1px solid ${selected?'var(--accent-primary)':'var(--border-color)'}`, boxShadow:selected?'0 0 0 1px var(--accent-primary)':'none', borderRadius:'var(--radius-md)', padding:'12px 14px', textAlign:'left', cursor:'pointer', transition:'all 0.18s ease' }}>
+  <button onClick={()=>onSelect(list)} style={{ flexShrink:0, width:280, background:selected?'var(--accent-dim)':'var(--bg-tertiary)', border:`1px solid ${selected?'var(--accent-primary)':'var(--border-color)'}`, boxShadow:selected?'0 0 0 1px var(--accent-primary)':'none', borderRadius:'var(--radius-md)', padding:'12px 14px', textAlign:'left', cursor:'pointer', transition:'all 0.18s ease' }}>
     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
       <span style={{ fontSize:'1.1rem' }}>{list.icon}</span>
       <span style={{ fontSize:'0.63rem', fontWeight:700, letterSpacing:'0.07em', textTransform:'uppercase', color:list.tagColor, background:`${list.tagColor}22`, border:`1px solid ${list.tagColor}44`, padding:'1px 6px', borderRadius:'var(--radius-full)', flexShrink:0 }}>{list.tag}</span>
     </div>
-    <div style={{ fontWeight:700, fontSize:'0.84rem', color:'var(--text-primary)', marginBottom:4, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{list.title}</div>
-    <div style={{ fontSize:'0.75rem', color:'var(--text-secondary)', lineHeight:1.4, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{list.desc}</div>
+    <div style={{ fontWeight:700, fontSize:'0.84rem', color:'var(--text-primary)', marginBottom:4, lineHeight:1.4 }}>{list.title}</div>
+    <div style={{ fontSize:'0.75rem', color:'var(--text-secondary)', lineHeight:1.5 }}>{list.desc}</div>
     <div style={{ marginTop:10 }}>
       <span style={{ fontSize:'0.78rem', fontWeight:700, color:selected?'var(--accent-primary)':'var(--text-primary)', background:'var(--bg-primary)', padding:'2px 8px', borderRadius:'var(--radius-full)', border:'1px solid var(--border-color)' }}>
         {list.prospects.length} contacts
