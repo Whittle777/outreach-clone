@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import CallFlags from './components/CallFlags';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Prospects from './components/Prospects';
@@ -610,7 +609,6 @@ function AppInner() {
             >
               <span style={{ fontFamily:'monospace', fontSize:'0.9rem' }}>⌨</span>
             </button>
-            <CallFlags />
             <div className="avatar" title={currentUser?.name || currentUser?.email || 'Guest'} />
           </div>
         </header>
