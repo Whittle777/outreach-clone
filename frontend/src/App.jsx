@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Prospects from './components/Prospects';
@@ -25,10 +25,7 @@ import api from './services/api';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  if (!token) {
-    window.location.href = '/login';
-    return null;
-  }
+  if (!token) return <Navigate to="/login" replace />;
   return children;
 };
 
@@ -301,7 +298,9 @@ function AppInner() {
   const [currentUser, setCurrentUser]     = useState(null);
 
   useEffect(() => {
-    api.get('/auth/me').then(r => setCurrentUser(r.data)).catch(() => {});
+    if (localStorage.getItem('token')) {
+      api.get('/auth/me').then(r => setCurrentUser(r.data)).catch(() => {});
+    }
   }, []);
 
   // Fetch all prospects once on mount so the command palette can search them
