@@ -303,11 +303,9 @@ For type "action":
     });
 
   } catch (error) {
-    console.error('NLQ Error:', error);
-    const msg = error.message?.includes('No AI provider') || error.status === 401
-      ? error.message || 'API key invalid or missing'
-      : 'Failed to process query — check your AI provider connection in Integrations.';
-    res.status(500).json({ error: msg });
+    console.error('NLQ Error full:', error);
+    const detail = error.message || String(error);
+    res.status(500).json({ error: `AI error: ${detail}` });
   }
 });
 
