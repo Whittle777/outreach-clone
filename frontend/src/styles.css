@@ -624,10 +624,10 @@ tbody tr:nth-child(even) td { background: rgba(255,255,255,0.012); }
 }
 
 /* ── Split pane ── */
-.split-pane { display: flex; height: calc(100vh - 92px); gap: 18px; }
+.split-pane { display: flex; height: calc(100vh - 92px); gap: 18px; padding: 18px 24px; }
 .left-pane   { flex: 0 0 300px; display: flex; flex-direction: column; }
 .center-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.right-pane  { flex: 0 0 276px; display: flex; flex-direction: column; }
+.right-pane  { flex: 0 0 300px; display: flex; flex-direction: column; }
 
 /* ── Divider ── */
 .divider { height: 1px; background: var(--border-color); margin: 14px 0; }
@@ -1292,8 +1292,8 @@ td {
   /* Tighter page padding */
   .page-content { padding: 16px 18px; }
 
-  /* Slightly tighter split-pane gap */
-  .split-pane { gap: 12px; }
+  /* Slightly tighter split-pane gap + padding */
+  .split-pane { gap: 12px; padding: 14px 18px; }
 
   /* Left pane a touch narrower */
   .left-pane { flex: 0 0 260px; }
@@ -1327,8 +1327,8 @@ td {
   /* Left pane narrower */
   .left-pane { flex: 0 0 200px; }
 
-  /* Tighter split gap */
-  .split-pane { gap: 10px; }
+  /* Tighter split gap + padding */
+  .split-pane { gap: 10px; padding: 12px 14px; }
 
   /* Hide topbar search hint text — icon + ⌘K keys still show */
   .topbar-search-hint { display: none; }
