@@ -110,4 +110,39 @@ async function hangupCall(callId, tenantId) {
   );
 }
 
-module.exports = { initiateCall, hangupCall, getAppToken };
+/**
+ * Play a pre-recorded audio prompt into an active call (voicemail drop).
+ * Microsoft fetches the audio from audioUrl — must be HTTPS and accessible.
+ * Required format: WAV (16 kHz, 16-bit, PCM, mono) or MP3.
+ *
+ * @param {string} callId    - Microsoft call ID
+ * @param {string} tenantId  - Tenant ID for the app token
+ * @param {string} audioUrl  - Public HTTPS URL serving the WAV file
+ */
+async function playPrompt(callId, tenantId, audioUrl) {
+  const appToken = await getAppToken(tenantId);
+  await axios.post(
+    `https://graph.microsoft.com/v1.0/communications/calls/${callId}/playPrompt`,
+    {
+      clientContext: callId,
+      prompts: [
+        {
+          '@odata.type': '#microsoft.graph.mediaPrompt',
+          mediaInfo: {
+            '@odata.type': '#microsoft.graph.mediaInfo',
+            uri: audioUrl,
+            resourceId: callId,
+          },
+        },
+      ],
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${appToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+}
+
+module.exports = { initiateCall, hangupCall, getAppToken, playPrompt };

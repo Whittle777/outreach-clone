@@ -23,6 +23,7 @@ model User {
   ownedAccounts          Account[]
   prospectOwnerships     ProspectOwner[]
   enrolledEnrollments    SequenceEnrollment[]    @relation("EnrolledBy")
+  vmRecordings           VmRecording[]
 }
 
 model Account {
@@ -237,4 +238,15 @@ model IntegrationCredential {
   updatedAt    DateTime @updatedAt
 
   @@unique([provider, userId])
+}
+
+model VmRecording {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  durationSecs Float?
+  audioData    Bytes    // WAV PCM 16kHz 16-bit mono — required format for Microsoft Graph playPrompt
+  mimeType     String   @default("audio/wav")
+  createdAt    DateTime @default(now())
 }

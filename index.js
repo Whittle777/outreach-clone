@@ -23,6 +23,7 @@ const replyActivitiesRouter = require('./routes/replyActivities');
 const meetingActivitiesRouter = require('./routes/meetingActivities');
 const accountsRouter = require('./routes/accounts');
 const callsRouter = require('./routes/calls');
+const vmRecordingsRouter = require('./routes/vmRecordings');
 const cron = require('node-cron');
 const { runDueSequenceEmails } = require('./services/sequenceMailer');
 const { runReplyDetection } = require('./services/replyDetector');
@@ -58,6 +59,7 @@ app.use('/reply-activities', replyActivitiesRouter);
 app.use('/meeting-activities', meetingActivitiesRouter);
 app.use('/accounts', accountsRouter);
 app.use('/calls', callsRouter);
+app.use('/vm-recordings', vmRecordingsRouter);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Apex BDR API' });

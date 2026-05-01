@@ -70,13 +70,52 @@ const isAmericas = (p) => {
 };
 
 // ─── localStorage helpers ───────────────────────────────
-// Thin wrapper that swallows JSON parse/stringify errors and localStorage quota
-// errors (common when audio dataURLs grow large). All callers receive a safe
-// fallback value instead of throwing. Keys must match the constants above.
 const ls = {
   get: (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } },
   set: (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch { console.warn('localStorage write failed — storage may be full'); } },
 };
+
+// ─── WAV conversion helpers ──────────────────────────────
+// Converts any audio blob (WebM/Opus from MediaRecorder) into a 16 kHz,
+// 16-bit, mono PCM WAV ArrayBuffer suitable for Microsoft Graph playPrompt.
+function encodeWav(pcmSamples, sampleRate) {
+  const dataBytes = pcmSamples.length * 2;
+  const buf  = new ArrayBuffer(44 + dataBytes);
+  const view = new DataView(buf);
+  const str  = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+  str(0, 'RIFF'); view.setUint32(4, 36 + dataBytes, true);
+  str(8, 'WAVE'); str(12, 'fmt ');
+  view.setUint32(16, 16, true);          // chunk size
+  view.setUint16(20, 1, true);           // PCM
+  view.setUint16(22, 1, true);           // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true); // byte rate
+  view.setUint16(32, 2, true);           // block align
+  view.setUint16(34, 16, true);          // bits per sample
+  str(36, 'data'); view.setUint32(40, dataBytes, true);
+  let off = 44;
+  for (let i = 0; i < pcmSamples.length; i++) {
+    const s = Math.max(-1, Math.min(1, pcmSamples[i]));
+    view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    off += 2;
+  }
+  return buf;
+}
+
+async function convertBlobToWav(blob) {
+  const arrayBuf = await blob.arrayBuffer();
+  const audioCtx = new AudioContext();
+  const decoded  = await audioCtx.decodeAudioData(arrayBuf);
+  await audioCtx.close();
+  const SR = 16000;
+  const offline = new OfflineAudioContext(1, Math.ceil(decoded.duration * SR), SR);
+  const src = offline.createBufferSource();
+  src.buffer = decoded;
+  src.connect(offline.destination);
+  src.start(0);
+  const rendered = await offline.startRendering();
+  return encodeWav(rendered.getChannelData(0), SR);
+}
 
 // Read / write call timestamps (used by App.jsx sidebar & Dashboard today-strip)
 const getCallTs        = ()           => ls.get(CALL_TS_KEY, {});
@@ -150,6 +189,7 @@ const buildSmartLists = (allProspects, sequences) => {
 const VMManager = ({ onClose }) => {
   const [recordings, setRecordings]     = useState(getVmRecordings);
   const [isRecording, setIsRecording]   = useState(false);
+  const [isUploading, setIsUploading]   = useState(false);
   const [recTime, setRecTime]           = useState(0);
   const [playingId, setPlayingId]       = useState(null);
   const [newName, setNewName]           = useState('');
@@ -170,19 +210,39 @@ const VMManager = ({ onClose }) => {
       chunksRef.current = [];
       const rec = new MediaRecorder(stream);
       rec.ondataavailable = e => { if (e.data.size>0) chunksRef.current.push(e.data); };
-      rec.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type:'audio/webm' });
-        // Convert to a base64 dataURL so it can be JSON-serialised into
-        // localStorage and survive page refreshes without a server upload.
-        // See the getVmRecordings() comment above for storage size guidance.
+      rec.onstop = async () => {
+        const blob  = new Blob(chunksRef.current, { type:'audio/webm' });
+        const name  = newName.trim() || `Voicemail ${getVmRecordings().length + 1}`;
+        const dur   = recTime;
+        streamRef.current?.getTracks().forEach(t => t.stop());
+
+        // Save WebM as dataURL immediately for local browser playback
         const reader = new FileReader();
-        reader.onloadend = () => {
+        reader.onloadend = async () => {
           const recs = getVmRecordings();
-          persist([...recs, { id: Date.now(), name: newName.trim() || `Voicemail ${recs.length+1}`, duration: recTime, audioDataUrl: reader.result, createdAt: Date.now() }]);
+          const localId = Date.now();
+          const newRec = { id: localId, serverId: null, name, duration: dur, audioDataUrl: reader.result, createdAt: localId };
+          persist([...recs, newRec]);
           setNewName(''); setRecTime(0);
+
+          // Also convert to WAV and upload to server so Microsoft can fetch it for playPrompt
+          setIsUploading(true);
+          try {
+            const wavBuf    = await convertBlobToWav(blob);
+            const bytes     = new Uint8Array(wavBuf);
+            let binary = ''; for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            const audioBase64 = btoa(binary);
+            const res = await api.post('/vm-recordings', { name, durationSecs: dur, audioBase64, mimeType: 'audio/wav' });
+            // Patch serverId back onto the local recording
+            const updated = getVmRecordings().map(r => r.id === localId ? { ...r, serverId: res.data.id } : r);
+            persist(updated);
+          } catch (uploadErr) {
+            console.warn('[VM] server upload failed — local browser drop still works:', uploadErr.message);
+          } finally {
+            setIsUploading(false);
+          }
         };
         reader.readAsDataURL(blob);
-        streamRef.current?.getTracks().forEach(t => t.stop());
       };
       mediaRef.current = rec;
       rec.start();
@@ -267,6 +327,8 @@ const VMManager = ({ onClose }) => {
                   <span>{formatTime(rec.duration)}</span>
                   <span>·</span>
                   <span>Used for {usedForCount} prospect{usedForCount!==1?'s':''}</span>
+                  {rec.serverId && <span style={{ color:'var(--status-success)' }}>· Teams ready</span>}
+                  {!rec.serverId && <span style={{ color:'var(--status-warning)' }}>· local only</span>}
                 </div>
               </div>
               <button className="ghost" style={{ padding:'5px 9px', fontSize:'1rem' }} title={isPlaying?'Pause':'Play'} onClick={()=>togglePlay(rec)}>
@@ -276,7 +338,11 @@ const VMManager = ({ onClose }) => {
                 <button className="ghost" style={{ padding:'2px 6px', fontSize:'0.65rem', opacity:idx===0?0.25:1 }} onClick={()=>move(idx,-1)} disabled={idx===0}>▲</button>
                 <button className="ghost" style={{ padding:'2px 6px', fontSize:'0.65rem', opacity:idx===recordings.length-1?0.25:1 }} onClick={()=>move(idx,1)} disabled={idx===recordings.length-1}>▼</button>
               </div>
-              <button className="danger" style={{ padding:'5px 8px', fontSize:'0.78rem', flexShrink:0 }} onClick={()=>{ if(playingId===rec.id){audioRefs.current[rec.id]?.pause();setPlayingId(null);} persist(recordings.filter(r=>r.id!==rec.id)); }}>
+              <button className="danger" style={{ padding:'5px 8px', fontSize:'0.78rem', flexShrink:0 }} onClick={()=>{
+                if (playingId===rec.id) { audioRefs.current[rec.id]?.pause(); setPlayingId(null); }
+                if (rec.serverId) api.delete(`/vm-recordings/${rec.serverId}`).catch(console.warn);
+                persist(recordings.filter(r=>r.id!==rec.id));
+              }}>
                 ✕
               </button>
             </div>
@@ -308,8 +374,13 @@ const VMManager = ({ onClose }) => {
             </button>
           </>
         )}
+        {isUploading && (
+          <p style={{ fontSize:'0.72rem', color:'var(--accent-primary)', margin:'10px 0 0' }}>
+            Converting to WAV and uploading for Teams drop…
+          </p>
+        )}
         <p style={{ fontSize:'0.72rem', color:'var(--text-muted)', margin:'10px 0 0' }}>
-          Keep VMs under 30 seconds. The next unused recording in order is automatically selected per prospect — no duplicates will be left.
+          Keep VMs under 30 seconds. "Teams ready" recordings auto-drop via Microsoft when calls go to voicemail.
         </p>
       </div>
     </div>
@@ -627,6 +698,8 @@ const ManualSession = ({ prospects, settings, onEnd }) => {
   const [attempted, setAttempted] = useState(0);
   const [outcomes, setOutcomes]   = useState({ connected: 0, voicemail: 0, noAnswer: 0, badNumber: 0 });
   const [callNote, setCallNote]   = useState('');
+  const [activeCallId, setActiveCallId] = useState(null);
+  const [vmDropState, setVmDropState]   = useState(null); // null | 'pending' | 'dropping' | 'complete' | 'failed'
 
   useEffect(() => {
     let iv; if (status==='CONNECTED') iv=setInterval(()=>setTimer(t=>t+1),1000); else setTimer(0);
@@ -641,28 +714,37 @@ const ManualSession = ({ prospects, settings, onEnd }) => {
       try {
         const msg = JSON.parse(e.data);
         if (msg.type !== 'call_state' || msg.callId !== activeCallId) return;
-        if (msg.state === 'established')  setStatus('CONNECTED');
-        if (msg.state === 'terminated')   setStatus('LOGGING');
+        if (msg.state === 'established')   setStatus('CONNECTED');
+        if (msg.state === 'vm_drop_pending') setVmDropState('pending');
+        if (msg.state === 'vm_dropping')   setVmDropState('dropping');
+        if (msg.state === 'vm_drop_failed') setVmDropState('failed');
+        if (msg.state === 'vm_drop_complete') {
+          setVmDropState('complete');
+          setStatus('LOGGING');
+        }
+        if (msg.state === 'terminated')    setStatus('LOGGING');
       } catch {}
     };
     return () => ws.close();
   }, [activeCallId]);
 
-  const prospect = prospects[idx];
+  const prospect   = prospects[idx];
   const recordings = getVmRecordings();
-  const nextVm = getNextVm(prospect?.id, recordings);
-
-  const [activeCallId, setActiveCallId] = useState(null);
+  const nextVm     = getNextVm(prospect?.id, recordings);
 
   const dial = async () => {
     setStatus('DIALING');
+    setVmDropState(null);
     setCallTs(prospect.id);
     setAttempted(a => a + 1);
     const phone = prospect.phone || prospect.trackingPixelData?.phone;
     try {
-      const res = await api.post('/calls/initiate', { prospectId: prospect.id, phone });
+      const res = await api.post('/calls/initiate', {
+        prospectId:    prospect.id,
+        phone,
+        vmRecordingId: settings.vmDrop && nextVm?.serverId ? nextVm.serverId : undefined,
+      });
       setActiveCallId(res.data.callId);
-      // State transitions come from WebSocket (call_state events); fallback timer below
     } catch {
       // Calls API not yet enabled — fall back to Teams deep link
       const link = getTeamsLink(prospect);
@@ -677,6 +759,18 @@ const ManualSession = ({ prospects, settings, onEnd }) => {
       setActiveCallId(null);
     }
     setStatus('LOGGING');
+  };
+
+  const dropVm = async () => {
+    if (!activeCallId || !nextVm?.serverId) return;
+    try {
+      await api.post(`/calls/${activeCallId}/vm-drop`, { vmRecordingId: nextVm.serverId });
+      recordVmDropped(prospect.id, nextVm.id);
+      setVmDropState('dropping');
+      toast('VM drop triggered — will auto-hang up when done', 'info', 3000);
+    } catch (err) {
+      toast(`VM drop failed: ${err.response?.data?.message || err.message}`, 'error', 4000);
+    }
   };
 
   const logOutcome = async (outcome, note = '') => {
@@ -713,17 +807,57 @@ const ManualSession = ({ prospects, settings, onEnd }) => {
           Click to call, speak with the prospect, hang up, then log the outcome.
         </p>
         {status==='IDLE' && <button className="success-btn" style={{ width:'100%', padding:'11px', fontSize:'0.95rem' }} onClick={dial}>☎ Call {prospect.firstName}</button>}
-        {(status==='DIALING'||status==='CONNECTED') && <button className="danger" style={{ width:'100%', padding:'11px', fontSize:'0.95rem' }} onClick={hangup}>Hang Up</button>}
+        {(status==='DIALING'||status==='CONNECTED') && (
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            <button className="danger" style={{ width:'100%', padding:'11px', fontSize:'0.95rem' }} onClick={hangup}>Hang Up</button>
+            {status==='CONNECTED' && activeCallId && settings.vmDrop && nextVm?.serverId && !vmDropState && (
+              <button className="secondary" style={{ width:'100%', padding:'9px', fontSize:'0.85rem' }} onClick={dropVm}>
+                🔊 Drop Voicemail
+              </button>
+            )}
+            {vmDropState === 'pending' && (
+              <div style={{ textAlign:'center', fontSize:'0.82rem', color:'var(--text-secondary)', padding:'8px 0' }}>
+                Waiting for greeting to finish…
+              </div>
+            )}
+            {vmDropState === 'dropping' && (
+              <div style={{ textAlign:'center', fontSize:'0.82rem', color:'var(--status-info)', padding:'8px 0' }}>
+                🔊 Dropping voicemail — will auto hang up…
+              </div>
+            )}
+            {vmDropState === 'complete' && (
+              <div style={{ textAlign:'center', fontSize:'0.82rem', color:'var(--status-success)', padding:'8px 0' }}>
+                VM dropped
+              </div>
+            )}
+            {vmDropState === 'failed' && (
+              <div style={{ textAlign:'center', fontSize:'0.82rem', color:'var(--status-danger)', padding:'8px 0' }}>
+                VM drop failed — hang up manually
+              </div>
+            )}
+          </div>
+        )}
         {status==='LOGGING' && (
           <>
-            <OutcomeButtons onLog={logOutcome} callNote={callNote} onNoteChange={setCallNote}/>
-            {settings.vmDrop && recordings.length > 0 && (
+            {vmDropState === 'complete' ? (
+              <div style={{ marginBottom:12, padding:'10px 14px', background:'var(--bg-primary)', border:'1px solid var(--status-success)', borderRadius:'var(--radius-md)' }}>
+                <div style={{ fontWeight:600, fontSize:'0.88rem', color:'var(--status-success)', marginBottom:4 }}>Voicemail dropped automatically</div>
+                <button className="secondary" style={{ width:'100%', fontSize:'0.82rem', padding:'7px', marginTop:4 }} onClick={()=>{ recordVmDropped(prospect.id, nextVm?.id); logOutcome('Left Voicemail', callNote); }}>
+                  Log as Voicemail & Continue
+                </button>
+              </div>
+            ) : (
+              <OutcomeButtons onLog={logOutcome} callNote={callNote} onNoteChange={setCallNote}/>
+            )}
+            {status==='LOGGING' && vmDropState !== 'complete' && settings.vmDrop && recordings.length > 0 && (
               <div style={{ marginTop:16, padding:'12px 14px', background:'var(--bg-primary)', border:'1px solid var(--border-color)', borderRadius:'var(--radius-md)' }}>
                 <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8 }}>Next VM in Rotation</div>
                 {nextVm ? (
                   <>
                     <div style={{ fontWeight:600, fontSize:'0.88rem', marginBottom:4 }}>{nextVm.name}</div>
-                    <div style={{ fontSize:'0.78rem', color:'var(--text-secondary)', marginBottom:10 }}>{formatTime(nextVm.duration)} · Leave it manually on the call, then mark below</div>
+                    <div style={{ fontSize:'0.78rem', color:'var(--text-secondary)', marginBottom:10 }}>
+                      {formatTime(nextVm.duration)} · {nextVm.serverId ? 'Teams-enabled' : 'browser-only'}
+                    </div>
                     <button className="secondary" style={{ width:'100%', fontSize:'0.82rem', padding:'7px' }} onClick={()=>{ recordVmDropped(prospect.id,nextVm.id); logOutcome('Left Voicemail', callNote); }}>
                       ✓ Mark "{nextVm.name}" as Left
                     </button>
