@@ -633,18 +633,50 @@ const ManualSession = ({ prospects, settings, onEnd }) => {
     return ()=>clearInterval(iv);
   }, [status]);
 
+  // Listen for Teams call state events from the server via WebSocket
+  useEffect(() => {
+    const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host;
+    const ws = new WebSocket(wsUrl);
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type !== 'call_state' || msg.callId !== activeCallId) return;
+        if (msg.state === 'established')  setStatus('CONNECTED');
+        if (msg.state === 'terminated')   setStatus('LOGGING');
+      } catch {}
+    };
+    return () => ws.close();
+  }, [activeCallId]);
+
   const prospect = prospects[idx];
   const recordings = getVmRecordings();
   const nextVm = getNextVm(prospect?.id, recordings);
 
-  const dial = () => {
-    const link = getTeamsLink(prospect);
-    if (link) window.open(link,'_blank');
+  const [activeCallId, setActiveCallId] = useState(null);
+
+  const dial = async () => {
     setStatus('DIALING');
     setCallTs(prospect.id);
     setAttempted(a => a + 1);
-    api.post(`/voice/dial/${prospect.id}`,{mode:'manual'}).catch(console.error);
-    setTimeout(()=>setStatus('CONNECTED'), DIALING_CONNECT_DELAY_MS);
+    const phone = prospect.phone || prospect.trackingPixelData?.phone;
+    try {
+      const res = await api.post('/calls/initiate', { prospectId: prospect.id, phone });
+      setActiveCallId(res.data.callId);
+      // State transitions come from WebSocket (call_state events); fallback timer below
+    } catch {
+      // Calls API not yet enabled — fall back to Teams deep link
+      const link = getTeamsLink(prospect);
+      if (link) window.open(link, '_blank');
+      setTimeout(() => setStatus('CONNECTED'), DIALING_CONNECT_DELAY_MS);
+    }
+  };
+
+  const hangup = async () => {
+    if (activeCallId) {
+      api.delete(`/calls/${activeCallId}`).catch(console.error);
+      setActiveCallId(null);
+    }
+    setStatus('LOGGING');
   };
 
   const logOutcome = async (outcome, note = '') => {
@@ -681,7 +713,7 @@ const ManualSession = ({ prospects, settings, onEnd }) => {
           Click to call, speak with the prospect, hang up, then log the outcome.
         </p>
         {status==='IDLE' && <button className="success-btn" style={{ width:'100%', padding:'11px', fontSize:'0.95rem' }} onClick={dial}>☎ Call {prospect.firstName}</button>}
-        {(status==='DIALING'||status==='CONNECTED') && <button className="danger" style={{ width:'100%', padding:'11px', fontSize:'0.95rem' }} onClick={()=>setStatus('LOGGING')}>Hang Up</button>}
+        {(status==='DIALING'||status==='CONNECTED') && <button className="danger" style={{ width:'100%', padding:'11px', fontSize:'0.95rem' }} onClick={hangup}>Hang Up</button>}
         {status==='LOGGING' && (
           <>
             <OutcomeButtons onLog={logOutcome} callNote={callNote} onNoteChange={setCallNote}/>

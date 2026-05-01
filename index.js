@@ -22,6 +22,7 @@ const demoRouter = require('./routes/demo');
 const replyActivitiesRouter = require('./routes/replyActivities');
 const meetingActivitiesRouter = require('./routes/meetingActivities');
 const accountsRouter = require('./routes/accounts');
+const callsRouter = require('./routes/calls');
 const cron = require('node-cron');
 const { runDueSequenceEmails } = require('./services/sequenceMailer');
 const { runReplyDetection } = require('./services/replyDetector');
@@ -56,9 +57,10 @@ app.use('/demo', demoRouter);
 app.use('/reply-activities', replyActivitiesRouter);
 app.use('/meeting-activities', meetingActivitiesRouter);
 app.use('/accounts', accountsRouter);
+app.use('/calls', callsRouter);
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Outreach Clone API' });
+  res.json({ status: 'OK', message: 'Apex BDR API' });
 });
 
 // Serve built frontend in production

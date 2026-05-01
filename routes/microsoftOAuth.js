@@ -93,12 +93,21 @@ router.get('/callback', async (req, res) => {
     );
     const { access_token, refresh_token } = tokenRes.data;
 
+    // Decode Azure AD token claims (tid = tenant ID, oid = user object ID)
+    let tenantId = '', azureAdId = '';
+    try {
+      const payload = JSON.parse(Buffer.from(access_token.split('.')[1], 'base64').toString());
+      tenantId  = payload.tid  || '';
+      azureAdId = payload.oid  || '';
+    } catch (_) {}
+
     // Fetch user profile from Graph
     const profileRes = await axios.get('https://graph.microsoft.com/v1.0/me', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
-    const msEmail = profileRes.data.mail || profileRes.data.userPrincipalName || '';
-    const msName  = profileRes.data.displayName || '';
+    const msEmail   = profileRes.data.mail || profileRes.data.userPrincipalName || '';
+    const msName    = profileRes.data.displayName || '';
+    const msObjId   = profileRes.data.id || azureAdId; // Graph /me id is the AAD object ID
 
     if (!msEmail) {
       return res.redirect(`${FRONTEND_URL}/login?ms_error=Could+not+read+your+Microsoft+email+address.`);
@@ -107,15 +116,15 @@ router.get('/callback', async (req, res) => {
     // Find or create the User record
     const user = await prisma.user.upsert({
       where:  { email: msEmail },
-      update: { name: msName },
-      create: { email: msEmail, name: msName },
+      update: { name: msName, azureAdId: msObjId },
+      create: { email: msEmail, name: msName, azureAdId: msObjId },
     });
 
     // Store (or refresh) Microsoft credential for this user
     await prisma.integrationCredential.upsert({
       where:  { provider_userId: { provider: 'microsoft', userId: user.id } },
-      update: { clientId: MS_CLIENT_ID, clientSecret: MS_CLIENT_SECRET, refreshToken: refresh_token, email: msEmail },
-      create: { provider: 'microsoft', clientId: MS_CLIENT_ID, clientSecret: MS_CLIENT_SECRET, refreshToken: refresh_token, email: msEmail, userId: user.id },
+      update: { clientId: MS_CLIENT_ID, clientSecret: MS_CLIENT_SECRET, refreshToken: refresh_token, email: msEmail, tenantId },
+      create: { provider: 'microsoft', clientId: MS_CLIENT_ID, clientSecret: MS_CLIENT_SECRET, refreshToken: refresh_token, email: msEmail, tenantId, userId: user.id },
     });
 
     // Issue a long-lived JWT (30 days — reps shouldn't be re-authing constantly)
