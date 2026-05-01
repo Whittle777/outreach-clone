@@ -47,7 +47,15 @@ const formatRelative = (ts) => {
 const getTeamsLink = (p) => {
   const phone = p?.trackingPixelData?.phone || p?.phone;
   if (!phone) return null;
-  return `https://teams.microsoft.com/l/call/0/0?users=4:+${phone.replace(/\D/g,'')}`;
+  const digits = phone.replace(/\D/g, '');
+  // msteams:// opens the desktop app directly; web URL is the fallback shown in the UI
+  return `msteams://teams.microsoft.com/l/call/0/0?users=4:+${digits}`;
+};
+
+const getTeamsWebLink = (p) => {
+  const phone = p?.trackingPixelData?.phone || p?.phone;
+  if (!phone) return null;
+  return `https://teams.microsoft.com/l/call/0/0?users=4:+${phone.replace(/\D/g, '')}`;
 };
 
 const getPhoneDigits = (p) => {
@@ -420,7 +428,7 @@ const ProspectHeader = ({ prospect, callStatus, timer }) => (
       {getTeamsLink(prospect) && (
         <div style={{ marginTop:6, display:'flex', alignItems:'center', gap:8 }}>
           <span style={{ fontSize:'0.8rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{prospect.trackingPixelData?.phone||prospect.phone}</span>
-          <a href={getTeamsLink(prospect)} target="_blank" rel="noreferrer" style={{ fontSize:'0.74rem', color:'var(--accent-light)', textDecoration:'none', padding:'2px 8px', border:'1px solid var(--border-accent)', borderRadius:'var(--radius-sm)' }}>Open in Teams</a>
+          <a href={getTeamsWebLink(prospect)} target="_blank" rel="noreferrer" style={{ fontSize:'0.74rem', color:'var(--accent-light)', textDecoration:'none', padding:'2px 8px', border:'1px solid var(--border-accent)', borderRadius:'var(--radius-sm)' }}>Open in Teams</a>
         </div>
       )}
     </div>
@@ -493,7 +501,7 @@ const CallScript = ({ prospect }) => {
     : '';
 
   const lines = [
-    `"Hi ${firstName}, this is Henry calling from Outreach.ai.`,
+    `"Hi ${firstName}, this is Henry calling from Apex.`,
     `${hook} — and I wanted to reach out directly.`,
     `${valueAngle.charAt(0).toUpperCase() + valueAngle.slice(1)}.${stackNote}`,
     `Do you have 2 minutes to hear how it works?"`,
