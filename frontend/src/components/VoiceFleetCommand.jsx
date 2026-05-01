@@ -13,7 +13,7 @@ const MOCK_ACTIVE_CALLS = [
     id: 'call-001', prospect: 'Sarah Chen', company: 'Acme Corp', phone: '+1 (415) 555-0192',
     status: 'CONNECTED', duration: 87, sentiment: 'Positive', sentimentScore: 82,
     transcript: [
-      { speaker: 'Agent', text: "Hi Sarah, this is the Outreach.ai assistant calling on behalf of Henry. Do you have a quick moment?" },
+      { speaker: 'Agent', text: "Hi Sarah, this is the Apex assistant calling on behalf of Henry. Do you have a quick moment?" },
       { speaker: 'Prospect', text: "Sure, I have a couple minutes. What is this regarding?" },
       { speaker: 'Agent', text: "I wanted to follow up on the email we sent about scaling your outbound operations at Acme. I saw you recently opened it — does that topic resonate at all?" },
       { speaker: 'Prospect', text: "Actually yes, we've been looking at exactly this. We're struggling to scale our SDR team efficiently." },
@@ -24,7 +24,7 @@ const MOCK_ACTIVE_CALLS = [
     id: 'call-002', prospect: 'Marcus Rivera', company: 'TechFlow Inc', phone: '+1 (628) 555-0847',
     status: 'CONNECTED', duration: 43, sentiment: 'Objection', sentimentScore: 41,
     transcript: [
-      { speaker: 'Agent', text: "Hi Marcus, calling from Outreach.ai. Is now an okay time?" },
+      { speaker: 'Agent', text: "Hi Marcus, calling from Apex. Is now an okay time?" },
       { speaker: 'Prospect', text: "We're actually pretty happy with our current setup. I don't think we're looking for anything new right now." },
       { speaker: 'Agent', text: "I completely understand — a lot of teams we talk to feel the same way until they see the ROI comparison. Would you be open to a quick 10-minute benchmark?" },
     ],
@@ -35,7 +35,7 @@ const MOCK_ACTIVE_CALLS = [
     status: 'VOICEMAIL', duration: 28, sentiment: 'Neutral', sentimentScore: 60,
     transcript: [
       { speaker: 'System', text: "[AMD: Answering machine detected. Preparing voicemail drop...]" },
-      { speaker: 'Agent', text: "Hi Jessica, this is a message from Henry at Outreach.ai. I sent you an email earlier about scaling your outbound — would love to grab 15 minutes. I'll send a calendar link in a follow-up email. Have a great day!" },
+      { speaker: 'Agent', text: "Hi Jessica, this is a message from Henry at Apex. I sent you an email earlier about scaling your outbound — would love to grab 15 minutes. I'll send a calendar link in a follow-up email. Have a great day!" },
       { speaker: 'System', text: "[Voicemail drop complete. Call terminated.]" },
     ],
     flag: null

@@ -1,4 +1,4 @@
-# Outreach.ai — SDR/BDR Sales Enablement Platform
+# Apex — SDR/BDR Sales Enablement Platform
 
 A full-stack, AI-powered sales engagement platform featuring an **Agentic Command Center UI** — natural language → task execution in one interface.
 

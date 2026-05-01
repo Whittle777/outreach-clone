@@ -1,4 +1,4 @@
-# Outreach.ai — Agentic Codebase Reference
+# Apex — Agentic Codebase Reference
 
 This document is the authoritative reference for AI agents working on this codebase. Read it before making changes. It covers architecture, data models, every significant route, frontend structure, key workflows, and gotchas that have already been fixed.
 
@@ -343,7 +343,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=you@gmail.com
 SMTP_PASS=xxxx xxxx xxxx xxxx   (Gmail App Password — 16 chars)
-EMAIL_FROM_NAME="Henry from Outreach.ai"
+EMAIL_FROM_NAME="Henry from Apex"
 APP_URL=http://localhost:3000    (for tracking pixel)
 ```
 
@@ -629,7 +629,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=you@gmail.com
 SMTP_PASS=xxxx xxxx xxxx xxxx
-EMAIL_FROM_NAME="Henry from Outreach.ai"
+EMAIL_FROM_NAME="Henry from Apex"
 APP_URL=http://localhost:3000
 
 # AI
@@ -681,7 +681,7 @@ DIALING_DURATION=300
 ## File Map (active files only)
 
 ```
-outreach-clone/
+apex-bdr/
 ├── index.js                    ← Express server, middleware, cron, routes
 ├── schema.prisma               ← Single source of truth for DB schema
 ├── dev.db                      ← SQLite database (gitignored)

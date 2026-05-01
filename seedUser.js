@@ -4,11 +4,11 @@ const prisma = new PrismaClient();
 async function main() {
   try {
     await prisma.user.upsert({
-      where: { email: 'admin@outreach.clone' },
+      where: { email: 'admin@apex-bdr.ai' },
       update: {},
       create: {
         id: 1,
-        email: 'admin@outreach.clone',
+        email: 'admin@apex-bdr.ai',
         username: 'admin',
         password: 'password_hash_dummy'
       }

@@ -17,7 +17,7 @@ let reviewQueue = [
     id: 2, type: 'Call Script', confidenceScore: 78, urgency: 'Medium',
     status: 'pending',
     prospectId: null,
-    draftContent: '"Hi Marcus, this is Henry from Outreach.ai..."',
+    draftContent: '"Hi Marcus, this is Henry from Apex..."',
     aiSummary: 'Generated tech-stack discovery call script. Moderate confidence.',
     createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString()
   },

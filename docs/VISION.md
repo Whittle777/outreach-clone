@@ -3,10 +3,10 @@
 Dump all unorganized requirements, features, and research here.
 
 
-# Outreach Clone - MVP Core Engine
+# Apex BDR - Core Engine
 
 ## The Big Picture
-We are building a headless REST API for a sales engagement platform (like Outreach.io or Apollo). There is no frontend right now, just the backend. 
+We are building a headless REST API for a sales engagement platform (like Apollo or Salesloft). There is no frontend right now, just the backend. 
 
 ## Tech Stack Rules
 - Framework: Express.js (Node)
@@ -333,7 +333,7 @@ Agentic Reasoning & Fallback Logic: This is the "smart" part. Instead of failing
 
 Dynamic Task Queue Generation: Taking the results of that intelligent search and instantly compiling them into an ordered, actionable playlist of tasks.
 
-UI State Control: The AI doesn't just output text in a chat window; it actively changes the user interface, dropping the user directly into an Outreach-style "execution mode" (a split-pane view with a dialer, script, and a "Next Call" button).
+UI State Control: The AI doesn't just output text in a chat window; it actively changes the user interface, dropping the user directly into an "execution mode" (a split-pane view with a dialer, script, and a "Next Call" button).
 
 (example prompt: "show me call tasks that are for prospects in the united states and canada" - llm looks for tags / zoominfo pull info that matches - if no available info brainstorms other ways to filter - filters by +1 country code)
 

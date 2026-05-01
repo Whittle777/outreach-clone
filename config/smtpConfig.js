@@ -10,7 +10,7 @@
  *        SMTP_SECURE=false
  *        SMTP_USER=you@gmail.com
  *        SMTP_PASS=xxxx xxxx xxxx xxxx
- *        EMAIL_FROM_NAME=Henry from Outreach.ai
+ *        EMAIL_FROM_NAME=Henry from Apex
  *
  * For Google Workspace: same as above, just use your workspace email.
  * For production: swap to SendGrid/Postmark — set SMTP_HOST, PORT, USER, PASS accordingly.

@@ -7,7 +7,7 @@ const STEPS = [
   {
     id: 'welcome',
     target: null,
-    title: 'Welcome to Outreach.ai',
+    title: 'Welcome to Apex',
     body: "This 2-minute tour covers everything you'll use every day as a BDR or SDR — from importing prospects to dialling and managing your sequences.",
     cta: 'Start tour →',
     position: 'center',

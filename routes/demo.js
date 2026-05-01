@@ -68,7 +68,7 @@ const SEQUENCES = [
   {
     name: 'Inbound Trial Follow-Up',
     steps: [
-      { order: 1, stepType: 'AUTO_EMAIL', delayDays: 0, subject: 'Welcome, {{firstName}} — let\'s make your trial count', body: 'Hi {{firstName}},\n\nThanks for signing up! I\'m your dedicated success contact at Outreach.ai.\n\nMost teams get their first 10 meetings booked within the first week. Want me to walk you through the quickest path to ROI for {{company}}?\n\nBook 15 mins: [LINK]\n\nHenry' },
+      { order: 1, stepType: 'AUTO_EMAIL', delayDays: 0, subject: 'Welcome, {{firstName}} — let\'s make your trial count', body: 'Hi {{firstName}},\n\nThanks for signing up! I\'m your dedicated success contact at Apex.\n\nMost teams get their first 10 meetings booked within the first week. Want me to walk you through the quickest path to ROI for {{company}}?\n\nBook 15 mins: [LINK]\n\nHenry' },
       { order: 2, stepType: 'AUTO_EMAIL', delayDays: 2, subject: 'How\'s the trial going, {{firstName}}?', body: 'Hi {{firstName}},\n\nJust checking in — have you had a chance to explore the sequence builder yet? It\'s usually the "aha" moment for most teams.\n\nIf you\'re stuck or have questions, I\'m one reply away.\n\nHenry' },
       { order: 3, stepType: 'CALL',       delayDays: 3, subject: 'Trial check-in call — {{firstName}}', body: 'Goal: Identify blockers, drive activation. Check if they\'ve built a sequence yet.\nTalk track: "Hi {{firstName}}, I sent a couple of emails — just wanted to make sure your trial is going well and you\'re getting value..."' },
     ],
@@ -88,7 +88,7 @@ router.post('/load', async (req, res) => {
       const bcrypt = require('bcrypt');
       const hashed = await bcrypt.hash('password123', 10);
       user = await prisma.user.create({
-        data: { email: 'henry@outreach.ai', username: 'henry', password: hashed },
+        data: { email: 'henry@apex-bdr.ai', username: 'henry', password: hashed },
       });
     }
 

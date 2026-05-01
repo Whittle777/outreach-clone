@@ -26,7 +26,7 @@ async function main() {
   if (!user) {
     const hashed = await bcrypt.hash('password123', 10);
     user = await prisma.user.create({
-      data: { email: 'henry@outreach.ai', username: 'henry', password: hashed },
+      data: { email: 'henry@apex-bdr.ai', username: 'henry', password: hashed },
     });
     console.log('✓ Created user:', user.email);
   } else {

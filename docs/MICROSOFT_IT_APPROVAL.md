@@ -1,126 +1,127 @@
-# Apex BDR — Microsoft Integration: IT Approval Request
+# Apex BDR — Microsoft Integration Approval Request
 
-**Prepared by:** Henry Whittle  
-**Application name:** apex-bdr  
-**Azure App Registration ID:** *(your Application Client ID from Azure Portal)*  
+**Prepared by:** Henry Whittle (henry.whittle@c3.ai)  
+**App name in Azure:** apex-bdr  
 **Deployment URL:** https://apex-bdr-production.up.railway.app  
-**Date:** April 2026
+**Date:** May 2026
+
+---
+
+## What We Need From You (30 seconds)
+
+A Global Administrator visits the URL below while signed into the C3.ai Azure tenant and clicks **Accept**:
+
+```
+https://login.microsoftonline.com/[C3AI_TENANT_ID]/adminconsent
+  ?client_id=[APEX_CLIENT_ID]
+  &redirect_uri=https://apex-bdr-production.up.railway.app/auth/microsoft/callback
+```
+
+*(Henry: replace `[C3AI_TENANT_ID]` with your tenant ID and `[APEX_CLIENT_ID]` with your Azure app Client ID before sending)*
+
+That's it. All C3.ai BDR reps can then sign in and use the app without any further prompts.
+
+**Alternatively via portal:**  
+Azure Portal → Azure Active Directory → Enterprise Applications → search "apex-bdr" → Permissions → **Grant admin consent for C3.ai**
 
 ---
 
 ## What Is Apex BDR?
 
-Apex BDR is an internal sales engagement platform used by the C3.ai BDR team. It manages outbound email sequences, call lists, and prospect tracking. The Microsoft integration enables two things:
+An internal sales engagement tool used exclusively by the C3.ai BDR team (~5–10 people). It does three things:
 
-1. **Reps sign in with their C3.ai Microsoft account** (SSO — replaces username/password)
-2. **Outbound calls are placed directly through each rep's Teams Phone number** via the in-app power dialer
+1. **Reps sign in with their C3.ai Microsoft account** — no separate username/password
+2. **Outbound sequence emails send from each rep's own Outlook address** — not a shared inbox
+3. **Outbound calls place through each rep's existing Teams Phone number** — rep clicks Dial, their headset rings
 
-All data stays within C3.ai infrastructure. No data is shared with third parties.
+Nothing is exposed to customers or the public. Only C3.ai employees with a company email address can sign in.
 
 ---
 
 ## Permissions Requested
 
-### Delegated Permissions
-*These act on behalf of the signed-in user. The user must be logged in for these to apply.*
+### Delegated — act on behalf of the signed-in rep only
 
-| Permission | What It Does | Why It's Needed |
+| Permission | Plain English | Why |
 |---|---|---|
-| `openid` | Verifies the user's identity during sign-in | Required for SSO — confirms who is signing in |
-| `offline_access` | Issues refresh tokens so sessions persist | Prevents reps from re-authenticating every hour |
-| `User.Read` | Reads the signed-in user's name and email | Creates the rep's account in Apex on first login |
-| `Mail.Send` | Sends email from the rep's Outlook account | Outbound sequence emails come from the rep's own address, not a shared inbox |
-| `Mail.Read` | Reads the rep's inbox for new messages | Detects prospect replies and out-of-office responses so sequences pause automatically |
+| `openid` | Confirm the user's identity at sign-in | Required for SSO |
+| `offline_access` | Keep the session alive without re-prompting every hour | Usability |
+| `User.Read` | Read the rep's name and email address | Create their account in the app on first login |
+| `Mail.Send` | Send email from the rep's Outlook account | Sequence emails go from henry.whittle@c3.ai, not a shared address |
+| `Mail.Read` | Scan the rep's inbox for replies | Auto-pause sequences when a prospect replies or is out of office |
 
-### Application Permissions
-*These run server-side without a user being present. They require admin consent.*
+**Key point on delegated permissions:** These only activate when the rep is actively signed in. The app cannot access a rep's email while they're logged out. Each permission is scoped to that individual rep's data only — not the broader tenant.
 
-| Permission | What It Does | Why It's Needed |
+### Application — run server-side for outbound calling
+
+| Permission | Plain English | Why |
 |---|---|---|
-| `Calls.Initiate.All` | Initiates outbound PSTN calls from a user's Teams Phone number | Powers the in-app power dialer — rep clicks Dial, their Teams-connected headset rings and calls the prospect |
-| `Calls.AccessMedia.All` | Connects audio so the rep can hear and speak | Required alongside `Calls.Initiate.All` for the call to have audio; Microsoft hosts the media stream |
+| `Calls.Initiate.All` | Place an outbound call from a rep's Teams Phone number | Rep clicks Dial in the app → their headset rings → prospect is called |
+| `Calls.AccessMedia.All` | Connect the audio channel for the call | Required by Microsoft alongside Calls.Initiate.All for any PSTN call |
+
+**Key point on calling permissions:** These fire only when a rep manually clicks Dial on a specific prospect record. There is no automated dialing, no scheduled calling, and no bulk operations. Each call is a deliberate one-click action by a signed-in rep.
 
 ---
 
-## What Data Is Accessed
+## What Data Is Accessed and Stored
 
-| Data | Accessed | Stored | Retention |
+| Data | Accessed | Stored by Apex | Retention |
 |---|---|---|---|
-| Rep's name and email address | Yes — at login | Yes — in app database | Until rep account is deleted |
-| Rep's Microsoft Object ID (internal Azure ID) | Yes — at login | Yes — required for call API | Until rep account is deleted |
-| Outbound emails sent via Outlook | Yes — to send | No — only delivery status stored | Never stored in full |
-| Rep's inbox messages | Yes — to scan for replies | Only subject + sender of matched replies | 90 days |
-| Call audio | No | No | Microsoft hosts; Apex never receives audio |
-| Teams call metadata (connected/ended/duration) | Yes — from webhook | Yes — logged as call record | Until rep account is deleted |
-| Contacts, calendar, files, Teams messages | **No** | **No** | Not requested |
-
----
-
-## How Calling Works (Technical Detail)
-
-When a rep clicks Dial in the power dialer:
-
-1. The Apex server calls `POST https://graph.microsoft.com/v1.0/communications/calls` using the rep's Azure AD user ID
-2. Microsoft Teams initiates an outbound PSTN call **from the rep's existing Teams Phone DID** to the prospect
-3. The call rings on the rep's Teams-connected headset or device — no Teams application window opens
-4. Microsoft sends call state events (connected, ended, duration) to a webhook on the Apex server
-5. The outcome is automatically logged in the app
-
-**The rep's Teams Phone number, Teams Phone license, and existing calling plan are used as-is.** Apex does not provision numbers, purchase calling plans, or route calls through any third-party infrastructure.
+| Rep's name and work email | Yes — at login | Yes | Until rep account is deleted |
+| Rep's Microsoft Object ID | Yes — at login | Yes — required to place calls via the API | Until rep account is deleted |
+| OAuth refresh token | Yes — at login | Yes — stored in the app database to maintain the session | Until rep disconnects their account |
+| Outbound emails content | Yes — to send them | No — only subject line and sent timestamp | N/A |
+| Rep's inbox | Yes — scanned for replies from prospects | Only subject and sender of matched replies | 90 days |
+| Call audio | No | No — Microsoft routes audio between the rep's headset and the prospect; Apex never receives it | N/A |
+| Call metadata (duration, outcome) | Yes — from Microsoft webhook | Yes | Until rep account is deleted |
+| Calendar, contacts, files, Teams chat | No | No | Not requested |
 
 ---
 
 ## Security
 
-- **Authentication:** All reps authenticate via Microsoft SSO. No passwords are stored in Apex.
-- **Tokens:** OAuth refresh tokens are stored encrypted in a Railway-hosted PostgreSQL database. The database is not publicly accessible.
-- **App credentials:** The Azure app's Client ID and Client Secret are stored as environment variables on Railway, not in source code.
-- **Scope:** The app only requests the permissions listed above. No admin-level directory permissions are requested.
-- **Revocation:** Access can be revoked at any time by an admin via Azure Portal → Enterprise Applications → apex-bdr → Delete. All rep tokens become invalid immediately.
-- **Tenant isolation:** The app uses C3.ai's tenant ID when acquiring tokens. Calls are initiated within your tenant only.
+- **No passwords stored.** All authentication is via Microsoft SSO. Apex stores only the OAuth refresh token issued by Microsoft.
+- **Tokens are stored in a private PostgreSQL database** on Railway (US-based, not publicly accessible). Connection requires credentials not exposed in source code.
+- **App credentials** (Client ID and Client Secret) are environment variables on Railway, not in the source code or repository.
+- **Tenant isolation.** The app is configured with C3.ai's tenant ID. It cannot acquire tokens for users outside the C3.ai directory.
+- **No third-party data sharing.** Prospect and rep data does not leave the app or get shared with any external service.
+- **Source code is available for review** — see files listed at the bottom of this document.
 
 ---
 
-## How to Grant Admin Consent
+## How to Restrict Access (Recommended)
 
-### Option A — Admin Consent URL (fastest)
+You can limit sign-in to the BDR team only, so the app is not available to all C3.ai employees:
 
-A Global Administrator visits this URL while signed into the C3.ai Azure tenant:
+1. Azure Portal → Enterprise Applications → apex-bdr
+2. Under **Properties**, set **Assignment required** to **Yes**
+3. Under **Users and groups**, add only the BDR team members or an existing security group
 
-```
-https://login.microsoftonline.com/organizations/adminconsent
-  ?client_id=YOUR_CLIENT_ID
-  &redirect_uri=https://apex-bdr-production.up.railway.app/auth/microsoft/callback
-```
-
-*(Replace `YOUR_CLIENT_ID` with the Application Client ID from the Azure Portal Overview page.)*
-
-The admin signs in, reviews the permission list, and clicks **Accept**. All C3.ai users can then sign in without further prompts.
-
-### Option B — Azure Portal
-
-1. Go to **Azure Portal → Azure Active Directory → Enterprise Applications**
-2. Search for **apex-bdr**
-3. Click **Permissions → Grant admin consent for C3.ai**
-4. Review and confirm
+This means only assigned users can sign in, even after admin consent is granted.
 
 ---
 
-## How to Revoke Access
+## How to Revoke Access Instantly
 
-1. **Azure Portal → Enterprise Applications → apex-bdr → Delete**  
-   This immediately invalidates all tokens. No rep can sign in or send email via the app.
+- **Revoke all access:** Azure Portal → Enterprise Applications → apex-bdr → Delete. All rep sessions and tokens are immediately invalidated.
+- **Revoke one rep:** Azure Portal → Users → [rep name] → Apps and permissions → Remove apex-bdr.
 
-2. **Per-user:** Azure Portal → Users → [rep name] → Apps & Permissions → Revoke consent for apex-bdr
+---
+
+## Source Code Available for Review
+
+henry.whittle@c3.ai can provide read access to the private repository on request. Key files:
+
+| File | What it does |
+|---|---|
+| `routes/microsoftOAuth.js` | Handles sign-in, token exchange, stores refresh token |
+| `services/sequenceMailer.js` | Sends outbound emails via Graph API (Mail.Send) |
+| `services/replyDetector.js` | Reads inbox to detect prospect replies (Mail.Read) |
+| `services/teamsCallService.js` | Places outbound calls via Graph Calls API |
+| `routes/calls.js` | Receives call state webhooks from Microsoft |
 
 ---
 
 ## Questions
 
-Contact: henry.whittle@c3.ai
-
-The full source code for the integration is available for review on request. Key files:
-- `routes/microsoftOAuth.js` — SSO sign-in and token storage
-- `services/teamsCallService.js` — Calls API integration
-- `routes/calls.js` — Call initiation and webhook handler
-- `services/sequenceMailer.js` — Email sending via Graph API
+Contact henry.whittle@c3.ai or schedule a call for a live walkthrough of the app.

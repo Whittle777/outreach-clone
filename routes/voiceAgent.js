@@ -71,7 +71,7 @@ router.post('/provision', async (req, res) => {
     const { apiKey, voiceId } = await getElevenCreds();
 
     const agentConfig = {
-      name: 'Outreach.ai Voice Agent',
+      name: 'Apex Voice Agent',
       conversation_config: {
         agent: {
           prompt: {

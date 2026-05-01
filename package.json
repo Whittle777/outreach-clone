@@ -1,7 +1,7 @@
 {
-  "name": "outreach-clone",
+  "name": "apex-bdr",
   "version": "1.0.0",
-  "description": "Outreach clone backend server",
+  "description": "Apex BDR backend server",
   "main": "index.js",
   "scripts": {
     "start": "npx prisma db push && node index.js",
